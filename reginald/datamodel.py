@@ -84,8 +84,6 @@ class RegisterMap:
                 data = yaml.load(f, Loader=SafeLoader)
                 return RegisterMap(**data)
         except FileNotFoundError:
-            raise ReginaldException(f"File f{file_name} not found")
+            raise ReginaldException(f"File {file_name} not found")
         except ValidationError as e:
             raise ReginaldException(str(e))
-
-

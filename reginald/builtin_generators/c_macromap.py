@@ -20,7 +20,7 @@ class Generator(OutputGenerator):
 
         out.append(f"/*")
         out.append(f"* {dev_name} Register Map.")
-        out.append(f"* Note: do not edit. Generated from: TODO")
+        out.append(f"* Note: do not edit: Generated using Reginald.")
         out.append(f"*/")
         out.append(f"")
         out.append(f"#ifndef {dev_macro}_REG_H_")
