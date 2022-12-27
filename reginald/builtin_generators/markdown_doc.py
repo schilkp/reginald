@@ -42,6 +42,7 @@ class Generator(OutputGenerator):
             fields = ", ".join(r.fields.keys())
             rows.append([adr, name, fields])
 
+        out.append("")
         out.append(tabulate(rows, headers=["Address", "Register", "Fields"], tablefmt="pipe"))
         out.append("")
 
@@ -86,39 +87,40 @@ class Generator(OutputGenerator):
                 else:
                     access_row.append("")
 
+            out.append("")
             out.append(tabulate([bitrow, field_row, access_row], headers="firstrow",
                                 tablefmt="pipe", numalign="center", stralign="center"))
+            out.append("")
 
             # Field info:
             out.append("")
-            out.append(f"#### BitFields:")
+            out.append(f"*Bitfields* :")
             for name, field in r.fields.items():
                 out.append("")
-                out.append(f"##### {name}:")
+                out.append(f"  - {name}:")
                 if field.doc is not None:
                     doc = str.join(" ", field.doc.splitlines())
-                    out.append(f"Description:  {doc}")
-                    out.append("")
+                    out.append(f"    - Description:  {doc}")
                 if field.access is not None:
-                    out.append(f"Access: {field.access}")
+                    out.append(f"    - Access: {field.access}")
                     out.append("")
                 if field.enum is not None or field.accepts_enum is not None:
-                    out.append(f"Values:")
+                    out.append(f"    - Values:")
                     if field.accepts_enum is not None:
-                        out.append(f"  - A value from enum {field.accepts_enum}:")
+                        out.append(f"      - A value from enum {field.accepts_enum}:")
                         for key, entry in map.enums[field.accepts_enum].items():
                             if entry.doc is not None:
                                 doc = str.join(" ", entry.doc.splitlines())
-                                out.append(f"    - {key}: 0x{entry.value:X} ({doc})")
+                                out.append(f"        - {key}: 0x{entry.value:X} ({doc})")
                             else:
-                                out.append(f"    - {key}: 0x{entry.value:X}")
+                                out.append(f"        - {key}: 0x{entry.value:X}")
                     if field.enum is not None:
                         for key, entry in field.enum.items():
                             if entry.doc is not None:
                                 doc = str.join(" ", entry.doc.splitlines())
-                                out.append(f"  - {key}: 0x{entry.value:X} ({doc})")
+                                out.append(f"      - {key}: 0x{entry.value:X} ({doc})")
                             else:
-                                out.append(f"  - {key}: 0x{entry.value:X}")
+                                out.append(f"      - {key}: 0x{entry.value:X}")
 
             # horizontal rule:
             out.append("")
@@ -136,7 +138,9 @@ class Generator(OutputGenerator):
                         table_rows.append([key, hex(entry.value), entry.doc])
                     else:
                         table_rows.append([key, hex(entry.value), "?"])
+                out.append("")
                 out.append(tabulate(table_rows, headers=["Name", "Value", "Description"], tablefmt="pipe"))
+                out.append("")
 
             out.append("")
 
