@@ -44,9 +44,7 @@ def parse_args():
     args = parser.parse_args()
 
     selection = args.output_generator
-    if selection in builtin_generators:
-        generator = builtin_generators[selection]
-    else:
+    if selection.endswith(".py"):
         try:
 
             spec = importlib.util.spec_from_file_location("reginald.external_generator", selection)
@@ -64,7 +62,7 @@ def parse_args():
 
         except Exception:
             raise ReginaldException(
-                "Error: Specified generator is not a builtin option, is not a python file that could be openend!")
+                "Error: Specified generator is not a python file that could be openend!")
 
         if not "Generator" in gen_module.__dict__:
             raise ReginaldException(
@@ -75,5 +73,10 @@ def parse_args():
                 "Error: Specified generator file's 'Generator' class does not inherit from reginald.OutputGenerator!")
 
         generator = gen_module.Generator
+    else:
+        if selection in builtin_generators:
+            generator = builtin_generators[selection]
+        else:
+            raise ReginaldException("Error: Unknown generator.")
 
     return CLI(input_file=args.input_file, generator=generator, generator_args=args.generator_args)
