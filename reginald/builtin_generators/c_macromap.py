@@ -1,0 +1,82 @@
+from typing import List, Tuple
+
+from reginald.datamodel import *
+from reginald.generator import OutputGenerator
+from reginald.utils import c_sanitize
+
+
+class Generator(OutputGenerator):
+    @classmethod
+    def description(cls):
+        return "TODO"
+
+    @classmethod
+    def generate(cls, map: RegisterMap, args: List[str]):
+
+        dev_name = map.device_name
+        dev_macro = c_sanitize(dev_name).upper()
+
+        out = []
+
+        out.append(f"/*")
+        out.append(f"* {dev_name} Register Map.")
+        out.append(f"* Note: do not edit. Generated from: TODO")
+        out.append(f"*/")
+        out.append(f"")
+        out.append(f"#ifndef {dev_macro}_REG_H_")
+        out.append(f"#define {dev_macro}_REG_H_")
+        out.append(f"")
+
+        for reg_name_orig, r in map.registers.items():
+            reg_name = c_sanitize(reg_name_orig)
+
+            title_line = f"// ==== {reg_name} "
+            if len(title_line) < 80:
+                title_line += ("=" * (80 - len(title_line)))
+            out.append(title_line)
+
+            if r.doc is not None:
+                for l in r.doc.splitlines():
+                    out.append(f"// {l}")
+
+            # Generate all defines, keeping comments seperate for now:
+
+            defines = []  # type: List[Tuple[str, str, str]]
+
+            register_prefix = f"{dev_macro}__REG_{reg_name}"
+            if r.adr is not None:
+                defines.append((f"#define {register_prefix}", f"(0x{r.adr:02X}U)", "// Register Address"))
+
+            for field_name_orig, field in r.fields.items():
+                field_name = c_sanitize(field_name_orig)
+                field_prefix = f"{register_prefix}__REG_{field_name}"
+                defines.append((f"#define {field_prefix}",
+                               f"(0x{field.get_bits().get_bitmask():02X}U)", "// Field Mask"))
+
+                if field.enum is not None:
+                    for const_name_orig, const in field.enum.items():
+                        const_name = c_sanitize(const_name_orig)
+                        const_prefix = f"{field_prefix}__CONST_{const_name}"
+                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", "// Constant"))
+
+                if field.accepts_enum is not None:
+                    for const_name_orig, const in map.enums[field.accepts_enum].items():
+                        const_name = c_sanitize(const_name_orig)
+                        const_prefix = f"{field_prefix}__CONST_{const_name}"
+                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", "// Constant"))
+
+            # Align values and comments:
+            define_max_len = max([len(d[0]) for d in defines]) + 1
+            val_max_len = max([len(d[1]) for d in defines]) + 1
+
+            for define, val, comment in defines:
+                define = define + (" " * (define_max_len - len(define)))
+                val = (" " * (val_max_len - len(val))) + val
+                out.append(define+val+" "+comment)
+
+            out.append(f"")
+
+        out.append(f"")
+        out.append(f"#endif /* {dev_macro}_REG_H_ */")
+
+        return "\n".join(out)

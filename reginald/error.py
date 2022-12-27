@@ -1,0 +1,2 @@
+class ReginaldException(Exception):
+    pass
