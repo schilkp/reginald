@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import pydantic
 import yaml
@@ -12,7 +12,7 @@ from reginald.error import ReginaldException
 
 @dataclass
 class RegEnumEntry:
-    value: int
+    value: NonNegativeInt
     doc: Optional[str] = None
 
 
@@ -44,6 +44,30 @@ class Field:
 
     def get_bitranges(self) -> List[BitRange]:
         return self._compiled_bits.get_bitranges()
+
+    def lookup_enum_entryname(self, map, value: NonNegativeInt) -> Optional[str]:
+        if self.enum is not None:
+            for entry_name, entry in self.enum.items():
+                if entry.value == value:
+                    return entry_name
+        if self.accepts_enum is not None:
+            enum = map.enums[self.accepts_enum]
+            for entry_name, entry in enum.items():
+                if entry.value == value:
+                    return entry_name
+
+    def get_enum(self, map, value: NonNegativeInt) -> Tuple[str, RegEnumEntry]:
+        if self.enum is not None:
+            for entry_name, entry in self.enum.items():
+                if entry.value == value:
+                    return entry_name, entry
+        if self.accepts_enum is not None:
+            enum = map.enums[self.accepts_enum]
+            for entry_name, entry in enum.items():
+                if entry.value == value:
+                    return entry_name, entry
+
+        raise KeyError()
 
 
 @dataclass
@@ -85,6 +109,20 @@ class RegisterMap:
     register_bitwidth: PositiveInt
     registers: Dict[str, Register]
     enums: Dict[str, Dict[str, RegEnumEntry]] = pydantic.Field(default_factory=dict)
+
+    def get_registername_at(self, adr: NonNegativeInt) -> Optional[str]:
+        for reg_name, reg in self.registers.items():
+            if reg.adr == adr:
+                return reg_name
+
+        return None
+
+    def get_register_at(self, adr: NonNegativeInt) -> Optional[Register]:
+        reg_name = self.get_registername_at(adr)
+        if reg_name is not None:
+            return self.registers[reg_name]
+        else:
+            return None
 
     @classmethod
     def from_yaml_file(cls, file_name: str):

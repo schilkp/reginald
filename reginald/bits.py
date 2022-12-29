@@ -19,8 +19,11 @@ class BitRange:
     def get_bitlist(self) -> List[NonNegativeInt]:
         return [self.lsb_position + i for i in range(self.width)]
 
-    def contains_bit(self, bit: int) -> bool:
+    def contains_bit(self, bit: NonNegativeInt) -> bool:
         return bit >= self.lsb_position and bit < (self.lsb_position + self.width)
+
+    def extract_this_field_from(self, val: NonNegativeInt) -> NonNegativeInt:
+        return (self.get_bitmask() & val) >> self.lsb_position
 
     def __str__(self) -> str:
         if self.width == 1:
@@ -143,6 +146,9 @@ class Bits:
                 bitlist_and.append(bit)
 
         return Bits.from_bitlist(bitlist_and)
+
+    def extract_this_field_from(self, val: NonNegativeInt) -> NonNegativeInt:
+        return (self.get_bitmask() & val) >> self.lsb_position()
 
 
 def fits_into_bitwidth(val: int, bitwidth: int) -> bool:
