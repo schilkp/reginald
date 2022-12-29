@@ -70,7 +70,8 @@ class Generator(OutputGenerator):
             if register_name is not None:
                 register = map.registers[register_name]
                 out.append(f"## 0x{adr:0X} - {register_name}")
-                out.append(f"Value: 0x{dump[adr]:X}  0b{dump[adr]:b}")
+                out.append(f"  - 0x{dump[adr]:X}")
+                out.append(f"  - 0b{dump[adr]:b}")
 
                 # Collect all bitranges that make up this register - field or not:
                 register_bitranges = []  # type: List[BitRange]
@@ -86,6 +87,7 @@ class Generator(OutputGenerator):
                 bitrow = ["Bits:"]
                 field_row = ["Field:"]
                 value_row = ["Value:"]
+                decode_row = ["Decode:"]
 
                 for bitrange in register_bitranges:
                     bitrow.append(str(bitrange))
@@ -97,11 +99,23 @@ class Generator(OutputGenerator):
 
                     if field_name is not None:
                         field_row.append(field_name)
+
+                        # Lookup if this value in this value coresponds to an enum:
+                        field = register.fields[field_name]
+                        field_value = field.get_bits().extract_this_field_from(dump[adr])
+                        enum_entryname = field.lookup_enum_entryname(map, field_value)
+
+                        if enum_entryname is not None:
+                            decode_row.append(f"{enum_entryname} (0x{field_value:X})")
+                        else:
+                            decode_row.append(f"?")
+
                     else:
                         field_row.append("?")
+                        decode_row.append(f"?")
 
                 out.append("")
-                out.append(tabulate([bitrow, field_row, value_row], headers="firstrow",
+                out.append(tabulate([bitrow, field_row, value_row, decode_row], headers="firstrow",
                                     tablefmt="pipe", numalign="center", stralign="center"))
                 out.append("")
 
@@ -110,22 +124,25 @@ class Generator(OutputGenerator):
 
                 for field_name, field in register.fields.items():
                     value = field.get_bits().extract_this_field_from(dump[adr])
+                    out.append(f"   - {field_name}: 0x{value:X}")
+                    if field.doc is not None:
+                        doc = " ".join(field.doc.strip().splitlines()).strip()
+                        out.append(f"       - {doc}")
 
                     enum_entryname = field.lookup_enum_entryname(map, value)
 
                     if enum_entryname is not None:
-                        out.append(f"  - {field_name} = 0x{value:X} - {enum_entryname}")
                         _, entry = field.get_enum(map, value)
+
                         if entry.doc is not None:
-                            doc = " ".join(entry.doc.splitlines())
-                            out.append(f"     - {doc}")
-
-                    else:
-                        out.append(f"  - {field_name} = 0x{value:X}")
-
+                            doc = " ".join(entry.doc.strip().splitlines()).strip()
+                            out.append(f"       - {enum_entryname} ({doc})")
+                        else:
+                            out.append(f"       - {enum_entryname}")
             else:
                 out.append(f"## 0x{adr:0X} - ?")
-                out.append(f"Value: 0x{dump[adr]:X}  0b{dump[adr]:b}")
+                out.append(f"   - 0x{dump[adr]:X}")
+                out.append(f"   - 0b{dump[adr]:b}")
 
             out.append(f"")
             out.append(f"")

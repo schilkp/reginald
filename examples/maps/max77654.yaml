@@ -12,34 +12,42 @@ registers:
         bits: [7]
         access: "r"
         doc: LDO Dropout Detector Rising Interrupt
+        accepts_enum: EN
       DOD1_R:
         bits: [6]
         access: "r"
         doc: LDO Dropout Detector Rising Interrupt
+        accepts_enum: EN
       TJAL2_R:
         bits: [5]
         access: "r"
         doc: Thermal Alarm 2 Rising Interrupt
+        accepts_enum: EN
       TJAL1_R:
         bits: [4]
         access: "r"
         doc: Thermal Alarm 1 Rising Interrupt
+        accepts_enum: EN
       nEN_R:
         bits: [3]
         access: "r"
         doc: nEN Rising Interrupt
+        accepts_enum: EN
       nEN_F:
         bits: [2]
         access: "r"
         doc: nEN Falling Interrupt
+        accepts_enum: EN
       GPI0_R:
         bits: [1]
         access: "r"
         doc: GPI0 Rising Interrupt
+        accepts_enum: EN
       GPI0_F:
         bits: [0]
         access: "r"
         doc: GPI0 Falling Interrupt
+        accepts_enum: EN
 
   INT_GLBL1:
     adr: 0x04
@@ -50,30 +58,37 @@ registers:
         bits: [6]
         access: "r"
         doc: LDO1 Fault Interrupt
+        accepts_enum: EN
       LDO0_F:
         bits: [5]
         doc: LDO0 Fault Interrupt
         access: "r"
+        accepts_enum: EN
       SBB_TO:
         bits: [4]
         access: "r"
         doc: SBB Timeout
       GPI2_R:
+        accepts_enum: EN
         bits: [3]
         access: "r"
         doc: GPI Rising Interrupt
+        accepts_enum: EN
       GPI2_F:
         bits: [2]
         access: "r"
         doc: GPI Falling Interrupt
+        accepts_enum: EN
       GPI1_R:
         bits: [1]
         access: "r"
         doc: GPI Rising Interrupt
+        accepts_enum: EN
       GPI1_F:
         bits: [0]
         access: "r"
         doc: GPI Falling Interrupt
+        accepts_enum: EN
 
   ERC_FLAG:
     adr: 0x05
@@ -166,30 +181,37 @@ registers:
         bits: [6]
         access: "r/w"
         doc: LDO1 Fault Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       LDO0_M:
         bits: [5]
         access: "r/w"
         doc: LDO0 Fault Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       SBB_TO_M:
         bits: [4]
         access: "r/w"
         doc: SBB Timeout Mask/Disabled
+        accepts_enum: INT_MASK
       GPI2_RM:
         bits: [3]
         access: "r/w"
         doc: GPI Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       GPI2_FM:
         bits: [2]
         access: "r/w"
         doc: GPI Falling Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       GPI1_RM:
         bits: [1]
         access: "r/w"
         doc: GPI Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       GPI1_FM:
         bits: [0]
         access: "r/w"
         doc: GPI Falling Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
 
   INTM_GLBL0:
     adr: 0x09
@@ -200,34 +222,42 @@ registers:
         bits: [7]
         access: "r/w"
         doc: LDO Dropout Detector Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       DOD1_RM:
         bits: [6]
         access: "r/w"
         doc: LDO Dropout Detector Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       TJAL2_RM:
         bits: [5]
         access: "r/w"
         doc: Thermal Alarm 2 Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       TJAL1_RM:
         bits: [4]
         access: "r/w"
         doc: Thermal Alarm 1 Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       nEN_RM:
         bits: [3]
         access: "r/w"
         doc: nEN Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       nEN_FM:
         bits: [2]
         access: "r/w"
         doc: nEN Falling Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       GPI0_RM:
         bits: [1]
         access: "r/w"
         doc: GPI Rising Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
       GPI0_FM:
         bits: [0]
         access: "r/w"
         doc: GPI Falling Interrupt Mask/Disabled
+        accepts_enum: INT_MASK
 
   CNFG_GLBL:
     adr: 0x10
@@ -264,6 +294,7 @@ registers:
         bits: [4]
         access: "r/w"
         doc: Main Bias Force Enable Software Request
+        accepts_enum: EN
       nEN_MODE:
         bits: [3]
         access: "r/w"
@@ -336,10 +367,12 @@ registers:
         bits: [5]
         access: "r/w"
         doc: Alternate Mode Enable for GPIO0
+        accepts_enum: EN
       DBEN_GPI:
         bits: [4]
         access: "r/w"
         doc: General Purpose Input Debounce Timer enable (30ms)
+        accepts_enum: EN
       DO:
         bits: [3]
         access: "r/w"
@@ -357,6 +390,7 @@ registers:
         bits: [0]
         access: "r/w"
         doc: GPIO Direction
+        accepts_enum: GPO_DIR
 
   CNFG_GPIO1:
     adr: 0x12
@@ -388,6 +422,7 @@ registers:
         bits: [0]
         access: "r/w"
         doc: GPIO Direction
+        accepts_enum: GPO_DIR
 
   CNFG_GPIO2:
     adr: 0x13
@@ -419,6 +454,7 @@ registers:
         bits: [0]
         access: "r/w"
         doc: GPIO Direction
+        accepts_enum: GPO_DIR
 
   CID:
     adr: 0x14
@@ -471,9 +507,11 @@ registers:
       WDT_EN:
         bits: [1]
         doc: Watchdog Timer Enable. Write protected.
+        accepts_enum: EN
       WDT_LOCK:
         bits: [0]
         doc: Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.
+        accepts_enum: EN
 
   INT_CHG:
     adr: 0x01
@@ -554,7 +592,7 @@ registers:
           width: 4
         doc: Charger Status details
         enum:
-          OFF:
+          "OFF":
             value: 0x0
             doc: Off
           PQ:
@@ -624,24 +662,31 @@ registers:
       SYS_CNFG_I:
         bits: [6]
         doc: System Voltage Configuration Error Interrupt Mask/disabled
+        accepts_enum: INT_MASK
       SYS_CTRL_I:
         bits: [5]
         doc: Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled
+        accepts_enum: INT_MASK
       CHGIN_CTRL_I:
         bits: [4]
         doc: CHGIN Control-Loop Related Interrupt Mask/disabled.
+        accepts_enum: INT_MASK
       TJ_REG_I:
         bits: [3]
         doc: Die Junction Temperature Regulation Interrupt Mask/disabled.
+        accepts_enum: INT_MASK
       CHGIN_I:
         bits: [2]
         doc: CHGIN Related Interrupt Mask/disabled.
+        accepts_enum: INT_MASK
       CHG_I:
         bits: [1]
         doc: Charger Related Interrupt Mask/disabled.
+        accepts_enum: INT_MASK
       THM_I:
         bits: [0]
         doc: Thermistor Related Interrupt Mask/disabled.
+        accepts_enum: INT_MASK
 
   CNFG_CHG_A:
     adr: 0x20
@@ -778,6 +823,7 @@ registers:
       CHG_EN:
         bits: [0]
         doc: Charger Enable
+        accepts_enum: EN
 
   CNFG_CHG_C:
     adr: 0x22
@@ -996,7 +1042,7 @@ registers:
         bits: [1, 0]
         doc: Sets the fast-charge safety timer, t_FC.
         enum:
-          OFF:
+          "OFF":
             value: 0x0
             doc: Timer disabled
           3H:
@@ -1199,6 +1245,7 @@ registers:
       ADE_SBB:
         bits: [3]
         doc: SIMO Buck-Boost Channel 0 Active-Discharge Enable
+        accepts_enum: EN
       EN_SBB:
         bits: [2, 1, 0]
         doc: |
@@ -1250,6 +1297,7 @@ registers:
       ADE_SBB:
         bits: [3]
         doc: SIMO Buck-Boost Channel 1 Active-Discharge Enable
+        accepts_enum: EN
       EN_SBB:
         bits: [2, 1, 0]
         doc: |
@@ -1307,6 +1355,7 @@ registers:
       ADE_SBB:
         bits: [3]
         doc: SIMO Buck-Boost Channel 2 Active-Discharge Enable
+        accepts_enum: EN
       EN_SBB:
         bits: [2, 1, 0]
         doc: |
@@ -1369,6 +1418,7 @@ registers:
       ADE_LDO:
         bits: [3]
         doc: LDO Channel 0 Active-Discharge Enable
+        accepts_enum: EN
       EN_LDO:
         bits: [2, 1, 0]
         doc: |
@@ -1404,6 +1454,7 @@ registers:
       ADE_LDO:
         bits: [3]
         doc: LDO Channel 1 Active-Discharge Enable
+        accepts_enum: EN
       EN_LDO:
         bits: [2, 1, 0]
         doc: |
@@ -1456,3 +1507,33 @@ enums:
     PP:
       value: 1
       doc: "Push-Pull"
+
+  GPO_DIR:
+    OUTPUT:
+      value: 0
+      doc: "Output"
+    INPUT:
+      value: 1
+      doc: "Input"
+
+  EN:
+    DISABLED:
+      value: 0
+      doc: "Disabled"
+    ENABLED:
+      value: 1
+      doc: "Enabled"
+
+  INT_MASK:
+    UNMASKED:
+      value: 0
+      doc: "Enabled/Unmasked"
+    ENABLED:
+      value: 0
+      doc: "Enabled/Unmasked"
+    MASKED:
+      value: 1
+      doc: "Disabled/Masked"
+    DISABLED:
+      value: 1
+      doc: "Disabled/Masked"
