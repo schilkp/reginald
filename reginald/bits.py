@@ -16,7 +16,7 @@ class BitRange:
     def get_bitmask(self) -> int:
         return ((2 ** self.width) - 1) << self.lsb_position
 
-    def get_bitlist(self) -> List[int]:
+    def get_bitlist(self) -> List[NonNegativeInt]:
         return [self.lsb_position + i for i in range(self.width)]
 
     def contains_bit(self, bit: int) -> bool:
@@ -31,71 +31,67 @@ class BitRange:
 
 @dataclass
 class Bits:
-    ranges: List[BitRange]
+    bitlist: List[NonNegativeInt]
 
     @classmethod
     def zero(cls):
-        return Bits(ranges=[])
+        return Bits(bitlist=[])
 
     @classmethod
     def from_range(cls, lsb_position: NonNegativeInt, width: PositiveInt):
-        return Bits(ranges=[BitRange(lsb_position=lsb_position, width=width)])
+        return Bits(bitlist=BitRange(lsb_position=lsb_position, width=width).get_bitlist())
 
     @classmethod
     def from_bitlist(cls, bitlist: List[NonNegativeInt]):
-        bitlist = sorted(bitlist)
-        ranges = []
-        for group in more_itertools.consecutive_groups(bitlist):
-            bitlist_group = list(group)
-            ranges.append(BitRange(lsb_position=min(bitlist_group),
-                          width=(max(bitlist_group) - min(bitlist_group) + 1)))
+        return Bits(bitlist=bitlist)
 
-        return Bits(ranges=ranges)
-
-    def get_bitlist(self) -> List[int]:
-        bits = []
-        for range in self.ranges:
-            bits.extend(range.get_bitlist())
-        return bits
+    def get_bitlist(self) -> List[NonNegativeInt]:
+        return self.bitlist
 
     def get_bitmask(self) -> int:
         mask = 0
-        for range in self.ranges:
-            mask |= range.get_bitmask()
+        for bit in self.bitlist:
+            mask |= (1 << bit)
         return mask
 
     def get_unpositioned_bits(self):
         return self.bitwise_rshift(self.lsb_position())
 
     def get_bitranges(self) -> List[BitRange]:
-        return self.ranges
+        self.bitlist = sorted(self.bitlist)
+        ranges = []
+        for group in more_itertools.consecutive_groups(self.bitlist):
+            bitlist_group = list(group)
+            ranges.append(BitRange(lsb_position=min(bitlist_group),
+                          width=(max(bitlist_group) - min(bitlist_group) + 1)))
+        return ranges
 
     def get_bitrange(self) -> BitRange:
-        if len(self.ranges) == 1:
-            return self.ranges[0]
+
+        ranges = self.get_bitranges()
+        if len(ranges) == 1:
+            return ranges[0]
         else:
             breakpoint()
             raise ReginaldException(
                 f"Cannot specify bit range for a field that is non-continous! (Field mask: {hex(self.get_bitmask())})")
 
     def lsb_position(self) -> NonNegativeInt:
-        l = [r.lsb_position for r in self.ranges]
-        if len(l) == 0:
+        if len(self.bitlist) == 0:
             raise ValueError("Cannot get LSB of 0")
-        return min(l)
+        return min(self.bitlist)
 
     def msb_position(self) -> NonNegativeInt:
-        l = [r.lsb_position + r.width - 1 for r in self.ranges]
-        if len(l) == 0:
+        if len(self.bitlist) == 0:
             raise ValueError("Cannot get MSB of 0")
-        return max(l)
+        return max(self.bitlist)
 
     def bitwise_lshift(self, amt: NonNegativeInt):
-        bitlist = [b+amt for b in self.get_bitlist()]
+        bitlist = [b+amt for b in self.bitlist]
         return Bits.from_bitlist(bitlist)
 
     def bitwise_rshift(self, amt: NonNegativeInt):
-        bitlist = [b-amt for b in self.get_bitlist() if b-amt >= 0]
+        bitlist = [b-amt for b in self.bitlist if b-amt >= 0]
         return Bits.from_bitlist(bitlist)
 
     def bitwise_not(self, maximum_width: PositiveInt):
@@ -103,7 +99,7 @@ class Bits:
             breakpoint()
             raise ValueError("Inversion width too small for range")
 
-        bitlist_is = self.get_bitlist()
+        bitlist_is = self.bitlist
         bitlist_inv = []
         for bit in range(maximum_width):
             if not bit in bitlist_is:
@@ -113,9 +109,9 @@ class Bits:
 
     @classmethod
     def bitwise_or(cls, a, b):
-        bitlist_or = a.get_bitlist()
+        bitlist_or = a.bitlist
 
-        for bit in b.get_bitlist():
+        for bit in b.bitlist:
             if not bit in bitlist_or:
                 bitlist_or.append(bit)
 
@@ -125,8 +121,8 @@ class Bits:
     def bitwise_and(cls, a, b):
         bitlist_and = []
 
-        bitlist_a = a.get_bitlist()
-        bitlist_b = b.get_bitlist()
+        bitlist_a = a.bitlist
+        bitlist_b = b.bitlist
 
         for bit in bitlist_a:
             if bit in bitlist_b:
