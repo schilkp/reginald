@@ -2,11 +2,10 @@ import argparse
 import importlib.util
 import sys
 from dataclasses import dataclass
-from pprint import pprint
 from typing import List
 
 import reginald.builtin_generators.c_macromap
-import reginald.builtin_generators.markdown_doc
+import reginald.builtin_generators.md_doc
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 
@@ -20,7 +19,7 @@ class CLI:
 
 builtin_generators = {
     'c_macromap': reginald.builtin_generators.c_macromap.Generator,
-    'markdown_doc': reginald.builtin_generators.markdown_doc.Generator
+    'md_doc': reginald.builtin_generators.md_doc.Generator
 }
 
 
