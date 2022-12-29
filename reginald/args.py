@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import List
 
 import reginald.builtin_generators.c_macromap
+import reginald.builtin_generators.c_macropalette
 import reginald.builtin_generators.md_doc
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
@@ -19,6 +20,7 @@ class CLI:
 
 builtin_generators = {
     'c_macromap': reginald.builtin_generators.c_macromap.Generator,
+    'c_macropalette': reginald.builtin_generators.c_macropalette.Generator,
     'md_doc': reginald.builtin_generators.md_doc.Generator
 }
 
