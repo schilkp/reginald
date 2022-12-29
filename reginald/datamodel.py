@@ -6,7 +6,7 @@ from pydantic import NonNegativeInt, PositiveInt, ValidationError
 from pydantic.dataclasses import dataclass
 from yaml.loader import SafeLoader
 
-from reginald.bits import Bits
+from reginald.bits import BitRange, Bits
 from reginald.error import ReginaldException
 
 
@@ -32,12 +32,18 @@ class Field:
 
     def __post_init_post_parse__(self):
         if isinstance(self.bits, InputBitRange):
-            self._compiled_bits = Bits.from_range(self.bits.lsb_position, self.bits.width)
+            self._compiled_bits = Bits.from_position(self.bits.lsb_position, self.bits.width)
         else:
             self._compiled_bits = Bits.from_bitlist(self.bits)
 
     def get_bits(self) -> Bits:
         return self._compiled_bits
+
+    def get_bitrange(self) -> BitRange:
+        return self._compiled_bits.get_bitrange()
+
+    def get_bitranges(self) -> List[BitRange]:
+        return self._compiled_bits.get_bitranges()
 
 
 @dataclass
@@ -47,15 +53,15 @@ class Register:
     reset_val: Optional[int] = None
     doc: Optional[str] = None
 
-    def fieldname_at(self, bit: int) -> Optional[str]:
+    def get_fieldname_at(self, bit: int) -> Optional[str]:
         for name in self.fields:
             mask = self.fields[name].get_bits().get_bitmask()
             if (1 << bit) & mask != 0:
                 return name
         return None
 
-    def field_at(self, bit: int) -> Optional[Field]:
-        name = self.fieldname_at(bit)
+    def get_field_at(self, bit: int) -> Optional[Field]:
+        name = self.get_fieldname_at(bit)
         if name is None:
             return None
         else:
@@ -68,6 +74,9 @@ class Register:
             mask = Bits.bitwise_or(mask, field.get_bits())
 
         return mask.bitwise_not(register_bitwidth)
+
+    def get_unused_bitranges(self, register_bitwidth: int) -> List[BitRange]:
+        return self.get_unused_bits(register_bitwidth).get_bitranges()
 
 
 @dataclass

@@ -1,5 +1,3 @@
-from copy import copy
-
 from tabulate import tabulate
 
 from reginald.datamodel import *
@@ -15,9 +13,12 @@ class Generator(OutputGenerator):
     def generate(cls, map: RegisterMap, args: List[str]):
         out = []
 
+        # Generate header:
         out.append(f"# {map.device_name} Register Map")
         out.append(f"Register bit width: {map.register_bitwidth}")
         out.append("")
+
+        # Generate overview table:
 
         out.append(f"## Overview:")
         out.append("")
@@ -31,61 +32,71 @@ class Generator(OutputGenerator):
                 return adr
 
         regs = sorted(map.registers.keys(), key=sort_by_adr)
-        for name in regs:
-            r = map.registers[name]
+        for reg_name in regs:
+            reg = map.registers[reg_name]
 
-            if r.adr is None:
+            if reg.adr is None:
                 adr = "?"
             else:
-                adr = f"0x{r.adr:X}"
+                adr = f"0x{reg.adr:X}"
 
-            fields = ", ".join(r.fields.keys())
-            rows.append([adr, name, fields])
+            fields = ", ".join(reg.fields.keys())
+            rows.append([adr, reg_name, fields])
 
         out.append("")
         out.append(tabulate(rows, headers=["Address", "Register", "Fields"], tablefmt="pipe"))
         out.append("")
 
+        # Generate register section:
+
         out.append(f"## Registers:")
-        for name, r in map.registers.items():
-            out.append(f"### {name}:")
-            if r.doc is not None:
-                doc = str.join(" ", r.doc.splitlines())
+        for reg_name, reg in map.registers.items():
+
+            # Register name:
+            out.append(f"### {reg_name}:")
+
+            # Register info:
+            if reg.doc is not None:
+                doc = str.join(" ", reg.doc.splitlines())
                 out.append(f" - {doc}")
-            if r.adr is not None:
-                out.append(f" - Address: 0x{r.adr:X}")
-            if r.reset_val is not None:
-                out.append(f" - Reset Val: 0x{r.reset_val:X}")
+            if reg.adr is not None:
+                out.append(f" - Address: 0x{reg.adr:X}")
+            if reg.reset_val is not None:
+                out.append(f" - Reset Val: 0x{reg.reset_val:X}")
 
-            # Split field into seperate fields for every consecutive interval of bits it
-            # occupies. (Required if a register field is non-continous).
-            seperated_fields = []
-            for name, field in r.fields.items():
-                for bitrange in field.get_bits().get_bitranges():
-                    f = copy(field)
-                    f.bits = bitrange.get_bitlist()
-                    seperated_fields.append((name, f))
+            # Register bitfields table:
 
-            # Fill missing/unused bits:
-            for bitrange in r.get_unused_bits(map.register_bitwidth).get_bitranges():
-                seperated_fields.append(("[UNSPECIFIED]", Field(bits=bitrange.get_bitlist())))
+            # Collect all bitranges that make up this register - field or not:
+            register_bitranges = []  # type: List[BitRange]
+            for field in reg.fields.values():
+                for range in field.get_bitranges():
+                    register_bitranges.append(range)
+            register_bitranges.extend(reg.get_unused_bitranges(map.register_bitwidth))
 
-            # Sort fields:
-            seperated_fields = sorted(
-                seperated_fields, key=lambda x: x[1].get_bits().lsb_position(), reverse=True)
+            # Sort bitranges:
+            register_bitranges = sorted(register_bitranges, key=lambda x: x.lsb_position, reverse=True)
 
-            # Generate table:
             bitrow = ["Bits:"]
             field_row = ["Field:"]
             access_row = ["Access:"]
 
-            for name, field in seperated_fields:
-                bitrow.append(str(field.get_bits().get_bitrange()))
-                field_row.append(name)
-                if field.access is not None:
-                    access_row.append(field.access)
+            for bitrange in register_bitranges:
+                # Retrieve field that coresponds to this range (if any):
+                field_name = reg.get_fieldname_at(bitrange.lsb_position)
+
+                bitrow.append(str(bitrange))
+
+                if field_name is not None:
+                    field = reg.fields[field_name]
+
+                    field_row.append(field_name)
+                    if field.access is not None:
+                        access_row.append(field.access)
+                    else:
+                        access_row.append("?")
                 else:
-                    access_row.append("")
+                    access_row.append("?")
+                    field_row.append("?")
 
             out.append("")
             out.append(tabulate([bitrow, field_row, access_row], headers="firstrow",
@@ -94,18 +105,29 @@ class Generator(OutputGenerator):
 
             # Field info:
             out.append("")
-            out.append(f"*Bitfields* :")
-            for name, field in r.fields.items():
+            out.append(f"*Bitfields*:")
+
+            for field_name, field in reg.fields.items():
+
+                # Access (if any):
+                if field.access is not None:
+                    access_str = f" [{field.access}]"
+                else:
+                    access_str = ""
+
                 out.append("")
-                out.append(f"  - {name}:")
+                out.append(f"  - {field_name}{access_str}:")
+
+                # Documentation (if any):
                 if field.doc is not None:
                     doc = str.join(" ", field.doc.splitlines())
-                    out.append(f"    - Description:  {doc}")
-                if field.access is not None:
-                    out.append(f"    - Access: {field.access}")
-                    out.append("")
+                    out.append(f"    - {doc}")
+
+                # Accepted values (through local or global enum):
                 if field.enum is not None or field.accepts_enum is not None:
                     out.append(f"    - Values:")
+
+                    # Global enum:
                     if field.accepts_enum is not None:
                         out.append(f"      - A value from enum {field.accepts_enum}:")
                         for key, entry in map.enums[field.accepts_enum].items():
@@ -114,6 +136,8 @@ class Generator(OutputGenerator):
                                 out.append(f"        - {key}: 0x{entry.value:X} ({doc})")
                             else:
                                 out.append(f"        - {key}: 0x{entry.value:X}")
+
+                    # Local enum:
                     if field.enum is not None:
                         for key, entry in field.enum.items():
                             if entry.doc is not None:
@@ -129,8 +153,8 @@ class Generator(OutputGenerator):
         if map.enums is not None:
             out.append(f"## Enums:")
             out.append("")
-            for name, enum in map.enums.items():
-                out.append(f"### {name}:")
+            for reg_name, enum in map.enums.items():
+                out.append(f"### {reg_name}:")
                 out.append("")
                 table_rows = []
                 for key, entry in enum.items():

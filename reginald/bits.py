@@ -38,8 +38,22 @@ class Bits:
         return Bits(bitlist=[])
 
     @classmethod
-    def from_range(cls, lsb_position: NonNegativeInt, width: PositiveInt):
+    def from_position(cls, lsb_position: NonNegativeInt, width: PositiveInt):
         return Bits(bitlist=BitRange(lsb_position=lsb_position, width=width).get_bitlist())
+
+    @classmethod
+    def from_bitrange(cls, range: BitRange):
+        return Bits(bitlist=range.get_bitlist())
+
+    @classmethod
+    def from_bitranges(cls, ranges: List[BitRange]):
+        bitlist = []
+        for range in ranges:
+            for bit in range.get_bitlist():
+                if not bit in bitlist:
+                    bitlist.append(bit)
+
+        return Bits.from_bitlist(bitlist)
 
     @classmethod
     def from_bitlist(cls, bitlist: List[NonNegativeInt]):
