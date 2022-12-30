@@ -2,7 +2,7 @@ from typing import List
 
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
-from reginald.utils import c_sanitize
+from reginald.utils import c_fitting_unsigned_type, c_sanitize
 
 
 class Generator(OutputGenerator):
@@ -19,14 +19,7 @@ class Generator(OutputGenerator):
         out.append(f"void main() {{")
         out.append(f"")
 
-        possible_variable_sizes = [8, 16, 32, 64]
-        possible_variable_sizes = [size for size in possible_variable_sizes if size >= map.register_bitwidth]
-        if len(possible_variable_sizes) == 0:
-            raise ReginaldException(f"No valid c type found for to store {map.register_bitwidth} bits!")
-
-        variable_size = min(possible_variable_sizes)
-
-        type = f"uint{variable_size}_t"
+        type = c_fitting_unsigned_type(map.register_bitwidth)
 
         for reg_name_orig, r in map.registers.items():
             reg_name_macro = c_sanitize(reg_name_orig)
@@ -35,7 +28,7 @@ class Generator(OutputGenerator):
             out.append(f"  //{reg_name_macro}:")
             out.append(f"  {type} {reg_name_var} = 0;")
 
-            for field_name_orig, f in r.fields.items():
+            for field_name_orig in r.fields:
                 field_name_macro = c_sanitize(field_name_orig)
                 out.append(f"  {reg_name_var} = REG_FIELD_SET({reg_name_macro}, {field_name_macro}, {reg_name_var}, X);")
 

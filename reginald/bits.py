@@ -103,6 +103,9 @@ class Bits:
             raise ValueError("Cannot get MSB of 0")
         return max(self.bitlist)
 
+    def width(self) -> NonNegativeInt:
+        return self.msb_position() - self.lsb_position() + 1
+
     def bitwise_lshift(self, amt: NonNegativeInt):
         bitlist = [b+amt for b in self.bitlist]
         return Bits.from_bitlist(bitlist)
