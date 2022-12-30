@@ -1060,7 +1060,7 @@ registers:
     reset_val: 0x04
     doc: Charger Config register F.
     fields:
-      CHG_CC:
+      CHG_CC_JEITA:
         bits:
           lsb_position: 2
           width: 6
@@ -1073,9 +1073,10 @@ registers:
           This 6-bit configuration is a linear transfer
           function that starts at 7.5mA and ends at
           300mA, with 7.5mA increments.
-        THM_EN:
-          bits: [1]
-          doc: Thermistor Enable
+      THM_EN:
+        bits: [1]
+        doc: Thermistor Enable
+        accepts_enum: EN
 
   CNFG_CHG_G:
     adr: 0x26
@@ -1132,10 +1133,10 @@ registers:
           8mA2:
             value: 0x0
             doc: 8.2mA
-          0mA5:
+          40mA5:
             value: 0x1
             doc: 40.5mA
-          2mA3:
+          72mA3:
             value: 0x2
             doc: 72.3mA
           103mA4:
@@ -1159,7 +1160,7 @@ registers:
           279mA3:
             value: 0x9
             doc: 279.3mA
-          300mA0:
+          300mA:
             value: 0xA
             doc: 300.0mA
       MUX_SEL:
@@ -1207,7 +1208,7 @@ registers:
     reset_val: 0x00
     doc: SBB0 Config A.
     fields:
-      TV_SBB0:
+      TV_SBB:
         bits:
           lsb_position: 0
           width: 7
@@ -1259,7 +1260,7 @@ registers:
     reset_val: 0x00
     doc: SBB1 Config A.
     fields:
-      TV_SBB1:
+      TV_SBB:
         bits:
           lsb_position: 0
           width: 7
@@ -1311,7 +1312,7 @@ registers:
     reset_val: 0x00
     doc: SBB2 Config A.
     fields:
-      TV_SBB2:
+      TV_SBB:
         bits:
           lsb_position: 0
           width: 7
