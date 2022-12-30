@@ -49,7 +49,7 @@ class Generator(OutputGenerator):
 
             for field_name_orig, field in r.fields.items():
                 field_name = c_sanitize(field_name_orig)
-                field_prefix = f"{register_prefix}__REG_{field_name}"
+                field_prefix = f"{register_prefix}__FIELD_{field_name}"
                 defines.append((f"#define {field_prefix}",
                                f"(0x{field.get_bits().get_bitmask():02X}U)", "// Field Mask"))
 
