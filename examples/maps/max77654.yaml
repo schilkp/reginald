@@ -212,7 +212,6 @@ registers:
         access: "r/w"
         doc: GPI Falling Interrupt Mask/Disabled
         accepts_enum: INT_MASK
-
   INTM_GLBL0:
     adr: 0x09
     reset_val: 0xFF
@@ -373,7 +372,7 @@ registers:
         access: "r/w"
         doc: General Purpose Input Debounce Timer enable (30ms)
         accepts_enum: EN
-      DO:
+      DOUT:
         bits: [3]
         access: "r/w"
         doc: General Purpose Output Data Output
@@ -405,7 +404,7 @@ registers:
         bits: [4]
         access: "r/w"
         doc: General Purpose Input Debounce Timer enable (30ms)
-      DO:
+      DOUT:
         bits: [3]
         access: "r/w"
         doc: General Purpose Output Data Output
@@ -437,7 +436,7 @@ registers:
         bits: [4]
         access: "r/w"
         doc: General Purpose Input Debounce Timer enable (30ms)
-      DO:
+      DOUT:
         bits: [3]
         access: "r/w"
         doc: General Purpose Output Data Output
@@ -1230,19 +1229,7 @@ registers:
       IP_SBB:
         bits: [5, 4]
         doc: SIMO Buck-Boost Channel 0 Peak Current Limit
-        enum:
-          1A:
-            value: 0x0
-            doc: 1.000A
-          0A75:
-            value: 0x1
-            doc: 0.750A
-          0A5:
-            value: 0x2
-            doc: 0.500A
-          0A3:
-            value: 0x3
-            doc: 0.333A
+        accepts_enum: IP_SBB
       ADE_SBB:
         bits: [3]
         doc: SIMO Buck-Boost Channel 0 Active-Discharge Enable
@@ -1282,19 +1269,7 @@ registers:
       IP_SBB:
         bits: [5, 4]
         doc: SIMO Buck-Boost Channel 1 Peak Current Limit
-        enum:
-          1A:
-            value: 0x0
-            doc: 1.000A
-          0A75:
-            value: 0x1
-            doc: 0.750A
-          0A5:
-            value: 0x2
-            doc: 0.500A
-          0A3:
-            value: 0x3
-            doc: 0.333A
+        accepts_enum: IP_SBB
       ADE_SBB:
         bits: [3]
         doc: SIMO Buck-Boost Channel 1 Active-Discharge Enable
@@ -1340,19 +1315,7 @@ registers:
       IP_SBB:
         bits: [5, 4]
         doc: SIMO Buck-Boost Channel 2 Peak Current Limit
-        enum:
-          1A:
-            value: 0x0
-            doc: 1.000A
-          0A75:
-            value: 0x1
-            doc: 0.750A
-          0A5:
-            value: 0x2
-            doc: 0.500A
-          0A3:
-            value: 0x3
-            doc: 0.333A
+        accepts_enum: IP_SBB
       ADE_SBB:
         bits: [3]
         doc: SIMO Buck-Boost Channel 2 Active-Discharge Enable
@@ -1538,3 +1501,18 @@ enums:
     DISABLED:
       value: 1
       doc: "Disabled/Masked"
+
+  IP_SBB:
+    1A:
+      value: 0x0
+      doc: 1.000A
+    0A75:
+      value: 0x1
+      doc: 0.750A
+    0A5:
+      value: 0x2
+      doc: 0.500A
+    0A3:
+      value: 0x3
+      doc: 0.333A
+

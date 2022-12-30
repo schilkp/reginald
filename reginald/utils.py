@@ -1,6 +1,6 @@
 import re
 
-from error import ReginaldException
+from reginald.error import ReginaldException
 
 
 def c_sanitize(s: str) -> str:
