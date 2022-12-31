@@ -50,6 +50,11 @@ class Generator(OutputGenerator):
 
         for registername_orig, reg in map.registers.items():
 
+            enum_count = len([field.enum for field in reg.fields.values() if field.enum is not None])
+
+            if enum_count == 0:
+                continue
+
             title_line = f"// ==== {registername_orig} Enums "
             out.append(f"")
 
