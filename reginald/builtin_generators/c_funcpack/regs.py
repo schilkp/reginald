@@ -40,9 +40,10 @@ class Generator(OutputGenerator):
             out.append(str_pad_to_length(f"// ==== {regname_orig} ", "=", 80))
 
             # Generate register address:
-            out.extend(doxy_comment(f" {regname_c} Register Address", None))
-            out.append(f"#define {devname_macro}_REG_{regname_macro} (0x{reg.adr:X}U)")
-            out.append(f"")
+            if reg.adr is not None:
+                out.extend(doxy_comment(f" {regname_c} Register Address", None))
+                out.append(f"#define {devname_macro}_REG_{regname_macro} (0x{reg.adr:X}U)")
+                out.append(f"")
 
             # Generate register struct:
             out.extend(doxy_comment(reg.brief, reg.doc))
