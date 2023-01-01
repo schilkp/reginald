@@ -5,7 +5,7 @@ from reginald.error import ReginaldException
 
 
 def c_sanitize(s: str) -> str:
-    return re.sub(r"\s", "_", s)
+    return re.sub(r"[^_a-zA-Z0-9]", "_", s)
 
 
 def c_fitting_unsigned_type(bitwidth: int) -> str:
