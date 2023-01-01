@@ -14,6 +14,11 @@ from reginald.error import ReginaldException
 class RegEnumEntry:
     value: NonNegativeInt
     doc: Optional[str] = None
+    brief: Optional[str] = None
+
+    def __post_init_post_parse__(self):
+        if self.brief is not None:
+            self.brief = " ".join(self.brief.splitlines()).strip()
 
 
 @dataclass
@@ -27,10 +32,14 @@ class Field:
     bits: Union[List[int], InputBitRange]
     access: Optional[str] = None
     doc: Optional[str] = None
+    brief: Optional[str] = None
     accepts_enum: Optional[str] = None
     enum: Optional[Dict[str, RegEnumEntry]] = None
 
     def __post_init_post_parse__(self):
+        if self.brief is not None:
+            self.brief = " ".join(self.brief.splitlines()).strip()
+
         if isinstance(self.bits, InputBitRange):
             self._compiled_bits = Bits.from_position(self.bits.lsb_position, self.bits.width)
         else:
@@ -76,6 +85,11 @@ class Register:
     adr: Optional[int] = None
     reset_val: Optional[int] = None
     doc: Optional[str] = None
+    brief: Optional[str] = None
+
+    def __post_init_post_parse__(self):
+        if self.brief is not None:
+            self.brief = " ".join(self.brief.splitlines()).strip()
 
     def get_fieldname_at(self, bit: int) -> Optional[str]:
         for name in self.fields:
@@ -109,6 +123,12 @@ class RegisterMap:
     register_bitwidth: PositiveInt
     registers: Dict[str, Register]
     enums: Dict[str, Dict[str, RegEnumEntry]] = pydantic.Field(default_factory=dict)
+    doc: Optional[str] = None
+    brief: Optional[str] = None
+
+    def __post_init_post_parse__(self):
+        if self.brief is not None:
+            self.brief = " ".join(self.brief.splitlines()).strip()
 
     def get_registername_at(self, adr: NonNegativeInt) -> Optional[str]:
         for reg_name, reg in self.registers.items():

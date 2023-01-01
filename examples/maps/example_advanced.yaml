@@ -9,13 +9,13 @@ registers:
   # The first register, located at 0x00:
   REG_A:
     adr: 0x00
-    doc: "Amazing Register A"
+    brief: "Amazing Register A"
     # The bitfields that make up register A:
     fields:
       # The first field, at bit 0:
       ENABLE:
         bits: [0] # bits specified by listing
-        doc: Turn the device on or off
+        brief: Turn the device on or off
       # The second field, at bits 7-4:
       COLOR:
         bits: # bits specified as a range
@@ -27,14 +27,14 @@ registers:
   # Another register
   REG_B:
     adr: 0x01
-    doc: "Incredible Register B"
+    brief: "Incredible Register B"
     fields:
       DIRECTION:
         bits: [1, 2]
         enum:
           NORTH:
             value: 0x0
-            doc: Point North
+            brief: Point North
           EAST:
             value: 0x1
           SOUTH:

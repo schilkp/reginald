@@ -5,6 +5,7 @@ from tabulate import tabulate
 
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
+from reginald.utils import str_oneline
 
 
 @dataclass
@@ -125,20 +126,24 @@ class Generator(OutputGenerator):
                 for field_name, field in register.fields.items():
                     value = field.get_bits().extract_this_field_from(dump[adr])
                     out.append(f"   - {field_name}: 0x{value:X}")
+                    if field.brief is not None:
+                        out.append(f"       - {str_oneline(field.brief)}")
                     if field.doc is not None:
-                        doc = " ".join(field.doc.strip().splitlines()).strip()
-                        out.append(f"       - {doc}")
+                        out.append(f"       - {str_oneline(field.doc)}")
 
                     enum_entryname = field.lookup_enum_entryname(map, value)
 
                     if enum_entryname is not None:
                         _, entry = field.get_enum(map, value)
 
-                        if entry.doc is not None:
-                            doc = " ".join(entry.doc.strip().splitlines()).strip()
-                            out.append(f"       - {enum_entryname} ({doc})")
+                        if entry.brief is not None:
+                            out.append(f"       - *SELECTED*: {enum_entryname} ({entry.brief})")
                         else:
-                            out.append(f"       - {enum_entryname}")
+                            out.append(f"       - *SELECTED*: {enum_entryname}")
+
+                        if entry.doc is not None:
+                            out.append(f"       - {str_oneline(entry.doc)}")
+
             else:
                 out.append(f"## 0x{adr:0X} - ?")
                 out.append(f"   - 0x{dump[adr]:X}")

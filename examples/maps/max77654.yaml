@@ -6,321 +6,321 @@ registers:
   INT_GLBL0:
     adr: 0x00
     reset_val: 0x00
-    doc: Global Interrupt flag register 0.
+    brief: Global Interrupt flag register 0.
     fields:
       DOD0_R:
         bits: [7]
         access: "r"
-        doc: LDO Dropout Detector Rising Interrupt
+        brief: LDO Dropout Detector Rising Interrupt
         accepts_enum: EN
       DOD1_R:
         bits: [6]
         access: "r"
-        doc: LDO Dropout Detector Rising Interrupt
+        brief: LDO Dropout Detector Rising Interrupt
         accepts_enum: EN
       TJAL2_R:
         bits: [5]
         access: "r"
-        doc: Thermal Alarm 2 Rising Interrupt
+        brief: Thermal Alarm 2 Rising Interrupt
         accepts_enum: EN
       TJAL1_R:
         bits: [4]
         access: "r"
-        doc: Thermal Alarm 1 Rising Interrupt
+        brief: Thermal Alarm 1 Rising Interrupt
         accepts_enum: EN
       nEN_R:
         bits: [3]
         access: "r"
-        doc: nEN Rising Interrupt
+        brief: nEN Rising Interrupt
         accepts_enum: EN
       nEN_F:
         bits: [2]
         access: "r"
-        doc: nEN Falling Interrupt
+        brief: nEN Falling Interrupt
         accepts_enum: EN
       GPI0_R:
         bits: [1]
         access: "r"
-        doc: GPI0 Rising Interrupt
+        brief: GPI0 Rising Interrupt
         accepts_enum: EN
       GPI0_F:
         bits: [0]
         access: "r"
-        doc: GPI0 Falling Interrupt
+        brief: GPI0 Falling Interrupt
         accepts_enum: EN
 
   INT_GLBL1:
     adr: 0x04
     reset_val: 0x00
-    doc: Global Interrupt flag register 1.
+    brief: Global Interrupt flag register 1.
     fields:
       LDO1_F:
         bits: [6]
         access: "r"
-        doc: LDO1 Fault Interrupt
+        brief: LDO1 Fault Interrupt
         accepts_enum: EN
       LDO0_F:
         bits: [5]
-        doc: LDO0 Fault Interrupt
+        brief: LDO0 Fault Interrupt
         access: "r"
         accepts_enum: EN
       SBB_TO:
         bits: [4]
         access: "r"
-        doc: SBB Timeout
+        brief: SBB Timeout
       GPI2_R:
         accepts_enum: EN
         bits: [3]
         access: "r"
-        doc: GPI Rising Interrupt
+        brief: GPI Rising Interrupt
         accepts_enum: EN
       GPI2_F:
         bits: [2]
         access: "r"
-        doc: GPI Falling Interrupt
+        brief: GPI Falling Interrupt
         accepts_enum: EN
       GPI1_R:
         bits: [1]
         access: "r"
-        doc: GPI Rising Interrupt
+        brief: GPI Rising Interrupt
         accepts_enum: EN
       GPI1_F:
         bits: [0]
         access: "r"
-        doc: GPI Falling Interrupt
+        brief: GPI Falling Interrupt
         accepts_enum: EN
 
   ERC_FLAG:
     adr: 0x05
     reset_val: 0x00
-    doc: Fault Status Register
+    brief: Fault Status Register
     fields:
       WDT_RST:
         bits: [7]
         access: "r"
-        doc: |
-          Watchdog Timer Reset Flag. This bit sets
-          when the watchdog timer expires and causes
+        brief: Watchdog Timer Reset Flag
+        doc: >
+          This bit sets when the watchdog timer expires and causes
           a power-reset (WDT_MODE = 1).
       WDT_OFF:
         bits: [6]
         access: "r"
-        doc: |
-          Watchdog Timer OFF Flag. This bit sets
-          when the watchdog timer expires and causes
+        brief: Watchdog Timer OFF Flag 
+        doc: >
+          This bit sets when the watchdog timer expires and causes
           a power-off (WDT_MODE = 0).
       SFT_CRST_F:
         bits: [5]
         access: "r"
-        doc: Software Cold Reset Flag
+        brief: Software Cold Reset Flag
       SFT_OFF_F:
         bits: [4]
         access: "r"
-        doc: Software OFF Flag
+        brief: Software OFF Flag
       MRST:
         bits: [3]
         access: "r"
-        doc: Manual Reset Timer
+        brief: Manual Reset Timer
       SYSUVLO:
         bits: [2]
         access: "r"
-        doc: SYS Domain Undervoltage Lockout
+        brief: SYS Domain Undervoltage Lockout
       SYSOVLO:
         bits: [1]
         access: "r"
-        doc: SYS Domain Overvoltage Lockout
+        brief: SYS Domain Overvoltage Lockout
       TOVLD:
         bits: [0]
         access: "r"
-        doc: Thermal Overload
+        brief: Thermal Overload
 
   STAT_GLBL:
     adr: 0x06
     reset_val: 0x00
-    doc: Global Status
+    brief: Global Status
     fields:
       DIDM:
         bits: [7]
         access: "r"
-        doc: Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)
+        brief: Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)
       BOK:
         bits: [6]
         access: "r"
-        doc: Main Bias OK
+        brief: Main Bias OK
       DOD0_S:
         bits: [5]
         access: "r"
-        doc: LDO0 in dropout
+        brief: LDO0 in dropout
       DOD1_S:
         bits: [4]
         access: "r"
-        doc: LDO1 in dropout
+        brief: LDO1 in dropout
       TJAL2_S:
         bits: [3]
         access: "r"
-        doc: Thermal Alarm 2 active
+        brief: Thermal Alarm 2 active
       TJAL1_S:
         bits: [2]
         access: "r"
-        doc: Thermal Alarm 1 active
+        brief: Thermal Alarm 1 active
       STAT_EN:
         bits: [1]
         access: "r"
-        doc: Debounced Status for the nEN Input
+        brief: Debounced Status for the nEN Input
       STAT_IRQ:
         bits: [0]
         access: "r"
-        doc: nIRQ active
+        brief: nIRQ active
 
   INTM_GLBL1:
     adr: 0x08
     reset_val: 0x7F
-    doc: Interrupt Masking 1
+    brief: Interrupt Masking 1
     fields:
       LDO1_M:
         bits: [6]
         access: "r/w"
-        doc: LDO1 Fault Interrupt Mask/Disabled
+        brief: LDO1 Fault Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       LDO0_M:
         bits: [5]
         access: "r/w"
-        doc: LDO0 Fault Interrupt Mask/Disabled
+        brief: LDO0 Fault Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       SBB_TO_M:
         bits: [4]
         access: "r/w"
-        doc: SBB Timeout Mask/Disabled
+        brief: SBB Timeout Mask/Disabled
         accepts_enum: INT_MASK
       GPI2_RM:
         bits: [3]
         access: "r/w"
-        doc: GPI Rising Interrupt Mask/Disabled
+        brief: GPI Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       GPI2_FM:
         bits: [2]
         access: "r/w"
-        doc: GPI Falling Interrupt Mask/Disabled
+        brief: GPI Falling Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       GPI1_RM:
         bits: [1]
         access: "r/w"
-        doc: GPI Rising Interrupt Mask/Disabled
+        brief: GPI Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       GPI1_FM:
         bits: [0]
         access: "r/w"
-        doc: GPI Falling Interrupt Mask/Disabled
+        brief: GPI Falling Interrupt Mask/Disabled
         accepts_enum: INT_MASK
   INTM_GLBL0:
     adr: 0x09
     reset_val: 0xFF
-    doc: Interrupt Masking 0
+    brief: Interrupt Masking 0
     fields:
       DOD0_RM:
         bits: [7]
         access: "r/w"
-        doc: LDO Dropout Detector Rising Interrupt Mask/Disabled
+        brief: LDO Dropout Detector Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       DOD1_RM:
         bits: [6]
         access: "r/w"
-        doc: LDO Dropout Detector Rising Interrupt Mask/Disabled
+        brief: LDO Dropout Detector Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       TJAL2_RM:
         bits: [5]
         access: "r/w"
-        doc: Thermal Alarm 2 Rising Interrupt Mask/Disabled
+        brief: Thermal Alarm 2 Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       TJAL1_RM:
         bits: [4]
         access: "r/w"
-        doc: Thermal Alarm 1 Rising Interrupt Mask/Disabled
+        brief: Thermal Alarm 1 Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       nEN_RM:
         bits: [3]
         access: "r/w"
-        doc: nEN Rising Interrupt Mask/Disabled
+        brief: nEN Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       nEN_FM:
         bits: [2]
         access: "r/w"
-        doc: nEN Falling Interrupt Mask/Disabled
+        brief: nEN Falling Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       GPI0_RM:
         bits: [1]
         access: "r/w"
-        doc: GPI Rising Interrupt Mask/Disabled
+        brief: GPI Rising Interrupt Mask/Disabled
         accepts_enum: INT_MASK
       GPI0_FM:
         bits: [0]
         access: "r/w"
-        doc: GPI Falling Interrupt Mask/Disabled
+        brief: GPI Falling Interrupt Mask/Disabled
         accepts_enum: INT_MASK
 
   CNFG_GLBL:
     adr: 0x10
     reset_val: 0x00
-    doc: Global Configuration
+    brief: Global Configuration
     fields:
       PU_DIS:
         bits: [7]
-        doc: nEN Internal Pullup Resistor
+        brief: nEN Internal Pullup Resistor
         access: "r/w"
         enum:
           200K:
             value: 0
-            doc: "200kOhm"
+            brief: "200kOhm"
           10M:
             value: 1
-            doc: "10MOhm"
+            brief: "10MOhm"
       T_MRST:
         bits: [6]
-        doc: Sets the Manual Reset Time (tMRST)
+        brief: Sets the Manual Reset Time (tMRST)
         access: "r/w"
         enum:
           8s:
             value: 0
-            doc: 8 seconds
+            brief: 8 seconds
           16s:
             value: 1
-            doc: 16 seconds
+            brief: 16 seconds
       SBIA_LPM:
         bits: [5]
         access: "r/w"
-        doc: Main Bias Low-Power Mode Software Request
+        brief: Main Bias Low-Power Mode Software Request
       SBIA_EN:
         bits: [4]
         access: "r/w"
-        doc: Main Bias Force Enable Software Request
+        brief: Main Bias Force Enable Software Request
         accepts_enum: EN
       nEN_MODE:
         bits: [3]
         access: "r/w"
-        doc: nEN Input (ON-KEY) Default Configuration
+        brief: nEN Input (ON-KEY) Default Configuration
         enum:
           PUSHBTN:
             value: 0
-            doc: "Push-button"
+            brief: "Push-button"
           SLIDE:
             value: 1
-            doc: "Slide-switch"
+            brief: "Slide-switch"
       DBEN_nEN:
         bits: [2]
         access: "r/w"
-        doc: Debounce Timer Enable for the nEN Pin
+        brief: Debounce Timer Enable for the nEN Pin
         enum:
           500us:
             value: 0
-            doc: 500 microseconds
+            brief: 500 microseconds
           30ms:
             value: 1
-            doc: 30 milliseconds
+            brief: 30 milliseconds
       SFT_CTRL:
         bits: [1, 0]
         access: "r/w"
+        brief: Software Reset Function
         doc: >
-          Software Reset Functions
           Note that the SFT_CRST and SFT_OFF
           commands initiate the power-down sequence
           flow as described in the data sheet. This
@@ -336,23 +336,24 @@ registers:
         enum:
           NO_ACTION:
             value: 0x0
-            doc: No Action
+            brief: No Action
           SFT_CRST:
             value: 0x1
+            brief: Software cold reset. 
             doc: >
-              Software cold reset. The device powers down, resets,
+              The device powers down, resets,
               and then powers up again.
           SFT_OFF:
             value: 0x2
+            brief: Software off.
             doc: >
-              Software off.
               The device powers down, resets, and then remains off and
               waiting for a wake-up event.
           FSM:
             value: 0x3
+            brief: Factory-ship mode enter (FSM).
             doc: >
-              Factory-ship mode enter (FSM). The IC
-              powers down, configuration
+              The IC powers down, configuration
               registers reset, and the internal BATT to SYS
               switch opens. The device remains
               this way until a factory-ship mode exit event
@@ -360,712 +361,718 @@ registers:
   CNFG_GPIO0:
     adr: 0x11
     reset_val: 0x01
-    doc: GPIO 0 Configuration
+    brief: GPIO 0 Configuration
     fields:
       ALT:
         bits: [5]
         access: "r/w"
-        doc: Alternate Mode Enable for GPIO0
+        brief: Alternate Mode Enable for GPIO0
         accepts_enum: EN
       DBEN_GPI:
         bits: [4]
         access: "r/w"
-        doc: General Purpose Input Debounce Timer enable (30ms)
+        brief: General Purpose Input Debounce Timer enable (30ms)
         accepts_enum: EN
       DOUT:
         bits: [3]
         access: "r/w"
-        doc: General Purpose Output Data Output
+        brief: General Purpose Output Data Output
       DRV:
         bits: [2]
         access: "r/w"
-        doc: General Purpose Output Driver Type
+        brief: General Purpose Output Driver Type
         accepts_enum: GPO_DRV
       DI:
         bits: [1]
         access: "r"
-        doc: GPIO Digital Input Value.
+        brief: GPIO Digital Input Value.
       DIR:
         bits: [0]
         access: "r/w"
-        doc: GPIO Direction
+        brief: GPIO Direction
         accepts_enum: GPO_DIR
 
   CNFG_GPIO1:
     adr: 0x12
     reset_val: 0x01
-    doc: GPIO 1 Configuration
+    brief: GPIO 1 Configuration
     fields:
       ALT:
         bits: [5]
         access: "r/w"
-        doc: Alternate Mode Enable for GPIO0
+        brief: Alternate Mode Enable for GPIO0
       DBEN_GPI:
         bits: [4]
         access: "r/w"
-        doc: General Purpose Input Debounce Timer enable (30ms)
+        brief: General Purpose Input Debounce Timer enable (30ms)
       DOUT:
         bits: [3]
         access: "r/w"
-        doc: General Purpose Output Data Output
+        brief: General Purpose Output Data Output
       DRV:
         bits: [2]
         access: "r/w"
-        doc: General Purpose Output Driver Type
+        brief: General Purpose Output Driver Type
         accepts_enum: GPO_DRV
       DI:
         bits: [1]
         access: "r"
-        doc: GPIO Digital Input Value.
+        brief: GPIO Digital Input Value.
       DIR:
         bits: [0]
         access: "r/w"
-        doc: GPIO Direction
+        brief: GPIO Direction
         accepts_enum: GPO_DIR
 
   CNFG_GPIO2:
     adr: 0x13
     reset_val: 0x01
-    doc: GPIO 2 Configuration
+    brief: GPIO 2 Configuration
     fields:
       ALT:
         bits: [5]
         access: "r/w"
-        doc: Alternate Mode Enable for GPIO0
+        brief: Alternate Mode Enable for GPIO0
       DBEN_GPI:
         bits: [4]
         access: "r/w"
-        doc: General Purpose Input Debounce Timer enable (30ms)
+        brief: General Purpose Input Debounce Timer enable (30ms)
       DOUT:
         bits: [3]
         access: "r/w"
-        doc: General Purpose Output Data Output
+        brief: General Purpose Output Data Output
       DRV:
         bits: [2]
         access: "r/w"
-        doc: General Purpose Output Driver Type
+        brief: General Purpose Output Driver Type
         accepts_enum: GPO_DRV
       DI:
         bits: [1]
         access: "r"
-        doc: GPIO Digital Input Value.
+        brief: GPIO Digital Input Value.
       DIR:
         bits: [0]
         access: "r/w"
-        doc: GPIO Direction
+        brief: GPIO Direction
         accepts_enum: GPO_DIR
 
   CID:
     adr: 0x14
     reset_val: 0x00
-    doc: Chip Identification Register
+    brief: Chip Identification Register
     fields:
       CID_MSB:
         bits: [7]
-        doc: Bit 4 of the chip identification code.
+        brief: Bit 4 of the chip identification code.
       CID_LSB:
         bits:
           lsb_position: 0
           width: 4
-        doc: Bits 0 to 3 of the chip identification code.
+        brief: Bits 0 to 3 of the chip identification code.
 
   CNFG_WDT:
     adr: 0x17
     reset_val: 0x30
-    doc: Watchdog timer configurtion.
+    brief: Watchdog timer configurtion.
     fields:
       WDT_PER:
         bits: [5, 4]
-        doc: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed value as soon as this bitfield is changed.
+        brief: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed value as soon as this bitfield is changed.
         enum:
           16s:
             value: 0x0
-            doc: 16 seconds
+            brief: 16 seconds
           32s:
             value: 0x1
-            doc: 32 seconds
+            brief: 32 seconds
           64s:
             value: 0x2
-            doc: 64 seconds
+            brief: 64 seconds
           128s:
             value: 0x3
-            doc: 128 seconds
+            brief: 128 seconds
       WDT_MODE:
         bits: [3]
-        doc: Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.
+        brief: Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.
         enum:
           PWR_OFF:
             value: 0x0
-            doc: Expiration causes power-off.
+            brief: Expiration causes power-off.
           PWR_RESET:
             value: 0x1
-            doc: Expiration causes power-reset.
+            brief: Expiration causes power-reset.
       WDT_CLR:
         bits: [2]
-        doc: Watchdog Timer Clear Control. Set this bit to feed (reset) the WDT.
+        brief: Watchdog Timer Clear Control. Set this bit to feed (reset) the WDT.
       WDT_EN:
         bits: [1]
-        doc: Watchdog Timer Enable. Write protected.
+        brief: Watchdog Timer Enable. Write protected.
         accepts_enum: EN
       WDT_LOCK:
         bits: [0]
-        doc: Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.
+        brief: Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.
         accepts_enum: EN
 
   INT_CHG:
     adr: 0x01
     reset_val: 0x00
-    doc: Charger Interrupt flag register
+    brief: Charger Interrupt flag register
     fields:
       SYS_CNFG_I:
         bits: [6]
-        doc: System Voltage Configuration Error Interrupt (Ensure VSYS-REG = VFAST- CHG + 200mV)
+        brief: System Voltage Configuration Error Interrupt 
+        doc: Triggers if VSYS-REG <= VFAST- CHG + 200mV
       SYS_CTRL_I:
         bits: [5]
-        doc: Minimum System Voltage Regulation-Loop Related Interrupt. This interrupt signals a change in the status bit VSYS_MIN_STAT.
+        brief: Minimum System Voltage Regulation-Loop Related Interrupt
+        doc: This interrupt signals a change in the status bit VSYS_MIN_STAT.
       CHGIN_CTRL_I:
         bits: [4]
-        doc: CHGIN Control-Loop Related Interrupt. This bit asserts when the input reaches current limit (ICHGIN-LIM) or VCHGIN falls below VCHGIN_MIN.
+        brief: CHGIN Control-Loop Related Interrupt.
+        doc: This bit asserts when the input reaches current limit (ICHGIN-LIM) or VCHGIN falls below VCHGIN_MIN.
       TJ_REG_I:
         bits: [3]
-        doc: Die Junction Temperature Regulation Interrupt. This bit asserts when the die temperature (TJ) exceeds TJ-REG.
+        brief: Die Junction Temperature Regulation Interrupt. 
+        doc: This bit asserts when the die temperature (TJ) exceeds TJ-REG.
       CHGIN_I:
         bits: [2]
-        doc: CHGIN Related Interrupt (CHGIN_DTLS has changed).
+        brief: CHGIN Related Interrupt (CHGIN_DTLS has changed).
       CHG_I:
         bits: [1]
-        doc: Charger Related Interrupt (CHG_DTLS has changed).
+        brief: Charger Related Interrupt (CHG_DTLS has changed).
       THM_I:
         bits: [0]
-        doc: Thermistor Related Interrupt (THM_DTLS has changed).
+        brief: Thermistor Related Interrupt (THM_DTLS has changed).
 
   STAT_CHG_A:
     adr: 0x02
     reset_val: 0x00
-    doc: Charger status register A.
+    brief: Charger status register A.
     fields:
       VCHGIN_MIN_STAT:
         bits: [6]
-        doc: Minimum Input Voltage Regulation Loop engaged.
+        brief: Minimum Input Voltage Regulation Loop engaged.
       ICHGIN_LIM_STAT:
         bits: [5]
-        doc: Input Current Limit Loop engaged.
+        brief: Input Current Limit Loop engaged.
       VSYS_MIN_STAT:
         bits: [4]
-        doc: Minimum System Voltage Regulation Loop engaged.
+        brief: Minimum System Voltage Regulation Loop engaged.
       TJ_REG_STAT:
         bits: [3]
-        doc: Maximum Junction Temperature Regulation engaged.
+        brief: Maximum Junction Temperature Regulation engaged.
       THM_DTLS:
         bits: [2, 1, 0]
-        doc: Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.
+        brief: Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.
         access: r
         enum:
           THM_OFF:
             value: 0x0
-            doc: Thermistor is disabled (THM_EN = 0).
+            brief: Thermistor is disabled (THM_EN = 0).
           THM_COLD:
             value: 0x1
-            doc: Battery is cold as programmed by THM_COLD[1:0]. If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs.
+            brief: Battery is cold as programmed by THM_COLD[1:0]. 
+            doc: If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs.
           THM_COOL:
             value: 0x2
-            doc: Battery is cool as programmed by THM_COOL[1:0].
+            brief: Battery is cool as programmed by THM_COOL[1:0].
           THM_WARM:
             value: 0x3
-            doc: Battery is warm as programmed by THM_WARM[1:0].
+            brief: Battery is warm as programmed by THM_WARM[1:0].
           THM_HOT:
             value: 0x4
-            doc: Battery is hot as programmed by THM_HOT[1:0]. If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs.
+            brief: Battery is hot as programmed by THM_HOT[1:0]. 
+            doc: If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs.
           THM_OK:
             value: 0x5
-            doc: Battery is in the normal temperature region.
+            brief: Battery is in the normal temperature region.
 
   STAT_CHG_B:
     adr: 0x03
     reset_val: 0x00
-    doc: Charger status register B.
+    brief: Charger status register B.
     fields:
       CHG_DTLS:
         bits:
           lsb_position: 4
           width: 4
-        doc: Charger Status details
+        brief: Charger Status details
         enum:
           "OFF":
             value: 0x0
-            doc: Off
+            brief: Off
           PQ:
             value: 0x1
-            doc: Prequalification mode.
+            brief: Prequalification mode.
           CC:
             value: 0x2
-            doc: Fast-charge constant-current (CC) mode.
+            brief: Fast-charge constant-current (CC) mode.
           CC_JEITA:
             value: 0x3
-            doc: JEITA modified fast-charge constant-current mode.
+            brief: JEITA modified fast-charge constant-current mode.
           CV:
             value: 0x4
-            doc: Fast-charge constant-voltage (CV)mode.
+            brief: Fast-charge constant-voltage (CV)mode.
           CV_JEITA:
             value: 0x5
-            doc: JEITA modified fast-charge constant-voltage mode.
+            brief: JEITA modified fast-charge constant-voltage mode.
           TOPOFF:
             value: 0x6
-            doc: Top-off mode.
+            brief: Top-off mode.
           TOPOFF_JEITA:
             value: 0x7
-            doc: JEITA modified top-off mode.
+            brief: JEITA modified top-off mode.
           DONE:
             value: 0x8
-            doc: Done
+            brief: Done
           DONE_JEITA:
             value: 0x9
-            doc: JEITA modified done (done was entered through the JEITA-modified fast-charge states).
+            brief: JEITA modified done (done was entered through the JEITA-modified fast-charge states).
           PQ_TIMER_FAULT:
             value: 0xA
-            doc: Prequalification timer fault.
+            brief: Prequalification timer fault.
           FASTCHG_TIMER_FAULT:
             value: 0xB
-            doc: Fast-charge timer fault.
+            brief: Fast-charge timer fault.
           BAT_TEMP_FAULT:
             value: 0xC
-            doc: Battery temperature fault.
+            brief: Battery temperature fault.
       CHGIN_DTLS:
         bits: [3, 2]
-        doc: CHGIN Status details
+        brief: CHGIN Status details
         enum:
           UVLO:
             value: 0x0
-            doc: The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO).
+            brief: The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO).
           OVP:
             value: 0x1
-            doc: The CHGIN input voltage is above the OVP threshold (VCHGIN > VOVP).
+            brief: The CHGIN input voltage is above the OVP threshold (VCHGIN > VOVP).
           DBNC:
             value: 0x2
-            doc: The CHGIN input is being debounced (no power accepted from CHGIN during debounce).
+            brief: The CHGIN input is being debounced (no power accepted from CHGIN during debounce).
           OK:
             value: 0x3
-            doc: The CHGIN input is okay and debounced.
+            brief: The CHGIN input is okay and debounced.
       CHG:
         bits: [1]
-        doc: Quick Charger Status/Is charging.
+        brief: Quick Charger Status/Is charging.
       TIME_SUS:
         bits: [0]
-        doc: Timer Suspend Indicator
+        brief: Timer Suspend Indicator
 
   INTM_CHG:
     adr: 0x07
     reset_val: 0x00
-    doc: Charger Interrupt masking
+    brief: Charger Interrupt masking
     fields:
       SYS_CNFG_I:
         bits: [6]
-        doc: System Voltage Configuration Error Interrupt Mask/disabled
+        brief: System Voltage Configuration Error Interrupt Mask/disabled
         accepts_enum: INT_MASK
       SYS_CTRL_I:
         bits: [5]
-        doc: Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled
+        brief: Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled
         accepts_enum: INT_MASK
       CHGIN_CTRL_I:
         bits: [4]
-        doc: CHGIN Control-Loop Related Interrupt Mask/disabled.
+        brief: CHGIN Control-Loop Related Interrupt Mask/disabled.
         accepts_enum: INT_MASK
       TJ_REG_I:
         bits: [3]
-        doc: Die Junction Temperature Regulation Interrupt Mask/disabled.
+        brief: Die Junction Temperature Regulation Interrupt Mask/disabled.
         accepts_enum: INT_MASK
       CHGIN_I:
         bits: [2]
-        doc: CHGIN Related Interrupt Mask/disabled.
+        brief: CHGIN Related Interrupt Mask/disabled.
         accepts_enum: INT_MASK
       CHG_I:
         bits: [1]
-        doc: Charger Related Interrupt Mask/disabled.
+        brief: Charger Related Interrupt Mask/disabled.
         accepts_enum: INT_MASK
       THM_I:
         bits: [0]
-        doc: Thermistor Related Interrupt Mask/disabled.
+        brief: Thermistor Related Interrupt Mask/disabled.
         accepts_enum: INT_MASK
 
   CNFG_CHG_A:
     adr: 0x20
     reset_val: 0x0F
-    doc: Charger Config register A.
+    brief: Charger Config register A.
     fields:
       THM_HOT:
         bits: [7, 6]
-        doc: Sets the VHOT JEITA Temperature Threshold
+        brief: Sets the VHOT JEITA Temperature Threshold
         enum:
           0V411:
             value: 0x0
-            doc: VHOT = 0.411V (45degC for beta = 3380K)
+            brief: VHOT = 0.411V (45degC for beta = 3380K)
           0V367:
             value: 0x1
-            doc: VHOT = 0.367V (50degC for beta = 3380K)
+            brief: VHOT = 0.367V (50degC for beta = 3380K)
           0V327:
             value: 0x2
-            doc: VHOT = 0.327V (55degC for beta = 3380K)
+            brief: VHOT = 0.327V (55degC for beta = 3380K)
           0V291:
             value: 0x3
-            doc: VHOT = 0.291V (60degC for beta = 3380K)
+            brief: VHOT = 0.291V (60degC for beta = 3380K)
       THM_WARM:
         bits: [5, 4]
-        doc: Sets the VWARM JEITA Temperature Threshold
+        brief: Sets the VWARM JEITA Temperature Threshold
         enum:
           0V511:
             value: 0x0
-            doc: VWARM = 0.511V (35degC for beta = 3380K)
+            brief: VWARM = 0.511V (35degC for beta = 3380K)
           0V459:
             value: 0x1
-            doc: VWARM = 0.459V (40degC for beta = 3380K)
+            brief: VWARM = 0.459V (40degC for beta = 3380K)
           0V411:
             value: 0x2
-            doc: VWARM = 0.411V (45degC for beta = 3380K)
+            brief: VWARM = 0.411V (45degC for beta = 3380K)
           0V367:
             value: 0x3
-            doc: VWARM = 0.367V (50degC for beta = 3380K)
+            brief: VWARM = 0.367V (50degC for beta = 3380K)
       THM_COOL:
         bits: [3, 2]
-        doc: Sets the VCOOL JEITA Temperature Threshold
+        brief: Sets the VCOOL JEITA Temperature Threshold
         enum:
           0V923:
             value: 0x0
-            doc: VCOOL = 0.923V (0degC for beta = 3380K)
+            brief: VCOOL = 0.923V (0degC for beta = 3380K)
           0V867:
             value: 0x1
-            doc: VCOOL = 0.867V (5degC for beta = 3380K)
+            brief: VCOOL = 0.867V (5degC for beta = 3380K)
           0V807:
             value: 0x2
-            doc: VCOOL = 0.807V (10degC for beta = 3380K)
+            brief: VCOOL = 0.807V (10degC for beta = 3380K)
           0V747:
             value: 0x3
-            doc: VCOOL = 0.747V (15degC for beta = 3380K)
+            brief: VCOOL = 0.747V (15degC for beta = 3380K)
       THM_COLD:
         bits: [1, 0]
-        doc: Sets the VCOLD JEITA Temperature Threshold
+        brief: Sets the VCOLD JEITA Temperature Threshold
         enum:
           1V024:
             value: 0x0
-            doc: VCOLD = 1.024V (-10degC for beta = 3380K)
+            brief: VCOLD = 1.024V (-10degC for beta = 3380K)
           0V976:
             value: 0x1
-            doc: VCOLD = 0.976V (-5degC for beta = 3380K)
+            brief: VCOLD = 0.976V (-5degC for beta = 3380K)
           0V923:
             value: 0x2
-            doc: VCOLD = 0.923V (0degC for beta = 3380K)
+            brief: VCOLD = 0.923V (0degC for beta = 3380K)
           0V867:
             value: 0x3
-            doc: VCOLD = 0.867V (5degC for beta = 3380K)
+            brief: VCOLD = 0.867V (5degC for beta = 3380K)
 
   CNFG_CHG_B:
     adr: 0x21
     reset_val: 0x0
-    doc: Charger Config register B.
+    brief: Charger Config register B.
     fields:
       VCHGIN_MIN:
         bits: [7, 6, 5]
-        doc: Minimum CHGIN Regulation Voltage (VCHGIN-MIN)
+        brief: Minimum CHGIN Regulation Voltage (VCHGIN-MIN)
         enum:
           4V0:
             value: 0x0
-            doc: 4.0V
+            brief: 4.0V
           4V1:
             value: 0x1
-            doc: 4.1V
+            brief: 4.1V
           4V2:
             value: 0x2
-            doc: 4.2V
+            brief: 4.2V
           4V3:
             value: 0x3
-            doc: 4.3V
+            brief: 4.3V
           4V4:
             value: 0x4
-            doc: 4.4V
+            brief: 4.4V
           4V5:
             value: 0x5
-            doc: 4.5V
+            brief: 4.5V
           4V6:
             value: 0x6
-            doc: 4.6V
+            brief: 4.6V
           4V7:
             value: 0x7
-            doc: 4.7V
+            brief: 4.7V
       ICHGIN_LIM:
         bits: [4, 3, 2]
-        doc: CHGIN Input Current Limit (ICHGIN-LIM)
+        brief: CHGIN Input Current Limit (ICHGIN-LIM)
         enum:
           95mA:
             value: 0x0
-            doc: 95mA
+            brief: 95mA
           190mA:
             value: 0x1
-            doc: 190mA
+            brief: 190mA
           285mA:
             value: 0x2
-            doc: 285mA
+            brief: 285mA
           380mA:
             value: 0x3
-            doc: 380mA
+            brief: 380mA
           475mA:
             value: 0x4
-            doc: 475mA
+            brief: 475mA
       I_PQ:
         bits: [1]
-        doc: Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.
+        brief: Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.
         enum:
           10PERC:
             value: 0
-            doc: 10% of IFAST-CHG
+            brief: 10% of IFAST-CHG
           20PERC:
             value: 1
-            doc: 20% of IFAST-CHG
+            brief: 20% of IFAST-CHG
       CHG_EN:
         bits: [0]
-        doc: Charger Enable
+        brief: Charger Enable
         accepts_enum: EN
 
   CNFG_CHG_C:
     adr: 0x22
     reset_val: 0xF8
-    doc: Charger Config register C.
+    brief: Charger Config register C.
     fields:
       CHG_PQ:
         bits: [7, 6, 5]
-        doc: Battery Prequalification Voltage Threshold (VPQ)
+        brief: Battery Prequalification Voltage Threshold (VPQ)
         enum:
           2V3:
             value: 0x0
-            doc: 2.3V
+            brief: 2.3V
           2V4:
             value: 0x1
-            doc: 2.4V
+            brief: 2.4V
           2V5:
             value: 0x2
-            doc: 2.5V
+            brief: 2.5V
           2V6:
             value: 0x3
-            doc: 2.6V
+            brief: 2.6V
           2V7:
             value: 0x4
-            doc: 2.7V
+            brief: 2.7V
           2V8:
             value: 0x5
-            doc: 2.8V
+            brief: 2.8V
           2V9:
             value: 0x6
-            doc: 2.9V
+            brief: 2.9V
           3V0:
             value: 0x7
-            doc: 3.0V
+            brief: 3.0V
       I_TERM:
         bits: [4, 3]
-        doc: Charger Termination Current (ITERM)
+        brief: Charger Termination Current (ITERM)
         enum:
           5PERC:
             value: 0x0
-            doc: 5% of IFAST-CHG
+            brief: 5% of IFAST-CHG
           7PERC5:
             value: 0x1
-            doc: 7.5% of IFAST-CHG
+            brief: 7.5% of IFAST-CHG
           10PERC:
             value: 0x2
-            doc: 10% of IFAST-CHG
+            brief: 10% of IFAST-CHG
           15PERC:
             value: 0x3
-            doc: 15% of IFAST-CHG
+            brief: 15% of IFAST-CHG
       T_TOPOFF:
         bits: [2, 1, 0]
-        doc: Top-Off Timer Value (t_TO)
+        brief: Top-Off Timer Value (t_TO)
         enum:
           0MIN:
             value: 0x0
-            doc: 0 minutes
+            brief: 0 minutes
           5MIN:
             value: 0x1
-            doc: 5 minutes
+            brief: 5 minutes
           10MIN:
             value: 0x2
-            doc: 10 minutes
+            brief: 10 minutes
           15MIN:
             value: 0x3
-            doc: 15 minutes
+            brief: 15 minutes
           20MIN:
             value: 0x4
-            doc: 20 minutes
+            brief: 20 minutes
           25MIN:
             value: 0x5
-            doc: 25 minutes
+            brief: 25 minutes
           30MIN:
             value: 0x6
-            doc: 30 minutes
+            brief: 30 minutes
           35MIN:
             value: 0x7
-            doc: 35 minute
+            brief: 35 minute
 
   CNFG_CHG_D:
     adr: 0x23
     reset_val: 0x10
-    doc: Charger Config register D.
+    brief: Charger Config register D.
     fields:
       TJ_REG:
         bits: [7, 6, 5]
-        doc: Sets the die junction temperature regulation point, TJ-REG.
+        brief: Sets the die junction temperature regulation point, TJ-REG.
         enum:
           60degC:
             value: 0x0
-            doc: 60degC
+            brief: 60degC
           70degC:
             value: 0x1
-            doc: 70degC
+            brief: 70degC
           80degC:
             value: 0x2
-            doc: 80degC
+            brief: 80degC
           90degC:
             value: 0x3
-            doc: 90degC
+            brief: 90degC
           100degC:
             value: 0x4
-            doc: 100degC
+            brief: 100degC
       VSYS_REG:
         bits:
           lsb_position: 0
           width: 5
-        doc: |
-          System Voltage Regulation (VSYS-REG). This 5-bit configuration 
-          is a linear transfer function that starts at 4.1V and ends at 4.8V,
+        brief: System Voltage Regulation (VSYS-REG) 
+        doc: >
+          This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
           with 25mV increments. Program VSYS_REG to at least 200mV above
           the higher of VFAST-CHG and VFAST-CHG-JEITA.
         enum:
           4V1:
             value: 0x00
-            doc: 4.100V
+            brief: 4.100V
           4V125:
             value: 0x01
-            doc: 4.125V
+            brief: 4.125V
           4V15:
             value: 0x02
-            doc: 4.150V
+            brief: 4.150V
           4V175:
             value: 0x03
-            doc: 4.175V
+            brief: 4.175V
           4V2:
             value: 0x04
-            doc: 4.200V
+            brief: 4.200V
           4V225:
             value: 0x05
-            doc: 4.225V
+            brief: 4.225V
           4V25:
             value: 0x06
-            doc: 4.250V
+            brief: 4.250V
           4V275:
             value: 0x07
-            doc: 4.275V
+            brief: 4.275V
           4V3:
             value: 0x08
-            doc: 4.300V
+            brief: 4.300V
           4V325:
             value: 0x09
-            doc: 4.325V
+            brief: 4.325V
           4V35:
             value: 0x0A
-            doc: 4.350V
+            brief: 4.350V
           4V375:
             value: 0x0B
-            doc: 4.375V
+            brief: 4.375V
           4V4:
             value: 0x0C
-            doc: 4.400V
+            brief: 4.400V
           4V425:
             value: 0x0D
-            doc: 4.425V
+            brief: 4.425V
           4V45:
             value: 0x0E
-            doc: 4.450V
+            brief: 4.450V
           4V475:
             value: 0x0F
-            doc: 4.475V
+            brief: 4.475V
           4V5:
             value: 0x10
-            doc: 4.500V
+            brief: 4.500V
           4V525:
             value: 0x11
-            doc: 4.525V
+            brief: 4.525V
           4V55:
             value: 0x12
-            doc: 4.550V
+            brief: 4.550V
           4V575:
             value: 0x13
-            doc: 4.575V
+            brief: 4.575V
           4V6:
             value: 0x14
-            doc: 4.600V
+            brief: 4.600V
           4V625:
             value: 0x15
-            doc: 4.625V
+            brief: 4.625V
           4V65:
             value: 0x16
-            doc: 4.650V
+            brief: 4.650V
           4V675:
             value: 0x17
-            doc: 4.675V
+            brief: 4.675V
           4V7:
             value: 0x18
-            doc: 4.700V
+            brief: 4.700V
           4V725:
             value: 0x19
-            doc: 4.725V
+            brief: 4.725V
           4V75:
             value: 0x1A
-            doc: 4.750V
+            brief: 4.750V
           4V775:
             value: 0x1B
-            doc: 4.775V
+            brief: 4.775V
           4V8:
             value: 0x1C
-            doc: 4.800V
+            brief: 4.800V
 
   CNFG_CHG_E:
     adr: 0x24
     reset_val: 0x05
-    doc: Charger Config register E.
+    brief: Charger Config register E.
     fields:
       CHG_CC:
         bits:
           lsb_position: 2
           width: 6
-        doc: |
-          Sets the fast-charge constant current value, IFAST-CHG. 
+        brief: Sets the fast-charge constant current value, IFAST-CHG. 
+        doc: >
           This 6-bit configuration is a linear transfer function 
           that starts at 7.5mA and ends at 300mA, with 7.5mA increments.
       T_FAST_CHG:
         bits: [1, 0]
-        doc: Sets the fast-charge safety timer, t_FC.
+        brief: Sets the fast-charge safety timer, t_FC.
         enum:
           "OFF":
             value: 0x0
-            doc: Timer disabled
+            brief: Timer disabled
           3H:
             value: 0x1
-            doc: 3 hours
+            brief: 3 hours
           5H:
             value: 0x2
-            doc: 5 hours
+            brief: 5 hours
           7H:
             value: 0x3
-            doc: 7 hours
+            brief: 7 hours
 
   CNFG_CHG_F:
     adr: 0x25
     reset_val: 0x04
-    doc: Charger Config register F.
+    brief: Charger Config register F.
     fields:
       CHG_CC_JEITA:
         bits:
           lsb_position: 2
           width: 6
-        doc: |
-          Sets IFAST-CHG-JEITA for when the battery is
-          either cool or warm as defined by the VCOOL
+        brief: Sets IFAST-CHG-JEITA for when the battery is either cool or warm
+        doc: >
+          Cool or warm are as defined by the VCOOL
           and VWARM temperature thresholds. This
           register is a don't care if the battery
           temperature is normal.
@@ -1074,40 +1081,40 @@ registers:
           300mA, with 7.5mA increments.
       THM_EN:
         bits: [1]
-        doc: Thermistor Enable
+        brief: Thermistor Enable
         accepts_enum: EN
 
   CNFG_CHG_G:
     adr: 0x26
     reset_val: 0x00
-    doc: Charger Config register G.
+    brief: Charger Config register G.
     fields:
       CHG_CV:
         bits:
           lsb_position: 2
           width: 6
-        doc: |
-          Sets fast-charge battery regulation voltage, VFAST-CHG.
+        brief: Sets fast-charge battery regulation voltage, VFAST-CHG.
+        doc: >
           This 6-bit configuration is a linear transfer function that
           starts at 3.6V and ends at 4.6V, with 25mV increments. Program
           VSYS_REG to at least 200mV above the higher of VFAST-CHG and 
           VFAST-CHG- JEITA.
       USBS:
         bits: [1]
-        doc: Setting this bit places CHGIN in USB
+        brief: Setting this bit places CHGIN in USB
 
   CNFG_CHG_H:
     adr: 0x27
     reset_val: 0x00
-    doc: Charger Config register H.
+    brief: Charger Config register H.
     fields:
       CHG_CV_JEITA:
         bits:
           lsb_position: 2
           width: 6
-        doc: |
-          Sets the modified VFAST-CHG-JEITA for when
-          the battery is either cool or warm as defined
+        brief: Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.
+        doc: >
+          Cool or warm as defined
           by the VCOOL and VWARM temperature
           thresholds. This register is a don't care if the
           battery temperature is normal.
@@ -1121,98 +1128,98 @@ registers:
   CNFG_CHG_I:
     adr: 0x28
     reset_val: 0xF0
-    doc: Charger Config register I.
+    brief: Charger Config register I.
     fields:
       IMON_DISCHG_SCALE:
         bits:
           lsb_position: 4
           width: 4
-        doc: Selects the battery discharge current full-scale current value.
+        brief: Selects the battery discharge current full-scale current value.
         enum:
           8mA2:
             value: 0x0
-            doc: 8.2mA
+            brief: 8.2mA
           40mA5:
             value: 0x1
-            doc: 40.5mA
+            brief: 40.5mA
           72mA3:
             value: 0x2
-            doc: 72.3mA
+            brief: 72.3mA
           103mA4:
             value: 0x3
-            doc: 103.4mA
+            brief: 103.4mA
           134mA1:
             value: 0x4
-            doc: 134.1mA
+            brief: 134.1mA
           164mA1:
             value: 0x5
-            doc: 164.1mA
+            brief: 164.1mA
           193mA7:
             value: 0x6
-            doc: 193.7mA
+            brief: 193.7mA
           222mA7:
             value: 0x7
-            doc: 222.7mA
+            brief: 222.7mA
           251mA2:
             value: 0x8
-            doc: 251.2mA
+            brief: 251.2mA
           279mA3:
             value: 0x9
-            doc: 279.3mA
+            brief: 279.3mA
           300mA:
             value: 0xA
-            doc: 300.0mA
+            brief: 300.0mA
       MUX_SEL:
         bits:
           lsb_position: 0
           width: 4
-        doc: Selects the analog channel to connect to AMUX.
+        brief: Selects the analog channel to connect to AMUX.
         enum:
           DISABLED:
             value: 0x0
-            doc: DISABLED
+            brief: DISABLED
           CHGIN_V:
             value: 0x1
-            doc: CHGIN voltage monitor.
+            brief: CHGIN voltage monitor.
           CHGIN_I:
             value: 0x2
-            doc: CHGIN current monitor.
+            brief: CHGIN current monitor.
           BATT_V:
             value: 0x3
-            doc: BATT voltage monitor.
+            brief: BATT voltage monitor.
           BATT_CHG_I:
             value: 0x4
-            doc: BATT charge current monitor. Valid only while battery charging is happening (CHG = 1).
+            brief: BATT charge current monitor. Valid only while battery charging is happening (CHG = 1).
           BATT_DISCHG_I:
             value: 0x5
-            doc: BATT discharge current monitor normal measurement.
+            brief: BATT discharge current monitor normal measurement.
           BATT_DISCHG_I_NULL:
             value: 0x6
-            doc: BATT discharge current monitor nulling measurement.
+            brief: BATT discharge current monitor nulling measurement.
           THM:
             value: 0x7
-            doc: THM voltage monitor.
+            brief: THM voltage monitor.
           THM_BIAS:
             value: 0x8
-            doc: TBIAS voltage monitor.
+            brief: TBIAS voltage monitor.
           AGND:
             value: 0x9
-            doc: AGND voltage monitor (through 100ohm pulldown resistor).
+            brief: AGND voltage monitor (through 100ohm pulldown resistor).
           VSYS:
             value: 0xA
-            doc: SYS voltage monitor
+            brief: SYS voltage monitor
 
   CNFG_SBB0_A:
     adr: 0x29
     reset_val: 0x00
-    doc: SBB0 Config A.
+    brief: SBB0 Config A.
     fields:
       TV_SBB:
         bits:
           lsb_position: 0
           width: 7
-        doc: |
-          SIMO Buck-Boost Channel 0 Target Output Voltage
+        brief: SIMO Buck-Boost Channel 0 Target Output Voltage
+        doc: >
           This 7-bit configuration is a linear transfer
           function that starts at 0.8V, ends at 5.5V, with
           50mV increments.
@@ -1220,39 +1227,39 @@ registers:
   CNFG_SBB0_B:
     adr: 0x2A
     reset_val: 0x00
-    doc: SBB0 Config B.
+    brief: SBB0 Config B.
     fields:
       OP_MODE:
         bits: [6]
-        doc: Operation Mode of SBB0
+        brief: Operation Mode of SBB0
         accepts_enum: SBB_MODE
       IP_SBB:
         bits: [5, 4]
-        doc: SIMO Buck-Boost Channel 0 Peak Current Limit
+        brief: SIMO Buck-Boost Channel 0 Peak Current Limit
         accepts_enum: IP_SBB
       ADE_SBB:
         bits: [3]
-        doc: SIMO Buck-Boost Channel 0 Active-Discharge Enable
+        brief: SIMO Buck-Boost Channel 0 Active-Discharge Enable
         accepts_enum: EN
       EN_SBB:
         bits: [2, 1, 0]
-        doc: |
-          Enable control for SIMO buck-boost channel 0, selecting either
-          an FPS slot the channel powers-up and powers-down in or
+        brief: Enable control for SIMO buck-boost channel 0 
+        doc: >
+          Selects either an FPS slot the channel powers-up and powers-down in or
           whether the channel is forced on or off.
         accepts_enum: REG_EN
 
   CNFG_SBB1_A:
     adr: 0x2B
     reset_val: 0x00
-    doc: SBB1 Config A.
+    brief: SBB1 Config A.
     fields:
       TV_SBB:
         bits:
           lsb_position: 0
           width: 7
-        doc: |
-          SIMO Buck-Boost Channel 1 Target Output Voltage
+        brief: SIMO Buck-Boost Channel 1 Target Output Voltage
+        doc: >
           This 7-bit configuration is a linear transfer
           function that starts at 0.8V, ends at 5.5V, with
           50mV increments.
@@ -1260,39 +1267,39 @@ registers:
   CNFG_SBB1_B:
     adr: 0x2C
     reset_val: 0x00
-    doc: SBB1 Config B.
+    brief: SBB1 Config B.
     fields:
       OP_MODE:
         bits: [6]
-        doc: Operation Mode of SBB1
+        brief: Operation Mode of SBB1
         accepts_enum: SBB_MODE
       IP_SBB:
         bits: [5, 4]
-        doc: SIMO Buck-Boost Channel 1 Peak Current Limit
+        brief: SIMO Buck-Boost Channel 1 Peak Current Limit
         accepts_enum: IP_SBB
       ADE_SBB:
         bits: [3]
-        doc: SIMO Buck-Boost Channel 1 Active-Discharge Enable
+        brief: SIMO Buck-Boost Channel 1 Active-Discharge Enable
         accepts_enum: EN
       EN_SBB:
         bits: [2, 1, 0]
-        doc: |
-          Enable control for SIMO buck-boost channel 1, selecting either
-          an FPS slot the channel powers-up and powers-down in or
+        brief: Enable control for SIMO buck-boost channel 1
+        doc: >
+          Selects either an FPS slot the channel powers-up and powers-down in or
           whether the channel is forced on or off.
         accepts_enum: REG_EN
 
   CNFG_SBB2_A:
     adr: 0x2D
     reset_val: 0x00
-    doc: SBB2 Config A.
+    brief: SBB2 Config A.
     fields:
       TV_SBB:
         bits:
           lsb_position: 0
           width: 7
-        doc: |
-          SIMO Buck-Boost Channel 2 Target Output Voltage
+        brief: SIMO Buck-Boost Channel 2 Target Output Voltage
+        doc: >
           This 7-bit configuration is a linear transfer
           function that starts at 0.8V, ends at 5.5V, with
           50mV increments.
@@ -1300,72 +1307,72 @@ registers:
   CNFG_SBB2_B:
     adr: 0x2E
     reset_val: 0x00
-    doc: SBB2 Config B.
+    brief: SBB2 Config B.
     fields:
       OP_MODE:
         bits: [6]
-        doc: Operation Mode of SBB2
+        brief: Operation Mode of SBB2
         enum:
           BUCK_BOOST:
             value: 0
-            doc: Buck-boost mode.
+            brief: Buck-boost mode.
           BUCK:
             value: 1
-            doc: Buck mode.
+            brief: Buck mode.
       IP_SBB:
         bits: [5, 4]
-        doc: SIMO Buck-Boost Channel 2 Peak Current Limit
+        brief: SIMO Buck-Boost Channel 2 Peak Current Limit
         accepts_enum: IP_SBB
       ADE_SBB:
         bits: [3]
-        doc: SIMO Buck-Boost Channel 2 Active-Discharge Enable
+        brief: SIMO Buck-Boost Channel 2 Active-Discharge Enable
         accepts_enum: EN
       EN_SBB:
         bits: [2, 1, 0]
-        doc: |
-          Enable control for SIMO buck-boost channel 2, selecting either
-          an FPS slot the channel powers-up and powers-down in or
+        brief: Enable control for SIMO buck-boost channel 2
+        doc: >
+          Selects either an FPS slot the channel powers-up and powers-down in or
           whether the channel is forced on or off.
         accepts_enum: REG_EN
 
   CNFG_SBB_TOP:
     adr: 0x2F
     reset_val: 0x00
-    doc: SBB Top Config.
+    brief: SBB Top Config.
     fields:
       ICHGIN_LIM_DEF:
         bits: [7]
         access: r
-        doc: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
+        brief: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
       DRV_SBB:
         bits: [1, 0]
         acces: r/w
-        doc: SIMO Buck-Boost (all channels) Drive Strength Trim.
+        brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
         enum:
           FASTEST:
             value: 0x0
-            doc: Fastest transition time
+            brief: Fastest transition time
           FAST:
             value: 0x1
-            doc: A little slower than FASTEST
+            brief: A little slower than FASTEST
           SLOW:
             value: 0x2
-            doc: A little slower than SLOW
+            brief: A little slower than SLOW
           SLOWEST:
             value: 0x3
-            doc: A little slower than SLOWEST
+            brief: A little slower than SLOWEST
 
   CNFG_LDO0_A:
     adr: 0x38
     reset_val: 0x00
-    doc: LDO0 Config A.
+    brief: LDO0 Config A.
     fields:
       TV_LDO:
         bits:
           lsb_position: 0
           width: 7
-        doc: |
-          LDO Target Output Voltage
+        brief: LDO Target Output Voltage 
+        doc: >
           This 7-bit configuration is a linear transfer
           function that starts at 0.8V and ends at
           3.975V, with 25mV increments.
@@ -1373,35 +1380,35 @@ registers:
   CNFG_LDO0_B:
     adr: 0x39
     reset_val: 0x00
-    doc: LDO0 Config B.
+    brief: LDO0 Config B.
     fields:
       OP_MODE:
         bits: [4]
-        doc: Operation Mode of LDO0
+        brief: Operation Mode of LDO0
         accepts_enum: LDO_MODE
       ADE_LDO:
         bits: [3]
-        doc: LDO Channel 0 Active-Discharge Enable
+        brief: LDO Channel 0 Active-Discharge Enable
         accepts_enum: EN
       EN_LDO:
         bits: [2, 1, 0]
-        doc: |
-          Enable control for SIMO LDO0, selecting either
-          an FPS slot the channel powers-up and powers-down in or
+        brief: Enable control for LDO0
+        doc: >
+          Selects either an FPS slot the channel powers-up and powers-down in or
           whether the channel is forced on or off.
         accepts_enum: REG_EN
 
   CNFG_LDO1_A:
     adr: 0x3A
     reset_val: 0x00
-    doc: LDO1 Config A.
+    brief: LDO1 Config A.
     fields:
       TV_LDO:
         bits:
           lsb_position: 0
           width: 7
-        doc: |
-          LDO Target Output Voltage
+        brief: LDO Target Output Voltage 
+        doc: >
           This 7-bit configuration is a linear transfer
           function that starts at 0.8V and ends at
           3.975V, with 25mV increments.
@@ -1409,21 +1416,21 @@ registers:
   CNFG_LDO1_B:
     adr: 0x3B
     reset_val: 0x00
-    doc: LDO0 Config B.
+    brief: LDO0 Config B.
     fields:
       OP_MODE:
         bits: [4]
-        doc: Operation Mode of LDO1
+        brief: Operation Mode of LDO1
         accepts_enum: LDO_MODE
       ADE_LDO:
         bits: [3]
-        doc: LDO Channel 1 Active-Discharge Enable
+        brief: LDO Channel 1 Active-Discharge Enable
         accepts_enum: EN
       EN_LDO:
         bits: [2, 1, 0]
-        doc: |
-          Enable control for SIMO LDO0, selecting either
-          an FPS slot the channel powers-up and powers-down in or
+        brief: Enable control for LDO1
+        doc: >
+          Selects either an FPS slot the channel powers-up and powers-down in or
           whether the channel is forced on or off.
         accepts_enum: REG_EN
 
@@ -1431,88 +1438,88 @@ enums:
   LDO_MODE:
     LDO:
       value: 0
-      doc: LDO regulator
+      brief: LDO regulator
     SW:
       value: 1
-      doc: Switch
+      brief: Switch
 
   SBB_MODE:
     BUCK_BOOST:
       value: 0
-      doc: Buck-boost mode.
+      brief: Buck-boost mode.
     BUCK:
       value: 1
-      doc: Buck mode.
+      brief: Buck mode.
 
   REG_EN:
     FPS_SLOT_0:
       value: 0x0
-      doc: FPS slot 0
+      brief: FPS slot 0
     FPS_SLOT_1:
       value: 0x1
-      doc: FPS slot 1
+      brief: FPS slot 1
     FPS_SLOT_2:
       value: 0x2
-      doc: FPS slot 2
+      brief: FPS slot 2
     FPS_SLOT_3:
       value: 0x3
-      doc: FPS slot 3
+      brief: FPS slot 3
     DISABLED:
       value: 0x4
-      doc: Off irrespective of FPS
+      brief: Off irrespective of FPS
     ENABLED:
       value: 0x6
-      doc: On irrespective of FPS
+      brief: On irrespective of FPS
 
   GPO_DRV:
     OD:
       value: 0
-      doc: "Open-drain"
+      brief: "Open-drain"
     PP:
       value: 1
-      doc: "Push-Pull"
+      brief: "Push-Pull"
 
   GPO_DIR:
     OUTPUT:
       value: 0
-      doc: "Output"
+      brief: "Output"
     INPUT:
       value: 1
-      doc: "Input"
+      brief: "Input"
 
   EN:
     DISABLED:
       value: 0
-      doc: "Disabled"
+      brief: "Disabled"
     ENABLED:
       value: 1
-      doc: "Enabled"
+      brief: "Enabled"
 
   INT_MASK:
     UNMASKED:
       value: 0
-      doc: "Enabled/Unmasked"
+      brief: "Enabled/Unmasked"
     ENABLED:
       value: 0
-      doc: "Enabled/Unmasked"
+      brief: "Enabled/Unmasked"
     MASKED:
       value: 1
-      doc: "Disabled/Masked"
+      brief: "Disabled/Masked"
     DISABLED:
       value: 1
-      doc: "Disabled/Masked"
+      brief: "Disabled/Masked"
 
   IP_SBB:
     1A:
       value: 0x0
-      doc: 1.000A
+      brief: 1.000A
     0A75:
       value: 0x1
-      doc: 0.750A
+      brief: 0.750A
     0A5:
       value: 0x2
-      doc: 0.500A
+      brief: 0.500A
     0A3:
       value: 0x3
-      doc: 0.333A
+      brief: 0.333A
 

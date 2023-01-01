@@ -35,6 +35,9 @@ class Generator(OutputGenerator):
                 title_line += ("=" * (80 - len(title_line)))
             out.append(title_line)
 
+            if r.brief is not None:
+                out.append(f"// {r.brief}")
+
             if r.doc is not None:
                 for l in r.doc.splitlines():
                     out.append(f"// {l}")
@@ -45,25 +48,29 @@ class Generator(OutputGenerator):
 
             register_prefix = f"{dev_macro}__REG_{reg_name}"
             if r.adr is not None:
-                defines.append((f"#define {register_prefix}", f"(0x{r.adr:02X}U)", "// Register Address"))
+                docstr = f"({r.brief})" if r.brief is not None else ""
+                defines.append((f"#define {register_prefix}", f"(0x{r.adr:02X}U)", f"// Register Address {docstr}"))
 
             for field_name_orig, field in r.fields.items():
+                docstr = f"({field.brief})" if field.brief is not None else ""
                 field_name = c_sanitize(field_name_orig)
                 field_prefix = f"{register_prefix}__FIELD_{field_name}"
                 defines.append((f"#define {field_prefix}",
-                               f"(0x{field.get_bits().get_bitmask():02X}U)", "// Field Mask"))
+                               f"(0x{field.get_bits().get_bitmask():02X}U)", f"// Field Mask {docstr}"))
 
                 if field.enum is not None:
                     for const_name_orig, const in field.enum.items():
+                        docstr = f"({const.brief})" if const.brief is not None else ""
                         const_name = c_sanitize(const_name_orig)
                         const_prefix = f"{field_prefix}__CONST_{const_name}"
-                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", "// Constant"))
+                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", f"// Constant {docstr}"))
 
                 if field.accepts_enum is not None:
                     for const_name_orig, const in map.enums[field.accepts_enum].items():
+                        docstr = f"({const.brief})" if const.brief is not None else ""
                         const_name = c_sanitize(const_name_orig)
                         const_prefix = f"{field_prefix}__CONST_{const_name}"
-                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", "// Constant"))
+                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", f"// Constant {docstr}"))
 
             # Align values and comments:
             define_max_len = max([len(d[0]) for d in defines]) + 1

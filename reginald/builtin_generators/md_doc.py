@@ -2,6 +2,7 @@ from tabulate import tabulate
 
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
+from reginald.utils import str_list, str_oneline
 
 
 class Generator(OutputGenerator):
@@ -16,10 +17,13 @@ class Generator(OutputGenerator):
         # Generate header:
         out.append(f"# {map.device_name} Register Map")
         out.append(f"Register bit width: {map.register_bitwidth}")
+        if map.brief is not None:
+            out.append(f"{map.brief}")
+        if map.doc is not None:
+            out.append(f"{str_oneline(map.doc)}")
         out.append("")
 
         # Generate overview table:
-
         out.append(f"## Overview:")
         out.append("")
         rows = []
@@ -40,7 +44,7 @@ class Generator(OutputGenerator):
             else:
                 adr = f"0x{reg.adr:X}"
 
-            fields = ", ".join(reg.fields.keys())
+            fields = str_list(reg.fields.keys())
             rows.append([adr, reg_name, fields])
 
         out.append("")
@@ -56,8 +60,10 @@ class Generator(OutputGenerator):
             out.append(f"### {reg_name}:")
 
             # Register info:
+            if reg.brief is not None:
+                out.append(f" - {reg.brief}")
             if reg.doc is not None:
-                doc = str.join(" ", reg.doc.splitlines())
+                doc = str_oneline(reg.doc)
                 out.append(f" - {doc}")
             if reg.adr is not None:
                 out.append(f" - Address: 0x{reg.adr:X}")
@@ -119,30 +125,29 @@ class Generator(OutputGenerator):
                 out.append(f"  - {field_name}{access_str}:")
 
                 # Documentation (if any):
+                if field.brief is not None:
+                    out.append(f"    - {field.brief}")
                 if field.doc is not None:
-                    doc = str.join(" ", field.doc.splitlines())
-                    out.append(f"    - {doc}")
+                    out.append(f"    - {str_oneline(field.doc)}")
 
                 # Accepted values (through local or global enum):
                 if field.enum is not None or field.accepts_enum is not None:
-                    out.append(f"    - Values:")
+                    out.append(f"    - Accepts:")
 
                     # Global enum:
                     if field.accepts_enum is not None:
                         out.append(f"      - A value from enum {field.accepts_enum}:")
                         for key, entry in map.enums[field.accepts_enum].items():
-                            if entry.doc is not None:
-                                doc = str.join(" ", entry.doc.splitlines())
-                                out.append(f"        - {key}: 0x{entry.value:X} ({doc})")
+                            if entry.brief is not None:
+                                out.append(f"        - {key}: 0x{entry.value:X} ({entry.brief})")
                             else:
                                 out.append(f"        - {key}: 0x{entry.value:X}")
 
                     # Local enum:
                     if field.enum is not None:
                         for key, entry in field.enum.items():
-                            if entry.doc is not None:
-                                doc = str.join(" ", entry.doc.splitlines())
-                                out.append(f"      - {key}: 0x{entry.value:X} ({doc})")
+                            if entry.brief is not None:
+                                out.append(f"      - {key}: 0x{entry.value:X} ({entry.brief})")
                             else:
                                 out.append(f"      - {key}: 0x{entry.value:X}")
 
@@ -158,10 +163,15 @@ class Generator(OutputGenerator):
                 out.append("")
                 table_rows = []
                 for key, entry in enum.items():
+                    docstr = ""
+                    if entry.brief is not None:
+                        docstr += entry.brief + "\n"
                     if entry.doc is not None:
-                        table_rows.append([key, hex(entry.value), entry.doc])
-                    else:
-                        table_rows.append([key, hex(entry.value), "?"])
+                        docstr += entry.doc
+
+                    docstr = docstr.strip()
+
+                    table_rows.append([key, hex(entry.value), docstr])
                 out.append("")
                 out.append(tabulate(table_rows, headers=["Name", "Value", "Description"], tablefmt="pipe"))
                 out.append("")

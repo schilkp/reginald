@@ -2,7 +2,7 @@ from typing import List
 
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
-from reginald.utils import c_sanitize
+from reginald.utils import c_sanitize, doxy_comment, str_pad_to_length
 
 
 class Generator(OutputGenerator):
@@ -19,21 +19,19 @@ class Generator(OutputGenerator):
 
         out = []
 
-        out.append(f"/*")
-        out.append(f"* {devname} Register Enums.")
-        out.append(f"* Note: do not edit: Generated using Reginald.")
-        out.append(f"*/")
+        out.append(f"/*!")
+        out.append(f" * \\file {devname_c}_reg_enums.h")
+        out.append(f" * \\brief {devname} Register Enums.")
+        out.append(f" * \\note Do not edit: Generated using Reginald.")
+        out.append(f" */")
+        out.append(f"")
         out.append(f"")
         out.append(f"#ifndef {devname_macro}_REG_ENUMS_H_")
         out.append(f"#define {devname_macro}_REG_ENUMS_H_")
         out.append(f"")
 
-        title_line = f"// ==== Global Enums "
-        out.append(f"")
+        out.append(str_pad_to_length(f"// ==== Global Enums ", "=", 80))
 
-        if len(title_line) < 80:
-            title_line += ("=" * (80 - len(title_line)))
-        out.append(title_line)
         out.append(f"")
 
         for enumname_orig, enum in map.enums.items():
@@ -43,6 +41,7 @@ class Generator(OutputGenerator):
 
             for entryname_orig, entry in enum.items():
                 entryname_macro = c_sanitize(entryname_orig).upper()
+                out.extend(doxy_comment(entry.brief, entry.doc))
                 out.append(f"  {devname_macro}_{enumname_macro}_{entryname_macro} = 0x{entry.value:X}U,")
 
             out.append(f"}} {devname_c}_{enumname_c}_t;")
@@ -55,12 +54,8 @@ class Generator(OutputGenerator):
             if enum_count == 0:
                 continue
 
-            title_line = f"// ==== {registername_orig} Enums "
             out.append(f"")
-
-            if len(title_line) < 80:
-                title_line += ("=" * (80 - len(title_line)))
-            out.append(title_line)
+            out.append(str_pad_to_length(f"// ==== {registername_orig} Enums ", "=", 80))
             out.append(f"")
 
             for fieldname_orig, field in reg.fields.items():
@@ -68,10 +63,12 @@ class Generator(OutputGenerator):
                 fieldname_macro = c_sanitize(fieldname_orig).upper()
 
                 if field.enum is not None:
+                    out.extend(doxy_comment(field.brief, field.doc))
                     out.append(f"typedef enum {{")
 
                     for entryname_orig, entry in field.enum.items():
                         entryname_macro = c_sanitize(entryname_orig).upper()
+                        out.extend(doxy_comment(entry.brief, entry.doc))
                         out.append(f"  {devname_macro}_{fieldname_macro}_{entryname_macro} = 0x{entry.value:X}U,")
 
                     out.append(f"}} {devname_c}_{fieldname_c}_t;")
