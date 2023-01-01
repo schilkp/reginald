@@ -1346,7 +1346,7 @@ registers:
         brief: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
       DRV_SBB:
         bits: [1, 0]
-        acces: r/w
+        access: r/w
         brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
         enum:
           FASTEST:

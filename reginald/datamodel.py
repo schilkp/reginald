@@ -2,7 +2,8 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pydantic
 import yaml
-from pydantic import NonNegativeInt, PositiveInt, ValidationError
+from pydantic import ConfigDict, NonNegativeInt, PositiveInt, ValidationError
+from pydantic.config import Extra
 from pydantic.dataclasses import dataclass
 from yaml.loader import SafeLoader
 
@@ -10,7 +11,7 @@ from reginald.bits import BitRange, Bits
 from reginald.error import ReginaldException
 
 
-@dataclass
+@dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class RegEnumEntry:
     value: NonNegativeInt
     doc: Optional[str] = None
@@ -21,13 +22,13 @@ class RegEnumEntry:
             self.brief = " ".join(self.brief.splitlines()).strip()
 
 
-@dataclass
+@dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class InputBitRange:
     lsb_position: NonNegativeInt
     width: PositiveInt
 
 
-@dataclass
+@dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class Field:
     bits: Union[List[int], InputBitRange]
     access: Optional[str] = None
@@ -79,7 +80,7 @@ class Field:
         raise KeyError()
 
 
-@dataclass
+@dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class Register:
     fields: Dict[str, Field] = pydantic.Field(default_factory=dict)
     adr: Optional[int] = None
@@ -124,7 +125,7 @@ class Register:
         return self.get_unused_bits(register_bitwidth).get_bitranges()
 
 
-@dataclass
+@dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class RegisterMap:
     device_name: str
     register_bitwidth: PositiveInt
