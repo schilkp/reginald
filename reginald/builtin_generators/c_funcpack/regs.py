@@ -39,11 +39,22 @@ class Generator(OutputGenerator):
 
             out.append(str_pad_to_length(f"// ==== {regname_orig} ", "=", 80))
 
+            # Combine brief + doc to include in doc of register address:
+            docstr = ""
+            if reg.brief is not None:
+                docstr += reg.brief
+            if reg.doc is not None:
+                docstr += "\n"+reg.doc
+
             # Generate register address:
             if reg.adr is not None:
-                out.extend(doxy_comment(f" {regname_c} Register Address", None))
+                out.extend(doxy_comment(f" {regname_orig} Register Address", docstr))
                 out.append(f"#define {devname_macro}_REG_{regname_macro} (0x{reg.adr:X}U)")
                 out.append(f"")
+
+            if len(reg.fields) == 0:
+                # Don't generate structs + funcs if there are no fields.
+                continue
 
             # Generate register struct:
             out.extend(doxy_comment(reg.brief, reg.doc))
