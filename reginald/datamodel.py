@@ -83,6 +83,7 @@ class Field:
 class Register:
     fields: Dict[str, Field] = pydantic.Field(default_factory=dict)
     adr: Optional[int] = None
+    reserved_val: Optional[int] = None
     reset_val: Optional[int] = None
     doc: Optional[str] = None
     brief: Optional[str] = None
@@ -104,6 +105,12 @@ class Register:
             return None
         else:
             return self.fields[name]
+
+    def get_used_bits(self) -> Bits:
+        result = Bits.zero()
+        for field in self.fields.values():
+            result = Bits.bitwise_or(result, field.get_bits())
+        return result
 
     def get_unused_bits(self, register_bitwidth: int) -> Bits:
         mask = Bits.zero()

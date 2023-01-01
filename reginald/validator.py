@@ -48,9 +48,15 @@ def validate_Register(self: Register, map: RegisterMap, backtrace: str):
         for other_field, other_mask in previous_field_masks.items():
             if other_mask & field_mask != 0:
                 raise ReginaldException(
-                    f"{backtrace} -> {fieldname}: Field overlaps with field {other_field}! (Overlap: {hex(other_mask & field_mask)})")
+                        f"{backtrace} -> {fieldname}: Field overlaps with field {other_field}! (Overlap: 0x{(other_mask & field_mask):X})")
 
         previous_field_masks[fieldname] = field_mask
+
+    # Validate that reserved_val does not conflict with any fields:
+    if self.reserved_val is not None:
+        overlap = self.get_used_bits().get_bitmask() & self.reserved_val
+        if overlap != 0:
+            raise ReginaldException(f"{backtrace} -> reserved_val overlaps with fields (Overlap: 0x{overlap:X})")
 
 
 def validate_RegisterMap(self: RegisterMap):

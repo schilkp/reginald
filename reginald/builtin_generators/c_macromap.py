@@ -51,6 +51,9 @@ class Generator(OutputGenerator):
                 docstr = f"({r.brief})" if r.brief is not None else ""
                 defines.append((f"#define {register_prefix}", f"(0x{r.adr:02X}U)", f"// Register Address {docstr}"))
 
+            if r.reserved_val is not None:
+                defines.append((f"#define {register_prefix}__RESERVED", f"(0x{r.reserved_val:02X}U)", f"// Reserved Bits"))
+
             for field_name_orig, field in r.fields.items():
                 docstr = f"({field.brief})" if field.brief is not None else ""
                 field_name = c_sanitize(field_name_orig)

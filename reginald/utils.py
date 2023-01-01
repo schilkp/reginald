@@ -40,6 +40,15 @@ def str_pad_to_length(input: str, pad_char: str, length: int) -> str:
 
 
 def doxy_comment(brief: Optional[str], doc: Optional[str]) -> List[str]:
+    if brief is not None:
+        brief = brief.strip()
+        if len(brief) == 0:
+            brief = None
+    if doc is not None:
+        doc = doc.strip()
+        if len(doc) == 0:
+            doc = None
+
     if brief is not None and doc is None:
         return [f"/** @brief {brief} */"]
     elif doc is not None:

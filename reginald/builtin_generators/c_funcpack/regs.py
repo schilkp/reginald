@@ -52,6 +52,11 @@ class Generator(OutputGenerator):
                 out.append(f"#define {devname_macro}_REG_{regname_macro} (0x{reg.adr:X}U)")
                 out.append(f"")
 
+            if reg.reserved_val is not None:
+                out.extend(doxy_comment(f" {regname_orig} Default Initialiser", "Correctly sets reserved bits"))
+                out.append(f"#define {devname_macro}_REG_{regname_macro}__RESERVED (0x{reg.reserved_val:X}U)")
+                out.append(f"")
+
             if len(reg.fields) == 0:
                 # Don't generate structs + funcs if there are no fields.
                 continue
@@ -94,7 +99,11 @@ class Generator(OutputGenerator):
             out.append(f" * @return packed register representation")
             out.append(f" */")
             out.append(f"static inline {packed_type} pack_reg_{regname_c}(const struct reg_{regname_c} *r){{")
-            out.append(f"  {packed_type} packed = 0;")
+            if reg.reserved_val is not None:
+                default_initialiser = f"{devname_macro}_REG_{regname_macro}__RESERVED"
+                out.append(f"  {packed_type} packed = {default_initialiser};")
+            else:
+                out.append(f"  {packed_type} packed = 0x0U;")
             for fieldname_orig, field in reg.fields.items():
                 fieldname_c = c_sanitize(fieldname_orig).lower()
                 mask = field.get_bits().get_unpositioned_bits().get_bitmask()
