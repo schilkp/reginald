@@ -108,7 +108,7 @@ class Generator(OutputGenerator):
                 fieldname_c = c_sanitize(fieldname_orig).lower()
                 mask = field.get_bits().get_unpositioned_bits().get_bitmask()
                 shift = field.get_bits().lsb_position()
-                out.append(f"  packed |= (r->{fieldname_c} & 0x{mask:X}U) << {shift}U;")
+                out.append(f"  packed |= ({packed_type}) ((r->{fieldname_c} & 0x{mask:X}U) << {shift}U);")
             out.append(f"  return packed;")
             out.append(f"}}")
             out.append(f"")
