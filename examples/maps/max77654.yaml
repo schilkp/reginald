@@ -1,6 +1,6 @@
 ---
-device_name: MAX77654
-register_bitwidth: 8
+map_name: MAX77654
+default_register_bitwidth: 8
 
 registers:
   INT_GLBL0:
@@ -10,44 +10,44 @@ registers:
     fields:
       DOD0_R:
         bits: [7]
-        access: "r"
+        access: r
         brief: LDO Dropout Detector Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       DOD1_R:
         bits: [6]
-        access: "r"
+        access: r
         brief: LDO Dropout Detector Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       TJAL2_R:
         bits: [5]
-        access: "r"
+        access: r
         brief: Thermal Alarm 2 Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       TJAL1_R:
         bits: [4]
-        access: "r"
+        access: r
         brief: Thermal Alarm 1 Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       nEN_R:
         bits: [3]
-        access: "r"
+        access: r
         brief: nEN Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       nEN_F:
         bits: [2]
-        access: "r"
+        access: r
         brief: nEN Falling Interrupt
-        accepts_enum: EN
+        enum: EN
       GPI0_R:
         bits: [1]
-        access: "r"
+        access: r
         brief: GPI0 Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       GPI0_F:
         bits: [0]
-        access: "r"
+        access: r
         brief: GPI0 Falling Interrupt
-        accepts_enum: EN
+        enum: EN
 
   INT_GLBL1:
     adr: 0x04
@@ -56,39 +56,39 @@ registers:
     fields:
       LDO1_F:
         bits: [6]
-        access: "r"
+        access: r
         brief: LDO1 Fault Interrupt
-        accepts_enum: EN
+        enum: EN
       LDO0_F:
         bits: [5]
         brief: LDO0 Fault Interrupt
-        access: "r"
-        accepts_enum: EN
+        access: r
+        enum: EN
       SBB_TO:
         bits: [4]
-        access: "r"
+        access: r
         brief: SBB Timeout
       GPI2_R:
-        accepts_enum: EN
+        enum: EN
         bits: [3]
-        access: "r"
+        access: r
         brief: GPI Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       GPI2_F:
         bits: [2]
-        access: "r"
+        access: r
         brief: GPI Falling Interrupt
-        accepts_enum: EN
+        enum: EN
       GPI1_R:
         bits: [1]
-        access: "r"
+        access: r
         brief: GPI Rising Interrupt
-        accepts_enum: EN
+        enum: EN
       GPI1_F:
         bits: [0]
-        access: "r"
+        access: r
         brief: GPI Falling Interrupt
-        accepts_enum: EN
+        enum: EN
 
   ERC_FLAG:
     adr: 0x05
@@ -97,41 +97,41 @@ registers:
     fields:
       WDT_RST:
         bits: [7]
-        access: "r"
+        access: r
         brief: Watchdog Timer Reset Flag
         doc: >
           This bit sets when the watchdog timer expires and causes
           a power-reset (WDT_MODE = 1).
       WDT_OFF:
         bits: [6]
-        access: "r"
+        access: r
         brief: Watchdog Timer OFF Flag 
         doc: >
           This bit sets when the watchdog timer expires and causes
           a power-off (WDT_MODE = 0).
       SFT_CRST_F:
         bits: [5]
-        access: "r"
+        access: r
         brief: Software Cold Reset Flag
       SFT_OFF_F:
         bits: [4]
-        access: "r"
+        access: r
         brief: Software OFF Flag
       MRST:
         bits: [3]
-        access: "r"
+        access: r
         brief: Manual Reset Timer
       SYSUVLO:
         bits: [2]
-        access: "r"
+        access: r
         brief: SYS Domain Undervoltage Lockout
       SYSOVLO:
         bits: [1]
-        access: "r"
+        access: r
         brief: SYS Domain Overvoltage Lockout
       TOVLD:
         bits: [0]
-        access: "r"
+        access: r
         brief: Thermal Overload
 
   STAT_GLBL:
@@ -141,35 +141,35 @@ registers:
     fields:
       DIDM:
         bits: [7]
-        access: "r"
+        access: r
         brief: Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)
       BOK:
         bits: [6]
-        access: "r"
+        access: r
         brief: Main Bias OK
       DOD0_S:
         bits: [5]
-        access: "r"
+        access: r
         brief: LDO0 in dropout
       DOD1_S:
         bits: [4]
-        access: "r"
+        access: r
         brief: LDO1 in dropout
       TJAL2_S:
         bits: [3]
-        access: "r"
+        access: r
         brief: Thermal Alarm 2 active
       TJAL1_S:
         bits: [2]
-        access: "r"
+        access: r
         brief: Thermal Alarm 1 active
       STAT_EN:
         bits: [1]
-        access: "r"
+        access: r
         brief: Debounced Status for the nEN Input
       STAT_IRQ:
         bits: [0]
-        access: "r"
+        access: r
         brief: nIRQ active
 
   INTM_GLBL1:
@@ -179,39 +179,39 @@ registers:
     fields:
       LDO1_M:
         bits: [6]
-        access: "r/w"
+        access: [r, w]
         brief: LDO1 Fault Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       LDO0_M:
         bits: [5]
-        access: "r/w"
+        access: [r, w]
         brief: LDO0 Fault Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       SBB_TO_M:
         bits: [4]
-        access: "r/w"
+        access: [r, w]
         brief: SBB Timeout Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       GPI2_RM:
         bits: [3]
-        access: "r/w"
+        access: [r, w]
         brief: GPI Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       GPI2_FM:
         bits: [2]
-        access: "r/w"
+        access: [r, w]
         brief: GPI Falling Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       GPI1_RM:
         bits: [1]
-        access: "r/w"
+        access: [r, w]
         brief: GPI Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       GPI1_FM:
         bits: [0]
-        access: "r/w"
+        access: [r, w]
         brief: GPI Falling Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
   INTM_GLBL0:
     adr: 0x09
     reset_val: 0xFF
@@ -219,44 +219,44 @@ registers:
     fields:
       DOD0_RM:
         bits: [7]
-        access: "r/w"
+        access: [r, w]
         brief: LDO Dropout Detector Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       DOD1_RM:
         bits: [6]
-        access: "r/w"
+        access: [r, w]
         brief: LDO Dropout Detector Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       TJAL2_RM:
         bits: [5]
-        access: "r/w"
+        access: [r, w]
         brief: Thermal Alarm 2 Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       TJAL1_RM:
         bits: [4]
-        access: "r/w"
+        access: [r, w]
         brief: Thermal Alarm 1 Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       nEN_RM:
         bits: [3]
-        access: "r/w"
+        access: [r, w]
         brief: nEN Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       nEN_FM:
         bits: [2]
-        access: "r/w"
+        access: [r, w]
         brief: nEN Falling Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       GPI0_RM:
         bits: [1]
-        access: "r/w"
+        access: [r, w]
         brief: GPI Rising Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       GPI0_FM:
         bits: [0]
-        access: "r/w"
+        access: [r, w]
         brief: GPI Falling Interrupt Mask/Disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
 
   CNFG_GLBL:
     adr: 0x10
@@ -266,7 +266,7 @@ registers:
       PU_DIS:
         bits: [7]
         brief: nEN Internal Pullup Resistor
-        access: "r/w"
+        access: [r, w]
         enum:
           200K:
             value: 0
@@ -277,7 +277,7 @@ registers:
       T_MRST:
         bits: [6]
         brief: Sets the Manual Reset Time (tMRST)
-        access: "r/w"
+        access: [r, w]
         enum:
           8s:
             value: 0
@@ -287,16 +287,16 @@ registers:
             brief: 16 seconds
       SBIA_LPM:
         bits: [5]
-        access: "r/w"
+        access: [r, w]
         brief: Main Bias Low-Power Mode Software Request
       SBIA_EN:
         bits: [4]
-        access: "r/w"
+        access: [r, w]
         brief: Main Bias Force Enable Software Request
-        accepts_enum: EN
+        enum: EN
       nEN_MODE:
         bits: [3]
-        access: "r/w"
+        access: [r, w]
         brief: nEN Input (ON-KEY) Default Configuration
         enum:
           PUSHBTN:
@@ -307,7 +307,7 @@ registers:
             brief: "Slide-switch"
       DBEN_nEN:
         bits: [2]
-        access: "r/w"
+        access: [r, w]
         brief: Debounce Timer Enable for the nEN Pin
         enum:
           500us:
@@ -318,7 +318,7 @@ registers:
             brief: 30 milliseconds
       SFT_CTRL:
         bits: [1, 0]
-        access: "r/w"
+        access: [r, w]
         brief: Software Reset Function
         doc: >
           Note that the SFT_CRST and SFT_OFF
@@ -358,104 +358,11 @@ registers:
               switch opens. The device remains
               this way until a factory-ship mode exit event
               occurs.
-  CNFG_GPIO0:
-    adr: 0x11
-    reset_val: 0x01
-    brief: GPIO 0 Configuration
-    fields:
-      ALT:
-        bits: [5]
-        access: "r/w"
-        brief: Alternate Mode Enable for GPIO0
-        accepts_enum: EN
-      DBEN_GPI:
-        bits: [4]
-        access: "r/w"
-        brief: General Purpose Input Debounce Timer enable (30ms)
-        accepts_enum: EN
-      DOUT:
-        bits: [3]
-        access: "r/w"
-        brief: General Purpose Output Data Output
-      DRV:
-        bits: [2]
-        access: "r/w"
-        brief: General Purpose Output Driver Type
-        accepts_enum: GPO_DRV
-      DI:
-        bits: [1]
-        access: "r"
-        brief: GPIO Digital Input Value.
-      DIR:
-        bits: [0]
-        access: "r/w"
-        brief: GPIO Direction
-        accepts_enum: GPO_DIR
 
-  CNFG_GPIO1:
-    adr: 0x12
-    reset_val: 0x01
-    brief: GPIO 1 Configuration
-    fields:
-      ALT:
-        bits: [5]
-        access: "r/w"
-        brief: Alternate Mode Enable for GPIO0
-      DBEN_GPI:
-        bits: [4]
-        access: "r/w"
-        brief: General Purpose Input Debounce Timer enable (30ms)
-      DOUT:
-        bits: [3]
-        access: "r/w"
-        brief: General Purpose Output Data Output
-      DRV:
-        bits: [2]
-        access: "r/w"
-        brief: General Purpose Output Driver Type
-        accepts_enum: GPO_DRV
-      DI:
-        bits: [1]
-        access: "r"
-        brief: GPIO Digital Input Value.
-      DIR:
-        bits: [0]
-        access: "r/w"
-        brief: GPIO Direction
-        accepts_enum: GPO_DIR
-
-  CNFG_GPIO2:
-    adr: 0x13
-    reset_val: 0x01
-    brief: GPIO 2 Configuration
-    fields:
-      ALT:
-        bits: [5]
-        access: "r/w"
-        brief: Alternate Mode Enable for GPIO0
-      DBEN_GPI:
-        bits: [4]
-        access: "r/w"
-        brief: General Purpose Input Debounce Timer enable (30ms)
-      DOUT:
-        bits: [3]
-        access: "r/w"
-        brief: General Purpose Output Data Output
-      DRV:
-        bits: [2]
-        access: "r/w"
-        brief: General Purpose Output Driver Type
-        accepts_enum: GPO_DRV
-      DI:
-        bits: [1]
-        access: "r"
-        brief: GPIO Digital Input Value.
-      DIR:
-        bits: [0]
-        access: "r/w"
-        brief: GPIO Direction
-        accepts_enum: GPO_DIR
-
+  CNFG_GPIOn:
+    start_adr: {0: 0x11, 1: 0x12, 2: 0x13}
+    replace_str_with_instance_id: "n"
+    register_block_template: "CNFG_GPIOn"
   CID:
     adr: 0x14
     reset_val: 0x00
@@ -464,10 +371,8 @@ registers:
       CID_MSB:
         bits: [7]
         brief: Bit 4 of the chip identification code.
-      CID_LSB:
-        bits:
-          lsb_position: 0
-          width: 4
+      CID_LSB: 
+        bits: 0-3
         brief: Bits 0 to 3 of the chip identification code.
 
   CNFG_WDT:
@@ -507,11 +412,11 @@ registers:
       WDT_EN:
         bits: [1]
         brief: Watchdog Timer Enable. Write protected.
-        accepts_enum: EN
+        enum: EN
       WDT_LOCK:
         bits: [0]
         brief: Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.
-        accepts_enum: EN
+        enum: EN
 
   INT_CHG:
     adr: 0x01
@@ -593,9 +498,7 @@ registers:
     brief: Charger status register B.
     fields:
       CHG_DTLS:
-        bits:
-          lsb_position: 4
-          width: 4
+        bits: 4-7
         brief: Charger Status details
         enum:
           "OFF":
@@ -668,31 +571,31 @@ registers:
       SYS_CNFG_I:
         bits: [6]
         brief: System Voltage Configuration Error Interrupt Mask/disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       SYS_CTRL_I:
         bits: [5]
         brief: Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       CHGIN_CTRL_I:
         bits: [4]
         brief: CHGIN Control-Loop Related Interrupt Mask/disabled.
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       TJ_REG_I:
         bits: [3]
         brief: Die Junction Temperature Regulation Interrupt Mask/disabled.
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       CHGIN_I:
         bits: [2]
         brief: CHGIN Related Interrupt Mask/disabled.
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       CHG_I:
         bits: [1]
         brief: Charger Related Interrupt Mask/disabled.
-        accepts_enum: INT_MASK
+        enum: INT_MASK
       THM_I:
         bits: [0]
         brief: Thermistor Related Interrupt Mask/disabled.
-        accepts_enum: INT_MASK
+        enum: INT_MASK
 
   CNFG_CHG_A:
     adr: 0x20
@@ -829,7 +732,7 @@ registers:
       CHG_EN:
         bits: [0]
         brief: Charger Enable
-        accepts_enum: EN
+        enum: EN
 
   CNFG_CHG_C:
     adr: 0x22
@@ -934,9 +837,7 @@ registers:
             value: 0x4
             brief: 100degC
       VSYS_REG:
-        bits:
-          lsb_position: 0
-          width: 5
+        bits: 0-4
         brief: System Voltage Regulation (VSYS-REG) 
         doc: >
           This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
@@ -1037,9 +938,7 @@ registers:
     brief: Charger Config register E.
     fields:
       CHG_CC:
-        bits:
-          lsb_position: 2
-          width: 6
+        bits: 2-7
         brief: Sets the fast-charge constant current value, IFAST-CHG. 
         doc: >
           This 6-bit configuration is a linear transfer function 
@@ -1067,9 +966,7 @@ registers:
     brief: Charger Config register F.
     fields:
       CHG_CC_JEITA:
-        bits:
-          lsb_position: 2
-          width: 6
+        bits: 2-7
         brief: Sets IFAST-CHG-JEITA for when the battery is either cool or warm
         doc: >
           Cool or warm are as defined by the VCOOL
@@ -1082,7 +979,7 @@ registers:
       THM_EN:
         bits: [1]
         brief: Thermistor Enable
-        accepts_enum: EN
+        enum: EN
 
   CNFG_CHG_G:
     adr: 0x26
@@ -1090,9 +987,7 @@ registers:
     brief: Charger Config register G.
     fields:
       CHG_CV:
-        bits:
-          lsb_position: 2
-          width: 6
+        bits: 2-7
         brief: Sets fast-charge battery regulation voltage, VFAST-CHG.
         doc: >
           This 6-bit configuration is a linear transfer function that
@@ -1109,9 +1004,7 @@ registers:
     brief: Charger Config register H.
     fields:
       CHG_CV_JEITA:
-        bits:
-          lsb_position: 2
-          width: 6
+        bits: 2-7
         brief: Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.
         doc: >
           Cool or warm as defined
@@ -1131,9 +1024,7 @@ registers:
     brief: Charger Config register I.
     fields:
       IMON_DISCHG_SCALE:
-        bits:
-          lsb_position: 4
-          width: 4
+        bits: 4-7
         brief: Selects the battery discharge current full-scale current value.
         enum:
           8mA2:
@@ -1170,9 +1061,7 @@ registers:
             value: 0xA
             brief: 300.0mA
       MUX_SEL:
-        bits:
-          lsb_position: 0
-          width: 4
+        bits: 0-3
         brief: Selects the analog channel to connect to AMUX.
         enum:
           DISABLED:
@@ -1209,131 +1098,10 @@ registers:
             value: 0xA
             brief: SYS voltage monitor
 
-  CNFG_SBB0_A:
-    adr: 0x29
-    reset_val: 0x00
-    brief: SBB0 Config A.
-    fields:
-      TV_SBB:
-        bits:
-          lsb_position: 0
-          width: 7
-        brief: SIMO Buck-Boost Channel 0 Target Output Voltage
-        doc: >
-          This 7-bit configuration is a linear transfer
-          function that starts at 0.8V, ends at 5.5V, with
-          50mV increments.
-
-  CNFG_SBB0_B:
-    adr: 0x2A
-    reset_val: 0x00
-    brief: SBB0 Config B.
-    fields:
-      OP_MODE:
-        bits: [6]
-        brief: Operation Mode of SBB0
-        accepts_enum: SBB_MODE
-      IP_SBB:
-        bits: [5, 4]
-        brief: SIMO Buck-Boost Channel 0 Peak Current Limit
-        accepts_enum: IP_SBB
-      ADE_SBB:
-        bits: [3]
-        brief: SIMO Buck-Boost Channel 0 Active-Discharge Enable
-        accepts_enum: EN
-      EN_SBB:
-        bits: [2, 1, 0]
-        brief: Enable control for SIMO buck-boost channel 0 
-        doc: >
-          Selects either an FPS slot the channel powers-up and powers-down in or
-          whether the channel is forced on or off.
-        accepts_enum: REG_EN
-
-  CNFG_SBB1_A:
-    adr: 0x2B
-    reset_val: 0x00
-    brief: SBB1 Config A.
-    fields:
-      TV_SBB:
-        bits:
-          lsb_position: 0
-          width: 7
-        brief: SIMO Buck-Boost Channel 1 Target Output Voltage
-        doc: >
-          This 7-bit configuration is a linear transfer
-          function that starts at 0.8V, ends at 5.5V, with
-          50mV increments.
-
-  CNFG_SBB1_B:
-    adr: 0x2C
-    reset_val: 0x00
-    brief: SBB1 Config B.
-    fields:
-      OP_MODE:
-        bits: [6]
-        brief: Operation Mode of SBB1
-        accepts_enum: SBB_MODE
-      IP_SBB:
-        bits: [5, 4]
-        brief: SIMO Buck-Boost Channel 1 Peak Current Limit
-        accepts_enum: IP_SBB
-      ADE_SBB:
-        bits: [3]
-        brief: SIMO Buck-Boost Channel 1 Active-Discharge Enable
-        accepts_enum: EN
-      EN_SBB:
-        bits: [2, 1, 0]
-        brief: Enable control for SIMO buck-boost channel 1
-        doc: >
-          Selects either an FPS slot the channel powers-up and powers-down in or
-          whether the channel is forced on or off.
-        accepts_enum: REG_EN
-
-  CNFG_SBB2_A:
-    adr: 0x2D
-    reset_val: 0x00
-    brief: SBB2 Config A.
-    fields:
-      TV_SBB:
-        bits:
-          lsb_position: 0
-          width: 7
-        brief: SIMO Buck-Boost Channel 2 Target Output Voltage
-        doc: >
-          This 7-bit configuration is a linear transfer
-          function that starts at 0.8V, ends at 5.5V, with
-          50mV increments.
-
-  CNFG_SBB2_B:
-    adr: 0x2E
-    reset_val: 0x00
-    brief: SBB2 Config B.
-    fields:
-      OP_MODE:
-        bits: [6]
-        brief: Operation Mode of SBB2
-        enum:
-          BUCK_BOOST:
-            value: 0
-            brief: Buck-boost mode.
-          BUCK:
-            value: 1
-            brief: Buck mode.
-      IP_SBB:
-        bits: [5, 4]
-        brief: SIMO Buck-Boost Channel 2 Peak Current Limit
-        accepts_enum: IP_SBB
-      ADE_SBB:
-        bits: [3]
-        brief: SIMO Buck-Boost Channel 2 Active-Discharge Enable
-        accepts_enum: EN
-      EN_SBB:
-        bits: [2, 1, 0]
-        brief: Enable control for SIMO buck-boost channel 2
-        doc: >
-          Selects either an FPS slot the channel powers-up and powers-down in or
-          whether the channel is forced on or off.
-        accepts_enum: REG_EN
+  CNFG_SBBn:
+    start_adr: {0: 0x29, 1: 0x2B, 3: 0x2D}
+    replace_str_with_instance_id: "n"
+    register_block_template: "CNFG_SBBn"
 
   CNFG_SBB_TOP:
     adr: 0x2F
@@ -1346,7 +1114,7 @@ registers:
         brief: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
       DRV_SBB:
         bits: [1, 0]
-        access: r/w
+        access: [r, w]
         brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
         enum:
           FASTEST:
@@ -1362,164 +1130,206 @@ registers:
             value: 0x3
             brief: A little slower than SLOWEST
 
-  CNFG_LDO0_A:
-    adr: 0x38
-    reset_val: 0x00
-    brief: LDO0 Config A.
-    fields:
-      TV_LDO:
-        bits:
-          lsb_position: 0
-          width: 7
-        brief: LDO Target Output Voltage 
-        doc: >
-          This 7-bit configuration is a linear transfer
-          function that starts at 0.8V and ends at
-          3.975V, with 25mV increments.
+  CNFG_LDOn:
+    start_adr: {0: 0x38, 1: 0x3A}
+    replace_str_with_instance_id: "n"
+    register_block_template: "CNFG_LDOn"
 
-  CNFG_LDO0_B:
-    adr: 0x39
-    reset_val: 0x00
-    brief: LDO0 Config B.
-    fields:
-      OP_MODE:
-        bits: [4]
-        brief: Operation Mode of LDO0
-        accepts_enum: LDO_MODE
-      ADE_LDO:
-        bits: [3]
-        brief: LDO Channel 0 Active-Discharge Enable
-        accepts_enum: EN
-      EN_LDO:
-        bits: [2, 1, 0]
-        brief: Enable control for LDO0
-        doc: >
-          Selects either an FPS slot the channel powers-up and powers-down in or
-          whether the channel is forced on or off.
-        accepts_enum: REG_EN
 
-  CNFG_LDO1_A:
-    adr: 0x3A
-    reset_val: 0x00
-    brief: LDO1 Config A.
-    fields:
-      TV_LDO:
-        bits:
-          lsb_position: 0
-          width: 7
-        brief: LDO Target Output Voltage 
-        doc: >
-          This 7-bit configuration is a linear transfer
-          function that starts at 0.8V and ends at
-          3.975V, with 25mV increments.
 
-  CNFG_LDO1_B:
-    adr: 0x3B
-    reset_val: 0x00
-    brief: LDO0 Config B.
-    fields:
-      OP_MODE:
-        bits: [4]
-        brief: Operation Mode of LDO1
-        accepts_enum: LDO_MODE
-      ADE_LDO:
-        bits: [3]
-        brief: LDO Channel 1 Active-Discharge Enable
-        accepts_enum: EN
-      EN_LDO:
-        bits: [2, 1, 0]
-        brief: Enable control for LDO1
-        doc: >
-          Selects either an FPS slot the channel powers-up and powers-down in or
-          whether the channel is forced on or off.
-        accepts_enum: REG_EN
+register_block_templates:
+  CNFG_SBBn:
+    registers:
+      _A:
+        offset: 0x0
+        reset_val: 0x00
+        brief: SBBn Config A.
+        fields:
+          TV_SBB:
+            bits: 0-6
+            brief: SIMO Buck-Boost Channel Target Output Voltage
+            doc: 
+              This 7-bit configuration is a linear transfer
+              function that starts at 0.8V, ends at 5.5V, with
+              50mV increments.
+      _B:
+        offset: 0x1
+        reset_val: 0x00
+        brief: SBBn Config B.
+        fields:
+          OP_MODE:
+            bits: [6]
+            brief: Operation Mode of SBBn
+            enum:
+              BUCK_BOOST:
+                value: 0
+                brief: Buck-boost mode.
+              BUCK:
+                value: 1
+                brief: Buck mode.
+          IP_SBB:
+            bits: [5, 4]
+            brief: SIMO Buck-Boost Channel Peak Current Limit
+            enum:
+              1A:
+                value: 0x0
+                brief: 1.000A
+              0A75:
+                value: 0x1
+                brief: 0.750A
+              0A5:
+                value: 0x2
+                brief: 0.500A
+              0A3:
+                value: 0x3
+                brief: 0.333A
+          ADE_SBB:
+            bits: [3]
+            brief: SIMO Buck-Boost Channel Active-Discharge Enable
+            enum: EN
+          EN_SBB:
+            bits: [2, 1, 0]
+            brief: Enable control for SIMO buck-boost channel.
+            doc: >
+              Selects either an FPS slot the channel powers-up and powers-down in or
+              whether the channel is forced on or off.
+            enum: REG_EN
 
-enums:
-  LDO_MODE:
-    LDO:
-      value: 0
-      brief: LDO regulator
-    SW:
-      value: 1
-      brief: Switch
+  CNFG_LDOn:
+    registers:
+      _A:
+        offset: 0x00
+        reset_val: 0x00
+        brief: LDOn Config A.
+        fields:
+          TV_LDO:
+            bits: 0-6
+            brief: LDO Target Output Voltage 
+            doc: >
+              This 7-bit configuration is a linear transfer
+              function that starts at 0.8V and ends at
+              3.975V, with 25mV increments.
 
-  SBB_MODE:
-    BUCK_BOOST:
-      value: 0
-      brief: Buck-boost mode.
-    BUCK:
-      value: 1
-      brief: Buck mode.
+      _B:
+        offset: 0x01
+        reset_val: 0x00
+        brief: LDOn Config B.
+        fields:
+          OP_MODE:
+            bits: [4]
+            brief: Operation Mode of LDO0
+            enum:
+              LDO:
+                value: 0
+                brief: LDO regulator
+              SW:
+                value: 1
+                brief: Switch
+          ADE_LDO:
+            bits: [3]
+            brief: LDO Channel Active-Discharge Enable
+            enum: EN
+          EN_LDO:
+            bits: [2, 1, 0]
+            brief: Enable control for LDO
+            doc: >
+              Selects either an FPS slot the channel powers-up and powers-down in or
+              whether the channel is forced on or off.
+            enum: REG_EN
+    
+  CNFG_GPIOn:
+    registers:
+      "":
+        offset: 0x0
+        reset_val: 0x01
+        brief: GPIO Configuration
+        fields:
+          ALT:
+            bits: [5]
+            access: [r, w]
+            brief: Alternate Mode Enable for GPIO0
+            enum: EN
+          DBEN_GPI:
+            bits: [4]
+            access: [r, w]
+            brief: General Purpose Input Debounce Timer enable (30ms)
+            enum: EN
+          DOUT:
+            bits: [3]
+            access: [r, w]
+            brief: General Purpose Output Data Output
+          DRV:
+            bits: [2]
+            access: [r, w]
+            brief: General Purpose Output Driver Type
+            enum:
+              OD:
+                value: 0
+                brief: "Open-drain"
+              PP:
+                value: 1
+                brief: "Push-Pull"
+          DI:
+            bits: [1]
+            access: r
+            brief: GPIO Digital Input Value.
+          DIR:
+            bits: [0]
+            access: [r, w]
+            brief: GPIO Direction
+            enum:
+              OUTPUT:
+                value: 0
+                brief: "Output"
+              INPUT:
+                value: 1
+                brief: "Input"
+
+
+shared_enums:
 
   REG_EN:
-    FPS_SLOT_0:
-      value: 0x0
-      brief: FPS slot 0
-    FPS_SLOT_1:
-      value: 0x1
-      brief: FPS slot 1
-    FPS_SLOT_2:
-      value: 0x2
-      brief: FPS slot 2
-    FPS_SLOT_3:
-      value: 0x3
-      brief: FPS slot 3
-    DISABLED:
-      value: 0x4
-      brief: Off irrespective of FPS
-    ENABLED:
-      value: 0x6
-      brief: On irrespective of FPS
-
-  GPO_DRV:
-    OD:
-      value: 0
-      brief: "Open-drain"
-    PP:
-      value: 1
-      brief: "Push-Pull"
-
-  GPO_DIR:
-    OUTPUT:
-      value: 0
-      brief: "Output"
-    INPUT:
-      value: 1
-      brief: "Input"
+    enum:
+      FPS_SLOT_0:
+        value: 0x0
+        brief: FPS slot 0
+      FPS_SLOT_1:
+        value: 0x1
+        brief: FPS slot 1
+      FPS_SLOT_2:
+        value: 0x2
+        brief: FPS slot 2
+      FPS_SLOT_3:
+        value: 0x3
+        brief: FPS slot 3
+      DISABLED:
+        value: 0x4
+        brief: Off irrespective of FPS
+      ENABLED:
+        value: 0x6
+        brief: On irrespective of FPS
 
   EN:
-    DISABLED:
-      value: 0
-      brief: "Disabled"
-    ENABLED:
-      value: 1
-      brief: "Enabled"
+    enum:
+      DISABLED:
+        value: 0
+        brief: "Disabled"
+      ENABLED:
+        value: 1
+        brief: "Enabled"
 
   INT_MASK:
-    UNMASKED:
-      value: 0
-      brief: "Enabled/Unmasked"
-    ENABLED:
-      value: 0
-      brief: "Enabled/Unmasked"
-    MASKED:
-      value: 1
-      brief: "Disabled/Masked"
-    DISABLED:
-      value: 1
-      brief: "Disabled/Masked"
-
-  IP_SBB:
-    1A:
-      value: 0x0
-      brief: 1.000A
-    0A75:
-      value: 0x1
-      brief: 0.750A
-    0A5:
-      value: 0x2
-      brief: 0.500A
-    0A3:
-      value: 0x3
-      brief: 0.333A
+    enum:
+      UNMASKED:
+        value: 0
+        brief: "Enabled/Unmasked"
+      ENABLED:
+        value: 0
+        brief: "Enabled/Unmasked"
+      MASKED:
+        value: 1
+        brief: "Disabled/Masked"
+      DISABLED:
+        value: 1
+        brief: "Disabled/Masked"
 

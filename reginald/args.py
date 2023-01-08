@@ -1,31 +1,18 @@
 import argparse
 import importlib.util
 import sys
-from dataclasses import dataclass
-from typing import List
 
-import reginald.builtin_generators.c.funcpack.enums
-import reginald.builtin_generators.c.funcpack.generic_pack
-import reginald.builtin_generators.c.funcpack.regs
+import reginald.builtin_generators.c.funcpack.funcpack
 import reginald.builtin_generators.c.macromap
 import reginald.builtin_generators.md.doc
 import reginald.builtin_generators.md.regdumpanalysis
+from reginald.cli import CLI
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 
-
-@dataclass
-class CLI:
-    input_file: str
-    generator: OutputGenerator
-    generator_args: List[str]
-
-
 builtin_generators = {
     'c.macromap': reginald.builtin_generators.c.macromap.Generator,
-    'c.funcpack.regs': reginald.builtin_generators.c.funcpack.regs.Generator,
-    'c.funcpack.generic_pack': reginald.builtin_generators.c.funcpack.generic_pack.Generator,
-    'c.funcpack.enums': reginald.builtin_generators.c.funcpack.enums.Generator,
+    'c.funcpack': reginald.builtin_generators.c.funcpack.funcpack.Generator,
     'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator,
     'md.doc': reginald.builtin_generators.md.doc.Generator
 }
@@ -45,6 +32,8 @@ def parse_args():
                         help="input register description yaml")
     parser.add_argument('output_generator',
                         help=f"select one of the builtin generators or provide a custom python file to use for output generator")
+    parser.add_argument('output_path',
+                        help=f"path to store generated files at")
     parser.add_argument('generator_args', nargs=argparse.REMAINDER,
                         help="additioanl arguments passed to the selected output generator")
 
@@ -86,4 +75,4 @@ def parse_args():
         else:
             raise ReginaldException("Error: Unknown generator.")
 
-    return CLI(input_file=args.input_file, generator=generator, generator_args=args.generator_args)
+    return CLI(input_file=args.input_file, generator=generator, generator_args=args.generator_args, output_path=args.output_path)

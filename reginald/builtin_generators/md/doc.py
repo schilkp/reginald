@@ -1,5 +1,9 @@
+import os
+from math import inf
+
 from tabulate import tabulate
 
+from reginald.cli import CLI
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
 from reginald.utils import str_list, str_oneline
@@ -11,16 +15,12 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, args: List[str]):
+    def generate(cls, map: RegisterMap, cli: CLI):
         out = []
 
         # Generate header:
-        out.append(f"# {map.device_name} Register Map")
-        out.append(f"Register bit width: {map.register_bitwidth}")
-        if map.brief is not None:
-            out.append(f"{map.brief}")
-        if map.doc is not None:
-            out.append(f"{str_oneline(map.doc)}")
+        out.append(f"# {map.map_name} Register Map")
+        out.extend(map.docs.multi_line(prefix=""))
         out.append("")
 
         # Generate overview table:
@@ -28,14 +28,14 @@ class Generator(OutputGenerator):
         out.append("")
         rows = []
 
-        def sort_by_adr(x: str) -> int:
+        def sort_by_adr(x: str) -> float:
             adr = map.registers[x].adr
             if adr is None:
-                return (2 ** map.register_bitwidth) + 1
+                return inf
             else:
                 return adr
-
         regs = sorted(map.registers.keys(), key=sort_by_adr)
+
         for reg_name in regs:
             reg = map.registers[reg_name]
 
@@ -54,17 +54,13 @@ class Generator(OutputGenerator):
         # Generate register section:
 
         out.append(f"## Registers:")
-        for reg_name, reg in map.registers.items():
+        for reg in map.registers.values():
 
             # Register name:
-            out.append(f"### {reg_name}:")
+            out.append(f"### {reg.name}:")
 
             # Register info:
-            if reg.brief is not None:
-                out.append(f" - {reg.brief}")
-            if reg.doc is not None:
-                doc = str_oneline(reg.doc)
-                out.append(f" - {doc}")
+            out.extend(reg.docs.two_line(prefix=" -"))
             if reg.adr is not None:
                 out.append(f" - Address: 0x{reg.adr:X}")
             if reg.reset_val is not None:
@@ -77,7 +73,7 @@ class Generator(OutputGenerator):
             for field in reg.fields.values():
                 for range in field.get_bitranges():
                     register_bitranges.append(range)
-            register_bitranges.extend(reg.get_unused_bitranges(map.register_bitwidth))
+            register_bitranges.extend(reg.get_unused_bits(include_always_write=True).get_bitranges())
 
             # Sort bitranges:
             register_bitranges = sorted(register_bitranges, key=lambda x: x.lsb_position, reverse=True)
@@ -97,9 +93,14 @@ class Generator(OutputGenerator):
 
                     field_row.append(field_name)
                     if field.access is not None:
-                        access_row.append(field.access)
+                        access_row.append(field.access_str())
                     else:
                         access_row.append("?")
+                elif reg.is_bit_always_write(bitrange.lsb_position):
+                    access_row.append("?")
+                    val = reg.get_always_write_value(Bits.from_bitrange(bitrange))
+                    field = f"Always write 0x{val:x}"
+                    field_row.append(field)
                 else:
                     access_row.append("?")
                     field_row.append("?")
@@ -117,7 +118,7 @@ class Generator(OutputGenerator):
 
                 # Access (if any):
                 if field.access is not None:
-                    access_str = f" [{field.access}]"
+                    access_str = f" [{field.access_str()}]"
                 else:
                     access_str = ""
 
@@ -125,57 +126,22 @@ class Generator(OutputGenerator):
                 out.append(f"  - {field_name}{access_str}:")
 
                 # Documentation (if any):
-                if field.brief is not None:
-                    out.append(f"    - {field.brief}")
-                if field.doc is not None:
-                    out.append(f"    - {str_oneline(field.doc)}")
+                out.extend(field.docs.two_line(prefix=" -"))
 
                 # Accepted values (through local or global enum):
-                if field.enum is not None or field.accepts_enum is not None:
+                if field.enum is not None:
                     out.append(f"    - Accepts:")
-
-                    # Global enum:
-                    if field.accepts_enum is not None:
-                        out.append(f"      - A value from enum {field.accepts_enum}:")
-                        for key, entry in map.enums[field.accepts_enum].items():
-                            if entry.brief is not None:
-                                out.append(f"        - {key}: 0x{entry.value:X} ({entry.brief})")
-                            else:
-                                out.append(f"        - {key}: 0x{entry.value:X}")
-
-                    # Local enum:
-                    if field.enum is not None:
-                        for key, entry in field.enum.items():
-                            if entry.brief is not None:
-                                out.append(f"      - {key}: 0x{entry.value:X} ({entry.brief})")
-                            else:
-                                out.append(f"      - {key}: 0x{entry.value:X}")
+                    for entry in field.enum.entries.values():
+                        if entry.docs.brief is not None:
+                            out.append(f"      - {entry.name}: 0x{entry.value:X} ({entry.docs.brief})")
+                        else:
+                            out.append(f"      - {entry.name}: 0x{entry.value:X}")
 
             # horizontal rule:
             out.append("")
             out.append("---")
 
-        if map.enums is not None:
-            out.append(f"## Enums:")
-            out.append("")
-            for reg_name, enum in map.enums.items():
-                out.append(f"### {reg_name}:")
-                out.append("")
-                table_rows = []
-                for key, entry in enum.items():
-                    docstr = ""
-                    if entry.brief is not None:
-                        docstr += entry.brief + "\n"
-                    if entry.doc is not None:
-                        docstr += entry.doc
-
-                    docstr = docstr.strip()
-
-                    table_rows.append([key, hex(entry.value), docstr])
-                out.append("")
-                out.append(tabulate(table_rows, headers=["Name", "Value", "Description"], tablefmt="pipe"))
-                out.append("")
-
-            out.append("")
-
-        return "\n".join(out)
+        output_file = os.path.join(cli.output_path, f"{map.map_name.lower()}.md")
+        with open(output_file, 'w') as outfile:
+            outfile.write("\n".join(out))
+        print(f"Generated {output_file}...")

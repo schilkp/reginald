@@ -1,8 +1,10 @@
-from typing import List, Tuple
+import os
+from typing import List, Tuple, Union
 
+from reginald.cli import CLI
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
-from reginald.utils import c_sanitize
+from reginald.utils import c_sanitize, str_pad_to_length
 
 
 class Generator(OutputGenerator):
@@ -11,67 +13,72 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, args: List[str]):
+    def generate(cls, map: RegisterMap, cli: CLI):
 
-        dev_name = map.device_name
-        dev_macro = c_sanitize(dev_name).upper()
+        mapname = map.map_name
+        mapname_macro = c_sanitize(mapname).upper()
 
         out = []
 
         out.append(f"/*")
-        out.append(f"* {dev_name} Register Map.")
-        out.append(f"* Note: do not edit: Generated using Reginald.")
+        out.append(f"* {mapname} Register Map.")
+        out.append(f"* Note: Do not edit: Generated using Reginald.")
         out.append(f"*/")
         out.append(f"")
-        out.append(f"#ifndef {dev_macro}_REG_H_")
-        out.append(f"#define {dev_macro}_REG_H_")
+        out.append(f"#ifndef {mapname_macro}_REG_H_")
+        out.append(f"#define {mapname_macro}_REG_H_")
         out.append(f"")
 
-        for reg_name_orig, r in map.registers.items():
-            reg_name = c_sanitize(reg_name_orig)
+        # combine physical registers and register templates:
+        registers = {}  # type: Dict[str, Union[Register, RegisterTemplate]]
 
-            title_line = f"// ==== {reg_name} "
-            if len(title_line) < 80:
-                title_line += ("=" * (80 - len(title_line)))
-            out.append(title_line)
+        for register in map.registers.values():
+            registers[register.name] = register
 
-            if r.brief is not None:
-                out.append(f"// {r.brief}")
+        for block_template in map.register_block_templates.values():
+            for template in block_template.registers.values():
+                registers[block_template.name + template.name] = template
 
-            if r.doc is not None:
-                for l in r.doc.splitlines():
-                    out.append(f"// {l}")
+        for reg_name, reg in registers.items():
+            reg_name = c_sanitize(reg_name)
+
+            out.append(str_pad_to_length(f"// ==== {reg_name} ", "=", 80))
+
+            out.extend(reg.docs.multi_line(prefix="// "))
 
             # Generate all defines, keeping comments seperate for now:
 
             defines = []  # type: List[Tuple[str, str, str]]
 
-            register_prefix = f"{dev_macro}__REG_{reg_name}"
-            if r.adr is not None:
-                docstr = f"({r.brief})" if r.brief is not None else ""
-                defines.append((f"#define {register_prefix}", f"(0x{r.adr:02X}U)", f"// Register Address {docstr}"))
+            register_prefix = f"{mapname_macro}__REG_{reg_name}"
+            if isinstance(reg, Register):
+                if reg.adr is not None:
+                    docstr = f"({reg.docs.brief})" if reg.docs.brief is not None else ""
+                    defines.append((f"#define {register_prefix}", f"(0x{reg.adr:02X}U)", f"// Register Address {docstr}"))
+            else:
+                docstr = f"({reg.docs.brief})" if reg.docs.brief is not None else ""
+                defines.append((f"#define {register_prefix}", f"(0x{reg.offset:02X}U)", f"// Register Offset {docstr}"))
 
-            if r.reserved_val is not None:
-                defines.append((f"#define {register_prefix}__RESERVED", f"(0x{r.reserved_val:02X}U)", f"// Reserved Bits"))
+            if reg.reset_val is not None:
+                defines.append((f"#define {register_prefix}__RESET", f"(0x{reg.reset_val:02X}U)", f"// Reset Value"))
 
-            for field_name_orig, field in r.fields.items():
-                docstr = f"({field.brief})" if field.brief is not None else ""
-                field_name = c_sanitize(field_name_orig)
+            if reg.always_write is not None:
+                mask = reg.always_write.bits.get_bitmask()
+                value = reg.always_write.value
+                defines.append((f"#define {register_prefix}__ALWAYSWRITE_MASK", f"(0x{mask:02X}U)", f"// 'Always write' bit mask"))
+                defines.append((f"#define {register_prefix}__ALWAYSWRITE_VALUE", f"(0x{value:02X}U)", f"// 'Always write' value"))
+
+            for field in reg.fields.values():
+                docstr = f"({field.docs.brief})" if field.docs.brief is not None else ""
+                field_name = c_sanitize(field.name)
                 field_prefix = f"{register_prefix}__FIELD_{field_name}"
-                defines.append((f"#define {field_prefix}",
-                               f"(0x{field.get_bits().get_bitmask():02X}U)", f"// Field Mask {docstr}"))
+                mask = field.bits.get_bitmask()
+                defines.append((f"#define {field_prefix}", f"(0x{mask:02X}U)", f"// Field Mask {docstr}"))
 
                 if field.enum is not None:
-                    for const_name_orig, const in field.enum.items():
-                        docstr = f"({const.brief})" if const.brief is not None else ""
-                        const_name = c_sanitize(const_name_orig)
-                        const_prefix = f"{field_prefix}__CONST_{const_name}"
-                        defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", f"// Constant {docstr}"))
-
-                if field.accepts_enum is not None:
-                    for const_name_orig, const in map.enums[field.accepts_enum].items():
-                        docstr = f"({const.brief})" if const.brief is not None else ""
-                        const_name = c_sanitize(const_name_orig)
+                    for const in field.enum.entries.values():
+                        docstr = f"({const.docs.brief})" if const.docs.brief is not None else ""
+                        const_name = c_sanitize(const.name)
                         const_prefix = f"{field_prefix}__CONST_{const_name}"
                         defines.append((f"#define {const_prefix}", f"(0x{const.value:02X}U)", f"// Constant {docstr}"))
 
@@ -87,6 +94,9 @@ class Generator(OutputGenerator):
             out.append(f"")
 
         out.append(f"")
-        out.append(f"#endif /* {dev_macro}_REG_H_ */")
+        out.append(f"#endif /* {mapname_macro}_REG_H_ */")
 
-        return "\n".join(out)
+        output_file = os.path.join(cli.output_path, f"{map.map_name.lower()}_regs.h")
+        with open(output_file, 'w') as outfile:
+            outfile.write("\n".join(out))
+        print(f"Generated {output_file}...")

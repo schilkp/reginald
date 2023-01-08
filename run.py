@@ -1,9 +1,10 @@
 import sys
 
 from reginald.args import parse_args
-from reginald.datamodel import RegisterMap
 from reginald.error import ReginaldException
-from reginald.validator import validate_RegisterMap
+from reginald.input.convert_yaml import YAMLConverter
+from reginald.input.parse_yaml import YAML_RegisterMap
+from reginald.input.validate_map import MapValidator
 
 
 def main():
@@ -14,14 +15,14 @@ def main():
         cli = parse_args()
 
         # Open, parse, and validate input file:
-        r = RegisterMap.from_yaml_file(cli.input_file)
-        validate_RegisterMap(r)
+        r = YAML_RegisterMap.from_yaml_file(cli.input_file)
+        r = YAMLConverter(r).convert()
+        MapValidator(r).validate()
 
         # Generate output using selected generator:
-        output = cli.generator.generate(r, cli.generator_args)
+        cli.generator.generate(r, cli)
 
-        # Print to stdout:
-        print(output)
+        print("Done!")
 
     except ReginaldException as e:
         print(e, file=sys.stderr)

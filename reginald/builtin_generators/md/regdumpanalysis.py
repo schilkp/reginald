@@ -1,9 +1,15 @@
+import os
 from typing import Dict, List, Union
 
+import yaml
+from pydantic import ValidationError
 from pydantic.dataclasses import dataclass
 from tabulate import tabulate
+from yaml import SafeLoader
 
+from reginald.cli import CLI
 from reginald.datamodel import *
+from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 from reginald.utils import str_oneline
 
@@ -49,19 +55,19 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, args: List[str]):
+    def generate(cls, map: RegisterMap, cli: CLI):
 
-        if len(args) != 1:
+        if len(cli.generator_args) != 1:
             raise ReginaldException("md_dumpanalysis requires a yaml binary dump as it's only argument")
 
-        dump_yaml = YamlBinaryDump.from_yaml_file(args[0])
+        dump_yaml = YamlBinaryDump.from_yaml_file(cli.generator_args[0])
         dump = dump_yaml.flatten()
         adrs = sorted(dump.keys())
 
         out = []
 
         # Generate header:
-        out.append(f"# {map.device_name} Register Dump Analysis")
+        out.append(f"# {map.map_name} Register Dump Analysis")
         out.append(f"")
         out.append(f"")
 
@@ -69,18 +75,17 @@ class Generator(OutputGenerator):
             register_name = map.get_registername_at(adr)
 
             if register_name is not None:
-                register = map.registers[register_name]
+                reg = map.registers[register_name]
                 out.append(f"## 0x{adr:0X} - {register_name}")
                 out.append(f"  - 0x{dump[adr]:X}")
                 out.append(f"  - 0b{dump[adr]:b}")
 
                 # Collect all bitranges that make up this register - field or not:
                 register_bitranges = []  # type: List[BitRange]
-                for field in register.fields.values():
+                for field in reg.fields.values():
                     for range in field.get_bitranges():
                         register_bitranges.append(range)
-
-                register_bitranges.extend(register.get_unused_bitranges(map.register_bitwidth))
+                register_bitranges.extend(reg.get_unused_bits(include_always_write=True).get_bitranges())
 
                 # Sort bitranges:
                 register_bitranges = sorted(register_bitranges, key=lambda x: x.lsb_position, reverse=True)
@@ -93,24 +98,35 @@ class Generator(OutputGenerator):
                 for bitrange in register_bitranges:
                     bitrow.append(str(bitrange))
 
-                    value_row.append(f"0x{bitrange.extract_this_field_from(dump[adr]):X}")
+                    field_val = bitrange.extract_this_field_from(dump[adr])
+
+                    value_row.append(f"0x{field_val:X}")
 
                     # Retrieve field that coresponds to this range (if any):
-                    field_name = register.get_fieldname_at(bitrange.lsb_position)
+                    field_name = reg.get_fieldname_at(bitrange.lsb_position)
 
                     if field_name is not None:
                         field_row.append(field_name)
 
                         # Lookup if this value in this value coresponds to an enum:
-                        field = register.fields[field_name]
-                        field_value = field.get_bits().extract_this_field_from(dump[adr])
-                        enum_entryname = field.lookup_enum_entryname(map, field_value)
-
-                        if enum_entryname is not None:
-                            decode_row.append(f"{enum_entryname} (0x{field_value:X})")
+                        field = reg.fields[field_name]
+                        if field.enum is not None:
+                            enum_entryname = field.lookup_enum_entry_name(field_val)
+                            if enum_entryname is not None:
+                                decode_row.append(f"{enum_entryname} (0x{field_val:X})")
+                            else:
+                                decode_row.append(f"DECODE ERROR")
                         else:
                             decode_row.append(f"?")
 
+                    elif reg.is_bit_always_write(bitrange.lsb_position):
+                        val = reg.get_always_write_value(Bits.from_bitrange(bitrange))
+                        field = f"Always write 0x{val:x}"
+                        field_row.append(field)
+                        if val == field_val:
+                            decode_row.append(f"OK")
+                        else:
+                            decode_row.append(f"ERROR")
                     else:
                         field_row.append("?")
                         decode_row.append(f"?")
@@ -123,26 +139,22 @@ class Generator(OutputGenerator):
                 # Field info:
                 out.append(f"*Bitfields*:")
 
-                for field_name, field in register.fields.items():
-                    value = field.get_bits().extract_this_field_from(dump[adr])
-                    out.append(f"   - {field_name}: 0x{value:X}")
-                    if field.brief is not None:
-                        out.append(f"       - {str_oneline(field.brief)}")
-                    if field.doc is not None:
-                        out.append(f"       - {str_oneline(field.doc)}")
+                for field_name, field in reg.fields.items():
+                    field_val = field.bits.extract_this_field_from(dump[adr])
+                    out.append(f"   - {field_name}: 0x{field_val:X}")
+                    out.extend(field.docs.two_line(prefix="  -"))
 
-                    enum_entryname = field.lookup_enum_entryname(map, value)
-
-                    if enum_entryname is not None:
-                        _, entry = field.get_enum(map, value)
-
-                        if entry.brief is not None:
-                            out.append(f"       - *SELECTED*: {enum_entryname} ({entry.brief})")
-                        else:
+                    if field.enum is not None:
+                        enum_entryname = field.lookup_enum_entry_name(field_val)
+                        if enum_entryname is not None:
+                            entry = field.enum.entries[enum_entryname]
                             out.append(f"       - *SELECTED*: {enum_entryname}")
-
-                        if entry.doc is not None:
-                            out.append(f"       - {str_oneline(entry.doc)}")
+                            out.extend(entry.docs.two_line(prefix="         - "))
+                        else:
+                            decode_row.append(
+                                f"       - *DECODE ERROR*: This field accepts an enum, but it's value does not correspond to any enum entry.")
+                    else:
+                        decode_row.append(f"?")
 
             else:
                 out.append(f"## 0x{adr:0X} - ?")
@@ -152,4 +164,7 @@ class Generator(OutputGenerator):
             out.append(f"")
             out.append(f"")
 
-        return "\n".join(out)
+        output_file = os.path.join(cli.output_path, f"{map.map_name.lower()}_analysis.md")
+        with open(output_file, 'w') as outfile:
+            outfile.write("\n".join(out))
+        print(f"Generated {output_file}...")
