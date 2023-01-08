@@ -4,13 +4,12 @@ import sys
 from dataclasses import dataclass
 from typing import List
 
-import reginald.builtin_generators.c_funcpack.enums
-import reginald.builtin_generators.c_funcpack.generic_pack
-import reginald.builtin_generators.c_funcpack.regs
-import reginald.builtin_generators.c_macromap
-import reginald.builtin_generators.c_macropalette
-import reginald.builtin_generators.md_doc
-import reginald.builtin_generators.md_regdumpanalysis
+import reginald.builtin_generators.c.funcpack.enums
+import reginald.builtin_generators.c.funcpack.generic_pack
+import reginald.builtin_generators.c.funcpack.regs
+import reginald.builtin_generators.c.macromap
+import reginald.builtin_generators.md.doc
+import reginald.builtin_generators.md.regdumpanalysis
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 
@@ -23,13 +22,12 @@ class CLI:
 
 
 builtin_generators = {
-    'c_macromap': reginald.builtin_generators.c_macromap.Generator,
-    'c_macropalette': reginald.builtin_generators.c_macropalette.Generator,
-    'c_funcpack.regs': reginald.builtin_generators.c_funcpack.regs.Generator,
-    'c_funcpack.generic_pack': reginald.builtin_generators.c_funcpack.generic_pack.Generator,
-    'c_funcpack.enums': reginald.builtin_generators.c_funcpack.enums.Generator,
-    'md_regdumpanalysis': reginald.builtin_generators.md_regdumpanalysis.Generator,
-    'md_doc': reginald.builtin_generators.md_doc.Generator
+    'c.macromap': reginald.builtin_generators.c.macromap.Generator,
+    'c.funcpack.regs': reginald.builtin_generators.c.funcpack.regs.Generator,
+    'c.funcpack.generic_pack': reginald.builtin_generators.c.funcpack.generic_pack.Generator,
+    'c.funcpack.enums': reginald.builtin_generators.c.funcpack.enums.Generator,
+    'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator,
+    'md.doc': reginald.builtin_generators.md.doc.Generator
 }
 
 
