@@ -9,9 +9,9 @@ from reginald.datamodel import (AccessMode, AlwaysWrite, Docs, Field, RegEnum,
                                 RegisterMap, RegisterTemplate)
 from reginald.error import ReginaldException
 from reginald.input.parse_yaml import (YAML_Access, YAML_AlwaysWrite,
-                                       YAML_Bits, YAML_BlockInstantiation,
-                                       YAML_Field, YAML_RegEnumEntry,
-                                       YAML_Register, YAML_RegisterMap)
+                                       YAML_Bits, YAML_Field,
+                                       YAML_RegEnumEntry, YAML_Register,
+                                       YAML_RegisterMap)
 
 
 class YAMLConverter:
@@ -81,7 +81,7 @@ class YAMLConverter:
     def _convert_enum_entry(self, entry_name: str, entry: YAML_RegEnumEntry, bt: str) -> RegEnumEntry:
         bt = bt + f" -> {entry_name}"
         docs = self._convert_docs(entry, bt)
-        return RegEnumEntry(name=entry_name, value=entry.value, docs=docs)
+        return RegEnumEntry(name=entry_name, value=entry.val, docs=docs)
 
     def _convert_register_block_templates(self, bt_orig: str):
         block_templates = {}
@@ -131,14 +131,14 @@ class YAMLConverter:
             return None
         bits = self._convert_bits(always_write.bits, bt, allow_zero=False)
 
-        if isinstance(always_write.value, list):
+        if isinstance(always_write.val, list):
             if not isinstance(always_write.bits, list):
                 raise ReginaldException(f"{bt}: value may only be specified as list if bits are specified as list!")
-            if len(always_write.bits) != len(always_write.value):
+            if len(always_write.bits) != len(always_write.val):
                 raise ReginaldException(f"{bt}: Value and bits, when specified as lists, must be of equal length!")
 
             value = 0
-            for bit_part, value_part in zip(always_write.bits, always_write.value):
+            for bit_part, value_part in zip(always_write.bits, always_write.val):
                 # Validate that specified value_part fits into bit_part:
                 bit_part = self._convert_bits(bit_part,  "builtin", allow_zero=False)
 
@@ -147,7 +147,7 @@ class YAMLConverter:
 
                 value |= value_part << bit_part.lsb_position()
         else:
-            value = always_write.value
+            value = always_write.val
 
         return AlwaysWrite(bits=bits, value=value)
 
@@ -281,7 +281,6 @@ class YAMLConverter:
                     raise ReginaldException(f"{bt}: Block template {inst.register_block_template} unknown!")
 
                 block_template = self.map.register_block_templates[inst.register_block_template]
-
 
                 if isinstance(inst.start_adr, Dict):
                     # Multiple instantiations

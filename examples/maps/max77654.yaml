@@ -269,10 +269,10 @@ registers:
         access: [r, w]
         enum:
           200K:
-            value: 0
+            val: 0
             brief: "200kOhm"
           10M:
-            value: 1
+            val: 1
             brief: "10MOhm"
       T_MRST:
         bits: [6]
@@ -280,10 +280,10 @@ registers:
         access: [r, w]
         enum:
           8s:
-            value: 0
+            val: 0
             brief: 8 seconds
           16s:
-            value: 1
+            val: 1
             brief: 16 seconds
       SBIA_LPM:
         bits: [5]
@@ -300,10 +300,10 @@ registers:
         brief: nEN Input (ON-KEY) Default Configuration
         enum:
           PUSHBTN:
-            value: 0
+            val: 0
             brief: "Push-button"
           SLIDE:
-            value: 1
+            val: 1
             brief: "Slide-switch"
       DBEN_nEN:
         bits: [2]
@@ -311,10 +311,10 @@ registers:
         brief: Debounce Timer Enable for the nEN Pin
         enum:
           500us:
-            value: 0
+            val: 0
             brief: 500 microseconds
           30ms:
-            value: 1
+            val: 1
             brief: 30 milliseconds
       SFT_CTRL:
         bits: [1, 0]
@@ -335,22 +335,22 @@ registers:
           through I2C.
         enum:
           NO_ACTION:
-            value: 0x0
+            val: 0x0
             brief: No Action
           SFT_CRST:
-            value: 0x1
+            val: 0x1
             brief: Software cold reset. 
             doc: >
               The device powers down, resets,
               and then powers up again.
           SFT_OFF:
-            value: 0x2
+            val: 0x2
             brief: Software off.
             doc: >
               The device powers down, resets, and then remains off and
               waiting for a wake-up event.
           FSM:
-            value: 0x3
+            val: 0x3
             brief: Factory-ship mode enter (FSM).
             doc: >
               The IC powers down, configuration
@@ -382,29 +382,29 @@ registers:
     fields:
       WDT_PER:
         bits: [5, 4]
-        brief: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed value as soon as this bitfield is changed.
+        brief: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.
         enum:
           16s:
-            value: 0x0
+            val: 0x0
             brief: 16 seconds
           32s:
-            value: 0x1
+            val: 0x1
             brief: 32 seconds
           64s:
-            value: 0x2
+            val: 0x2
             brief: 64 seconds
           128s:
-            value: 0x3
+            val: 0x3
             brief: 128 seconds
       WDT_MODE:
         bits: [3]
         brief: Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.
         enum:
           PWR_OFF:
-            value: 0x0
+            val: 0x0
             brief: Expiration causes power-off.
           PWR_RESET:
-            value: 0x1
+            val: 0x1
             brief: Expiration causes power-reset.
       WDT_CLR:
         bits: [2]
@@ -472,24 +472,24 @@ registers:
         access: r
         enum:
           THM_OFF:
-            value: 0x0
+            val: 0x0
             brief: Thermistor is disabled (THM_EN = 0).
           THM_COLD:
-            value: 0x1
+            val: 0x1
             brief: Battery is cold as programmed by THM_COLD[1:0]. 
             doc: If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs.
           THM_COOL:
-            value: 0x2
+            val: 0x2
             brief: Battery is cool as programmed by THM_COOL[1:0].
           THM_WARM:
-            value: 0x3
+            val: 0x3
             brief: Battery is warm as programmed by THM_WARM[1:0].
           THM_HOT:
-            value: 0x4
+            val: 0x4
             brief: Battery is hot as programmed by THM_HOT[1:0]. 
             doc: If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs.
           THM_OK:
-            value: 0x5
+            val: 0x5
             brief: Battery is in the normal temperature region.
 
   STAT_CHG_B:
@@ -502,59 +502,59 @@ registers:
         brief: Charger Status details
         enum:
           "OFF":
-            value: 0x0
+            val: 0x0
             brief: Off
           PQ:
-            value: 0x1
+            val: 0x1
             brief: Prequalification mode.
           CC:
-            value: 0x2
+            val: 0x2
             brief: Fast-charge constant-current (CC) mode.
           CC_JEITA:
-            value: 0x3
+            val: 0x3
             brief: JEITA modified fast-charge constant-current mode.
           CV:
-            value: 0x4
+            val: 0x4
             brief: Fast-charge constant-voltage (CV)mode.
           CV_JEITA:
-            value: 0x5
+            val: 0x5
             brief: JEITA modified fast-charge constant-voltage mode.
           TOPOFF:
-            value: 0x6
+            val: 0x6
             brief: Top-off mode.
           TOPOFF_JEITA:
-            value: 0x7
+            val: 0x7
             brief: JEITA modified top-off mode.
           DONE:
-            value: 0x8
+            val: 0x8
             brief: Done
           DONE_JEITA:
-            value: 0x9
+            val: 0x9
             brief: JEITA modified done (done was entered through the JEITA-modified fast-charge states).
           PQ_TIMER_FAULT:
-            value: 0xA
+            val: 0xA
             brief: Prequalification timer fault.
           FASTCHG_TIMER_FAULT:
-            value: 0xB
+            val: 0xB
             brief: Fast-charge timer fault.
           BAT_TEMP_FAULT:
-            value: 0xC
+            val: 0xC
             brief: Battery temperature fault.
       CHGIN_DTLS:
         bits: [3, 2]
         brief: CHGIN Status details
         enum:
           UVLO:
-            value: 0x0
+            val: 0x0
             brief: The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO).
           OVP:
-            value: 0x1
+            val: 0x1
             brief: The CHGIN input voltage is above the OVP threshold (VCHGIN > VOVP).
           DBNC:
-            value: 0x2
+            val: 0x2
             brief: The CHGIN input is being debounced (no power accepted from CHGIN during debounce).
           OK:
-            value: 0x3
+            val: 0x3
             brief: The CHGIN input is okay and debounced.
       CHG:
         bits: [1]
@@ -607,64 +607,64 @@ registers:
         brief: Sets the VHOT JEITA Temperature Threshold
         enum:
           0V411:
-            value: 0x0
+            val: 0x0
             brief: VHOT = 0.411V (45degC for beta = 3380K)
           0V367:
-            value: 0x1
+            val: 0x1
             brief: VHOT = 0.367V (50degC for beta = 3380K)
           0V327:
-            value: 0x2
+            val: 0x2
             brief: VHOT = 0.327V (55degC for beta = 3380K)
           0V291:
-            value: 0x3
+            val: 0x3
             brief: VHOT = 0.291V (60degC for beta = 3380K)
       THM_WARM:
         bits: [5, 4]
         brief: Sets the VWARM JEITA Temperature Threshold
         enum:
           0V511:
-            value: 0x0
+            val: 0x0
             brief: VWARM = 0.511V (35degC for beta = 3380K)
           0V459:
-            value: 0x1
+            val: 0x1
             brief: VWARM = 0.459V (40degC for beta = 3380K)
           0V411:
-            value: 0x2
+            val: 0x2
             brief: VWARM = 0.411V (45degC for beta = 3380K)
           0V367:
-            value: 0x3
+            val: 0x3
             brief: VWARM = 0.367V (50degC for beta = 3380K)
       THM_COOL:
         bits: [3, 2]
         brief: Sets the VCOOL JEITA Temperature Threshold
         enum:
           0V923:
-            value: 0x0
+            val: 0x0
             brief: VCOOL = 0.923V (0degC for beta = 3380K)
           0V867:
-            value: 0x1
+            val: 0x1
             brief: VCOOL = 0.867V (5degC for beta = 3380K)
           0V807:
-            value: 0x2
+            val: 0x2
             brief: VCOOL = 0.807V (10degC for beta = 3380K)
           0V747:
-            value: 0x3
+            val: 0x3
             brief: VCOOL = 0.747V (15degC for beta = 3380K)
       THM_COLD:
         bits: [1, 0]
         brief: Sets the VCOLD JEITA Temperature Threshold
         enum:
           1V024:
-            value: 0x0
+            val: 0x0
             brief: VCOLD = 1.024V (-10degC for beta = 3380K)
           0V976:
-            value: 0x1
+            val: 0x1
             brief: VCOLD = 0.976V (-5degC for beta = 3380K)
           0V923:
-            value: 0x2
+            val: 0x2
             brief: VCOLD = 0.923V (0degC for beta = 3380K)
           0V867:
-            value: 0x3
+            val: 0x3
             brief: VCOLD = 0.867V (5degC for beta = 3380K)
 
   CNFG_CHG_B:
@@ -677,57 +677,57 @@ registers:
         brief: Minimum CHGIN Regulation Voltage (VCHGIN-MIN)
         enum:
           4V0:
-            value: 0x0
+            val: 0x0
             brief: 4.0V
           4V1:
-            value: 0x1
+            val: 0x1
             brief: 4.1V
           4V2:
-            value: 0x2
+            val: 0x2
             brief: 4.2V
           4V3:
-            value: 0x3
+            val: 0x3
             brief: 4.3V
           4V4:
-            value: 0x4
+            val: 0x4
             brief: 4.4V
           4V5:
-            value: 0x5
+            val: 0x5
             brief: 4.5V
           4V6:
-            value: 0x6
+            val: 0x6
             brief: 4.6V
           4V7:
-            value: 0x7
+            val: 0x7
             brief: 4.7V
       ICHGIN_LIM:
         bits: [4, 3, 2]
         brief: CHGIN Input Current Limit (ICHGIN-LIM)
         enum:
           95mA:
-            value: 0x0
+            val: 0x0
             brief: 95mA
           190mA:
-            value: 0x1
+            val: 0x1
             brief: 190mA
           285mA:
-            value: 0x2
+            val: 0x2
             brief: 285mA
           380mA:
-            value: 0x3
+            val: 0x3
             brief: 380mA
           475mA:
-            value: 0x4
+            val: 0x4
             brief: 475mA
       I_PQ:
         bits: [1]
         brief: Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.
         enum:
           10PERC:
-            value: 0
+            val: 0
             brief: 10% of IFAST-CHG
           20PERC:
-            value: 1
+            val: 1
             brief: 20% of IFAST-CHG
       CHG_EN:
         bits: [0]
@@ -744,72 +744,72 @@ registers:
         brief: Battery Prequalification Voltage Threshold (VPQ)
         enum:
           2V3:
-            value: 0x0
+            val: 0x0
             brief: 2.3V
           2V4:
-            value: 0x1
+            val: 0x1
             brief: 2.4V
           2V5:
-            value: 0x2
+            val: 0x2
             brief: 2.5V
           2V6:
-            value: 0x3
+            val: 0x3
             brief: 2.6V
           2V7:
-            value: 0x4
+            val: 0x4
             brief: 2.7V
           2V8:
-            value: 0x5
+            val: 0x5
             brief: 2.8V
           2V9:
-            value: 0x6
+            val: 0x6
             brief: 2.9V
           3V0:
-            value: 0x7
+            val: 0x7
             brief: 3.0V
       I_TERM:
         bits: [4, 3]
         brief: Charger Termination Current (ITERM)
         enum:
           5PERC:
-            value: 0x0
+            val: 0x0
             brief: 5% of IFAST-CHG
           7PERC5:
-            value: 0x1
+            val: 0x1
             brief: 7.5% of IFAST-CHG
           10PERC:
-            value: 0x2
+            val: 0x2
             brief: 10% of IFAST-CHG
           15PERC:
-            value: 0x3
+            val: 0x3
             brief: 15% of IFAST-CHG
       T_TOPOFF:
         bits: [2, 1, 0]
-        brief: Top-Off Timer Value (t_TO)
+        brief: Top-Off Timer val (t_TO)
         enum:
           0MIN:
-            value: 0x0
+            val: 0x0
             brief: 0 minutes
           5MIN:
-            value: 0x1
+            val: 0x1
             brief: 5 minutes
           10MIN:
-            value: 0x2
+            val: 0x2
             brief: 10 minutes
           15MIN:
-            value: 0x3
+            val: 0x3
             brief: 15 minutes
           20MIN:
-            value: 0x4
+            val: 0x4
             brief: 20 minutes
           25MIN:
-            value: 0x5
+            val: 0x5
             brief: 25 minutes
           30MIN:
-            value: 0x6
+            val: 0x6
             brief: 30 minutes
           35MIN:
-            value: 0x7
+            val: 0x7
             brief: 35 minute
 
   CNFG_CHG_D:
@@ -822,19 +822,19 @@ registers:
         brief: Sets the die junction temperature regulation point, TJ-REG.
         enum:
           60degC:
-            value: 0x0
+            val: 0x0
             brief: 60degC
           70degC:
-            value: 0x1
+            val: 0x1
             brief: 70degC
           80degC:
-            value: 0x2
+            val: 0x2
             brief: 80degC
           90degC:
-            value: 0x3
+            val: 0x3
             brief: 90degC
           100degC:
-            value: 0x4
+            val: 0x4
             brief: 100degC
       VSYS_REG:
         bits: 0-4
@@ -845,91 +845,91 @@ registers:
           the higher of VFAST-CHG and VFAST-CHG-JEITA.
         enum:
           4V1:
-            value: 0x00
+            val: 0x00
             brief: 4.100V
           4V125:
-            value: 0x01
+            val: 0x01
             brief: 4.125V
           4V15:
-            value: 0x02
+            val: 0x02
             brief: 4.150V
           4V175:
-            value: 0x03
+            val: 0x03
             brief: 4.175V
           4V2:
-            value: 0x04
+            val: 0x04
             brief: 4.200V
           4V225:
-            value: 0x05
+            val: 0x05
             brief: 4.225V
           4V25:
-            value: 0x06
+            val: 0x06
             brief: 4.250V
           4V275:
-            value: 0x07
+            val: 0x07
             brief: 4.275V
           4V3:
-            value: 0x08
+            val: 0x08
             brief: 4.300V
           4V325:
-            value: 0x09
+            val: 0x09
             brief: 4.325V
           4V35:
-            value: 0x0A
+            val: 0x0A
             brief: 4.350V
           4V375:
-            value: 0x0B
+            val: 0x0B
             brief: 4.375V
           4V4:
-            value: 0x0C
+            val: 0x0C
             brief: 4.400V
           4V425:
-            value: 0x0D
+            val: 0x0D
             brief: 4.425V
           4V45:
-            value: 0x0E
+            val: 0x0E
             brief: 4.450V
           4V475:
-            value: 0x0F
+            val: 0x0F
             brief: 4.475V
           4V5:
-            value: 0x10
+            val: 0x10
             brief: 4.500V
           4V525:
-            value: 0x11
+            val: 0x11
             brief: 4.525V
           4V55:
-            value: 0x12
+            val: 0x12
             brief: 4.550V
           4V575:
-            value: 0x13
+            val: 0x13
             brief: 4.575V
           4V6:
-            value: 0x14
+            val: 0x14
             brief: 4.600V
           4V625:
-            value: 0x15
+            val: 0x15
             brief: 4.625V
           4V65:
-            value: 0x16
+            val: 0x16
             brief: 4.650V
           4V675:
-            value: 0x17
+            val: 0x17
             brief: 4.675V
           4V7:
-            value: 0x18
+            val: 0x18
             brief: 4.700V
           4V725:
-            value: 0x19
+            val: 0x19
             brief: 4.725V
           4V75:
-            value: 0x1A
+            val: 0x1A
             brief: 4.750V
           4V775:
-            value: 0x1B
+            val: 0x1B
             brief: 4.775V
           4V8:
-            value: 0x1C
+            val: 0x1C
             brief: 4.800V
 
   CNFG_CHG_E:
@@ -939,7 +939,7 @@ registers:
     fields:
       CHG_CC:
         bits: 2-7
-        brief: Sets the fast-charge constant current value, IFAST-CHG. 
+        brief: Sets the fast-charge constant current val, IFAST-CHG. 
         doc: >
           This 6-bit configuration is a linear transfer function 
           that starts at 7.5mA and ends at 300mA, with 7.5mA increments.
@@ -948,16 +948,16 @@ registers:
         brief: Sets the fast-charge safety timer, t_FC.
         enum:
           "OFF":
-            value: 0x0
+            val: 0x0
             brief: Timer disabled
           3H:
-            value: 0x1
+            val: 0x1
             brief: 3 hours
           5H:
-            value: 0x2
+            val: 0x2
             brief: 5 hours
           7H:
-            value: 0x3
+            val: 0x3
             brief: 7 hours
 
   CNFG_CHG_F:
@@ -1025,77 +1025,77 @@ registers:
     fields:
       IMON_DISCHG_SCALE:
         bits: 4-7
-        brief: Selects the battery discharge current full-scale current value.
+        brief: Selects the battery discharge current full-scale current val.
         enum:
           8mA2:
-            value: 0x0
+            val: 0x0
             brief: 8.2mA
           40mA5:
-            value: 0x1
+            val: 0x1
             brief: 40.5mA
           72mA3:
-            value: 0x2
+            val: 0x2
             brief: 72.3mA
           103mA4:
-            value: 0x3
+            val: 0x3
             brief: 103.4mA
           134mA1:
-            value: 0x4
+            val: 0x4
             brief: 134.1mA
           164mA1:
-            value: 0x5
+            val: 0x5
             brief: 164.1mA
           193mA7:
-            value: 0x6
+            val: 0x6
             brief: 193.7mA
           222mA7:
-            value: 0x7
+            val: 0x7
             brief: 222.7mA
           251mA2:
-            value: 0x8
+            val: 0x8
             brief: 251.2mA
           279mA3:
-            value: 0x9
+            val: 0x9
             brief: 279.3mA
           300mA:
-            value: 0xA
+            val: 0xA
             brief: 300.0mA
       MUX_SEL:
         bits: 0-3
         brief: Selects the analog channel to connect to AMUX.
         enum:
           DISABLED:
-            value: 0x0
+            val: 0x0
             brief: DISABLED
           CHGIN_V:
-            value: 0x1
+            val: 0x1
             brief: CHGIN voltage monitor.
           CHGIN_I:
-            value: 0x2
+            val: 0x2
             brief: CHGIN current monitor.
           BATT_V:
-            value: 0x3
+            val: 0x3
             brief: BATT voltage monitor.
           BATT_CHG_I:
-            value: 0x4
+            val: 0x4
             brief: BATT charge current monitor. Valid only while battery charging is happening (CHG = 1).
           BATT_DISCHG_I:
-            value: 0x5
+            val: 0x5
             brief: BATT discharge current monitor normal measurement.
           BATT_DISCHG_I_NULL:
-            value: 0x6
+            val: 0x6
             brief: BATT discharge current monitor nulling measurement.
           THM:
-            value: 0x7
+            val: 0x7
             brief: THM voltage monitor.
           THM_BIAS:
-            value: 0x8
+            val: 0x8
             brief: TBIAS voltage monitor.
           AGND:
-            value: 0x9
+            val: 0x9
             brief: AGND voltage monitor (through 100ohm pulldown resistor).
           VSYS:
-            value: 0xA
+            val: 0xA
             brief: SYS voltage monitor
 
   CNFG_SBBn:
@@ -1118,16 +1118,16 @@ registers:
         brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
         enum:
           FASTEST:
-            value: 0x0
+            val: 0x0
             brief: Fastest transition time
           FAST:
-            value: 0x1
+            val: 0x1
             brief: A little slower than FASTEST
           SLOW:
-            value: 0x2
+            val: 0x2
             brief: A little slower than SLOW
           SLOWEST:
-            value: 0x3
+            val: 0x3
             brief: A little slower than SLOWEST
 
   CNFG_LDOn:
@@ -1162,26 +1162,26 @@ register_block_templates:
             brief: Operation Mode of SBBn
             enum:
               BUCK_BOOST:
-                value: 0
+                val: 0
                 brief: Buck-boost mode.
               BUCK:
-                value: 1
+                val: 1
                 brief: Buck mode.
           IP_SBB:
             bits: [5, 4]
             brief: SIMO Buck-Boost Channel Peak Current Limit
             enum:
               1A:
-                value: 0x0
+                val: 0x0
                 brief: 1.000A
               0A75:
-                value: 0x1
+                val: 0x1
                 brief: 0.750A
               0A5:
-                value: 0x2
+                val: 0x2
                 brief: 0.500A
               0A3:
-                value: 0x3
+                val: 0x3
                 brief: 0.333A
           ADE_SBB:
             bits: [3]
@@ -1220,10 +1220,10 @@ register_block_templates:
             brief: Operation Mode of LDO0
             enum:
               LDO:
-                value: 0
+                val: 0
                 brief: LDO regulator
               SW:
-                value: 1
+                val: 1
                 brief: Switch
           ADE_LDO:
             bits: [3]
@@ -1264,25 +1264,25 @@ register_block_templates:
             brief: General Purpose Output Driver Type
             enum:
               OD:
-                value: 0
+                val: 0
                 brief: "Open-drain"
               PP:
-                value: 1
+                val: 1
                 brief: "Push-Pull"
           DI:
             bits: [1]
             access: r
-            brief: GPIO Digital Input Value.
+            brief: GPIO Digital Input val.
           DIR:
             bits: [0]
             access: [r, w]
             brief: GPIO Direction
             enum:
               OUTPUT:
-                value: 0
+                val: 0
                 brief: "Output"
               INPUT:
-                value: 1
+                val: 1
                 brief: "Input"
 
 
@@ -1291,45 +1291,45 @@ shared_enums:
   REG_EN:
     enum:
       FPS_SLOT_0:
-        value: 0x0
+        val: 0x0
         brief: FPS slot 0
       FPS_SLOT_1:
-        value: 0x1
+        val: 0x1
         brief: FPS slot 1
       FPS_SLOT_2:
-        value: 0x2
+        val: 0x2
         brief: FPS slot 2
       FPS_SLOT_3:
-        value: 0x3
+        val: 0x3
         brief: FPS slot 3
       DISABLED:
-        value: 0x4
+        val: 0x4
         brief: Off irrespective of FPS
       ENABLED:
-        value: 0x6
+        val: 0x6
         brief: On irrespective of FPS
 
   EN:
     enum:
       DISABLED:
-        value: 0
+        val: 0
         brief: "Disabled"
       ENABLED:
-        value: 1
+        val: 1
         brief: "Enabled"
 
   INT_MASK:
     enum:
       UNMASKED:
-        value: 0
+        val: 0
         brief: "Enabled/Unmasked"
       ENABLED:
-        value: 0
+        val: 0
         brief: "Enabled/Unmasked"
       MASKED:
-        value: 1
+        val: 1
         brief: "Disabled/Masked"
       DISABLED:
-        value: 1
+        val: 1
         brief: "Disabled/Masked"
 

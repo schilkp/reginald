@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import pydantic
 import yaml
@@ -15,7 +15,7 @@ YAML_Access = Union[List[str], str]
 
 @dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class YAML_RegEnumEntry:
-    value: NonNegativeInt
+    val: NonNegativeInt
     doc: Optional[str] = None
     brief: Optional[str] = None
 
@@ -39,7 +39,7 @@ class YAML_Field:
 @dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
 class YAML_AlwaysWrite:
     bits: YAML_Bits
-    value: Union[NonNegativeInt, List[NonNegativeInt]]
+    val: Union[NonNegativeInt, List[NonNegativeInt]]
 
 
 @dataclass(config=ConfigDict(anystr_strip_whitespace=True, extra=Extra.forbid))
