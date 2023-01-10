@@ -26,8 +26,8 @@ class Generator(OutputGenerator):
         # parser.add_argument
         parser.add_argument('--field-enum-prefix', action=argparse.BooleanOptionalAction,
                             help="prefix a field enum with the register name", default=True)
-        parser.add_argument('--packfunc-comment', action=argparse.BooleanOptionalAction,
-                            help="generate doxygen comments for every individual register function.", default=True)
+        parser.add_argument('--short-packfunc-comment', action=argparse.BooleanOptionalAction,
+                            help="Generate much shorter doxygen comments for all individual register function.", default=False)
 
         funcpack_options = parser.parse_args(cli.generator_args)
 

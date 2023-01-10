@@ -99,6 +99,7 @@ class Field:
 class RegisterTemplate:
     name: str
     instances: Dict[NonNegativeInt, str]
+    register_block_name: str
     fields: Dict[str, Field]
     bitwidth: PositiveInt
     offset: NonNegativeInt

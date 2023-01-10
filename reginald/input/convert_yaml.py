@@ -109,6 +109,7 @@ class YAMLConverter:
                 register_templates[template_name] = RegisterTemplate(
                     name=template_name,
                     instances={},  # Instances populated during register & block instantiation conversion
+                    register_block_name=block_name,
                     fields=fields,
                     bitwidth=bitwidth,
                     offset=offset,

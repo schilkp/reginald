@@ -138,3 +138,12 @@ class NameGenerator():
     def generic_unpack_macro(self) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         return f"{mapname_macro}_REG_UNPACK"
+
+    def doxygroup_genericfuncs(self) -> str:
+        mapname_macro = c_sanitize(self.rmap.map_name).upper()
+        return f"{mapname_macro}_GENERICFUNCS"
+
+    def doxygroup_regfuncs(self, regname: str) -> str:
+        mapname_macro = c_sanitize(self.rmap.map_name).upper()
+        regname_macro = c_sanitize(regname).upper()
+        return f"{mapname_macro}_{regname_macro}_FUNCS"

@@ -33,6 +33,10 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     for block in rmap.register_block_templates.values():
         for template in block.registers.values():
             registers[block.name + template.name] = template
+    out.append(f"/**")
+    out.append(f" * \\defgroup {name.doxygroup_genericfuncs()} Generic register modify/pack/unpack utilities.")
+    out.append(f" * @{{")
+    out.append(f" */")
 
     # Generate generic modify, pack and unpack macro:
     out.append(f"/**")
@@ -90,7 +94,14 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f")(_struct_ptr_)")
     out.append(f"")
 
+    out.append(f"/** @}} */")
+    out.append(f"")
+
     for reg_name, reg in registers.items():
+        out.append(f"/**")
+        out.append(f" * \\defgroup {name.doxygroup_regfuncs(reg_name)} {reg_name} register modify/pack/unpack utilities.")
+        out.append(f" * @{{")
+        out.append(f" */")
 
         packed_type = name.reg_packed_type(reg)
         struct_name = name.reg_struct_name(reg_name)
@@ -99,7 +110,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
         unpack_func = name.reg_unpack_func(reg_name)
         unpack_macro = name.reg_unpack_macro(reg_name)
 
-        if opt.packfunc_comment:
+        if opt.short_packfunc_comment:
+            out.append(f"/** @brief Modify the '{reg_name}' register's binary representation */")
+        else:
             out.append(f"/**")
             out.append(f" * @brief Modify the '{reg_name}' register's binary representation")
             out.append(f" * All fields are replaced with the struct's values.")
@@ -122,7 +135,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
         out.append(f"}}")
         out.append(f"")
 
-        if opt.packfunc_comment:
+        if opt.short_packfunc_comment:
+            out.append(f"/** @brief Pack the '{reg_name}' register's fields into their binary representation. */")
+        else: 
             out.append(f"/**")
             out.append(f" * @brief Pack the '{reg_name}' register's fields into their binary representation")
             out.append(f" * All fields are set to the struct's values.")
@@ -136,7 +151,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
         out.append(f"}}")
         out.append(f"")
 
-        if opt.packfunc_comment:
+        if opt.short_packfunc_comment:
+            out.append(f"/** @brief Unpack the '{reg_name}' register's binary representation into seperate fields. */")
+        else: 
             out.append(f"/**")
             out.append(f" * @brief Unpack the '{reg_name}' register's binary representation into seperate fields")
             out.append(f" * @param r buffer to store the unpacked fields")
@@ -168,6 +185,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
             shift = field.bits.lsb_position()
             out.append(f"  .{member_name} = ({member_type}) ((val >> {shift}U) & 0x{mask:X}U), \\")
         out.append(f"}}")
+        out.append(f"")
+
+        out.append(f"/** @}} */")
         out.append(f"")
 
     out.append(f"#endif /* {name.include_guard_macro(name.filename_reg_utils())} */")
