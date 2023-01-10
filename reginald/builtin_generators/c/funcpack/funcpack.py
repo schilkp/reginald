@@ -1,5 +1,6 @@
+import argparse
 
-from reginald.builtin_generators.c.funcpack import enums, regs, reg_utils
+from reginald.builtin_generators.c.funcpack import enums, reg_utils, regs
 from reginald.builtin_generators.c.funcpack.name_generator import NameGenerator
 from reginald.cli import CLI
 from reginald.datamodel import *
@@ -14,7 +15,23 @@ class Generator(OutputGenerator):
     @classmethod
     def generate(cls, map: RegisterMap, cli: CLI):
 
-        name_gen = NameGenerator(map)
-        enums.generate(map, name_gen, cli)
-        regs.generate(map, name_gen, cli)
-        reg_utils.generate(map, name_gen, cli)
+        # Options:
+        # No comments on pack/unpack/modify macros (Default: Comments)
+        # Field Enum: Prefix with register name (Default: Yes)
+
+        parser = argparse.ArgumentParser(
+            prog="c.funcpack",
+            description="C Output generator, using functions for register management.")
+
+        # parser.add_argument
+        parser.add_argument('--field-enum-prefix', action=argparse.BooleanOptionalAction,
+                            help="prefix a field enum with the register name", default=True)
+        parser.add_argument('--packfunc-comment', action=argparse.BooleanOptionalAction,
+                            help="generate doxygen comments for every individual register function.", default=True)
+
+        funcpack_options = parser.parse_args(cli.generator_args)
+
+        name_gen = NameGenerator(map, funcpack_options)
+        enums.generate(map, name_gen, cli, funcpack_options)
+        regs.generate(map, name_gen, cli, funcpack_options)
+        reg_utils.generate(map, name_gen, cli, funcpack_options)

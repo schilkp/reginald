@@ -2,14 +2,11 @@ import os
 from typing import Union
 
 from reginald.builtin_generators.c.funcpack.name_generator import NameGenerator
-from reginald.builtin_generators.c.funcpack.utils import doxy_comment
 from reginald.cli import CLI
 from reginald.datamodel import *
-from reginald.utils import (c_fitting_unsigned_type, c_sanitize,
-                            str_pad_to_length)
 
 
-def generate(map: RegisterMap, name: NameGenerator, cli: CLI):
+def generate(map: RegisterMap, name: NameGenerator, cli: CLI, opt):
 
     out = []
 
@@ -102,15 +99,16 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI):
         unpack_func = name.reg_unpack_func(reg_name)
         unpack_macro = name.reg_unpack_macro(reg_name)
 
-        out.append(f"/**")
-        out.append(f" * @brief Modify the '{reg_name}' register's binary representation")
-        out.append(f" * All fields are replaced with the struct's values.")
-        out.append(f" * All 'always_write' bits (if any) are forced to the correct value.")
-        out.append(f" * All other bits are kept the same.")
-        out.append(f" * @param r struct holding register fields")
-        out.append(f" * @param val current binary register representation")
-        out.append(f" * @return packed register representation")
-        out.append(f" */")
+        if opt.packfunc_comment:
+            out.append(f"/**")
+            out.append(f" * @brief Modify the '{reg_name}' register's binary representation")
+            out.append(f" * All fields are replaced with the struct's values.")
+            out.append(f" * All 'always_write' bits (if any) are forced to the correct value.")
+            out.append(f" * All other bits are kept the same.")
+            out.append(f" * @param r struct holding register fields")
+            out.append(f" * @param val current binary register representation")
+            out.append(f" * @return packed register representation")
+            out.append(f" */")
         out.append(f"static inline  {packed_type} {modify_func}(const struct {struct_name} *r, {packed_type} val){{")
         if reg.always_write is not None:
             out.append(f"  val &= ~{name.reg_alwayswrite_mask_macro(reg_name)};")
@@ -124,24 +122,26 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI):
         out.append(f"}}")
         out.append(f"")
 
-        out.append(f"/**")
-        out.append(f" * @brief Pack the '{reg_name}' register's fields into their binary representation")
-        out.append(f" * All fields are set to the struct's values.")
-        out.append(f" * All 'always_write' bits (if any) are set to the correct value.")
-        out.append(f" * All other bits are are set to 0.")
-        out.append(f" * @param r struct holding register fields")
-        out.append(f" * @return packed register representation")
-        out.append(f" */")
+        if opt.packfunc_comment:
+            out.append(f"/**")
+            out.append(f" * @brief Pack the '{reg_name}' register's fields into their binary representation")
+            out.append(f" * All fields are set to the struct's values.")
+            out.append(f" * All 'always_write' bits (if any) are set to the correct value.")
+            out.append(f" * All other bits are are set to 0.")
+            out.append(f" * @param r struct holding register fields")
+            out.append(f" * @return packed register representation")
+            out.append(f" */")
         out.append(f"static inline  {packed_type} {pack_func}(const struct {struct_name} *r){{")
         out.append(f"  return {modify_func}(r, 0);")
         out.append(f"}}")
         out.append(f"")
 
-        out.append(f"/**")
-        out.append(f" * @brief Unpack the '{reg_name}' register's binary representation into seperate fields")
-        out.append(f" * @param r buffer to store the unpacked fields")
-        out.append(f" * @param val packed register representation")
-        out.append(f" */")
+        if opt.packfunc_comment:
+            out.append(f"/**")
+            out.append(f" * @brief Unpack the '{reg_name}' register's binary representation into seperate fields")
+            out.append(f" * @param r buffer to store the unpacked fields")
+            out.append(f" * @param val packed register representation")
+            out.append(f" */")
         out.append(f"static inline void {unpack_func}(struct {struct_name} *r, {packed_type} val){{")
         for field in reg.fields.values():
             member_name = name.reg_struct_member(field)

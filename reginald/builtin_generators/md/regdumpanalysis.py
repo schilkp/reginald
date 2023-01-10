@@ -11,7 +11,6 @@ from reginald.cli import CLI
 from reginald.datamodel import *
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
-from reginald.utils import str_oneline
 
 
 @dataclass

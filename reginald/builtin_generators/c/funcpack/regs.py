@@ -8,7 +8,7 @@ from reginald.datamodel import *
 from reginald.utils import str_pad_to_length
 
 
-def generate(map: RegisterMap, name: NameGenerator, cli: CLI):
+def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
 
     out = []
 

@@ -1,16 +1,14 @@
 from typing import Union
 
-from pydantic import NonNegativeInt
-
 from reginald.datamodel import (Field, RegEnum, RegEnumEntry, Register,
-                                RegisterBlockTemplate, RegisterMap,
-                                RegisterTemplate)
+                                RegisterMap, RegisterTemplate)
 from reginald.utils import c_fitting_unsigned_type, c_sanitize
 
 
 class NameGenerator():
-    def __init__(self, map: RegisterMap):
+    def __init__(self, map: RegisterMap, funcpack_options):
         self.map = map
+        self.opt = funcpack_options
 
     def filename_regs(self) -> str:
         mapname_c = c_sanitize(self.map.map_name).lower()
@@ -111,14 +109,20 @@ class NameGenerator():
         mapname_c = c_sanitize(self.map.map_name).lower()
         regname_c = c_sanitize(reg_name).lower()
         enumname_c = c_sanitize(enum.name).lower()
-        return f"{mapname_c}_{regname_c}_{enumname_c}"
+        if self.opt.field_enum_prefix:
+            return f"{mapname_c}_{regname_c}_{enumname_c}"
+        else:
+            return f"{mapname_c}_{enumname_c}"
 
     def enum_field_entry(self, reg_name: str, enum: RegEnum, entry: RegEnumEntry) -> str:
         mapname_macro = c_sanitize(self.map.map_name).upper()
         enumname_macro = c_sanitize(enum.name).upper()
         regname_macro = c_sanitize(reg_name).upper()
         entryname_macro = c_sanitize(entry.name).upper()
-        return f"{mapname_macro}_{regname_macro}_{enumname_macro}_{entryname_macro}"
+        if self.opt.field_enum_prefix:
+            return f"{mapname_macro}_{regname_macro}_{enumname_macro}_{entryname_macro}"
+        else:
+            return f"{mapname_macro}_{enumname_macro}_{entryname_macro}"
 
     def include_guard_macro(self, filename: str) -> str:
         return c_sanitize(filename).upper() + "_"

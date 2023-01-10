@@ -6,7 +6,7 @@ from tabulate import tabulate
 from reginald.cli import CLI
 from reginald.datamodel import *
 from reginald.generator import OutputGenerator
-from reginald.utils import str_list, str_oneline
+from reginald.utils import str_list
 
 
 class Generator(OutputGenerator):

@@ -5,10 +5,10 @@ from reginald.builtin_generators.c.funcpack.name_generator import NameGenerator
 from reginald.builtin_generators.c.funcpack.utils import doxy_comment
 from reginald.cli import CLI
 from reginald.datamodel import *
-from reginald.utils import c_sanitize, str_pad_to_length
+from reginald.utils import str_pad_to_length
 
 
-def generate(map: RegisterMap, name: NameGenerator, cli: CLI):
+def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
     out = []
 
     out.append(f"/*!")

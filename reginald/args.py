@@ -26,7 +26,8 @@ def parse_args():
 
     builtin_choices_text = "\n".join(builtin_choices_text)
 
-    parser = argparse.ArgumentParser(description='Test argparse', epilog="builtin generators: \n" +
+    parser = argparse.ArgumentParser(prog = "Reginald",
+            description='Register map utility', epilog="builtin generators: \n" +
                                      builtin_choices_text, formatter_class=argparse.RawDescriptionHelpFormatter,)
     parser.add_argument('input_file',
                         help="input register description yaml")
