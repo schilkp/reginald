@@ -15,12 +15,12 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, cli: CLI):
+    def generate(cls, rmap: RegisterMap, cli: CLI):
         out = []
 
         # Generate header:
-        out.append(f"# {map.map_name} Register Map")
-        out.extend(map.docs.multi_line(prefix=""))
+        out.append(f"# {rmap.map_name} Register Map")
+        out.extend(rmap.docs.multi_line(prefix=""))
         out.append("")
 
         # Generate overview table:
@@ -29,15 +29,15 @@ class Generator(OutputGenerator):
         rows = []
 
         def sort_by_adr(x: str) -> float:
-            adr = map.registers[x].adr
+            adr = rmap.registers[x].adr
             if adr is None:
                 return inf
             else:
                 return adr
-        regs = sorted(map.registers.keys(), key=sort_by_adr)
+        regs = sorted(rmap.registers.keys(), key=sort_by_adr)
 
         for reg_name in regs:
-            reg = map.registers[reg_name]
+            reg = rmap.registers[reg_name]
 
             if reg.adr is None:
                 adr = "?"
@@ -54,7 +54,7 @@ class Generator(OutputGenerator):
         # Generate register section:
 
         out.append(f"## Registers:")
-        for reg in map.registers.values():
+        for reg in rmap.registers.values():
 
             # Register name:
             out.append(f"### {reg.name}:")
@@ -141,7 +141,7 @@ class Generator(OutputGenerator):
             out.append("")
             out.append("---")
 
-        output_file = os.path.join(cli.output_path, f"{map.map_name.lower()}.md")
+        output_file = os.path.join(cli.output_path, f"{rmap.map_name.lower()}.md")
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(out))
         print(f"Generated {output_file}...")

@@ -8,13 +8,13 @@ from reginald.datamodel import *
 from reginald.utils import str_pad_to_length
 
 
-def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
+def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, _):
 
     out = []
 
     out.append(f"/*!")
     out.append(f" * \\file {name.filename_regs()}")
-    out.append(f" * \\brief {map.map_name} Registers.")
+    out.append(f" * \\brief {rmap.map_name} Registers.")
     out.append(f" * \\note Do not edit: Generated using Reginald.")
     out.append(f" */")
     out.append(f"")
@@ -28,7 +28,7 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
     out.append(f"")
 
     out.append(str_pad_to_length(f"// ==== Register Addresses ", "=", 80))
-    for reg in map.registers.values():
+    for reg in rmap.registers.values():
         if reg.adr is not None:
             if reg.docs.brief is not None:
                 comment = f"//!< {reg.name} Address ({reg.docs.brief})"
@@ -37,7 +37,7 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
             out.append(f"#define {name.reg_adr_macro(reg.name)} (0x{reg.adr:X}U) {comment}")
     out.append(f"")
 
-    for block in map.register_block_templates.values():
+    for block in rmap.register_block_templates.values():
         out.append(str_pad_to_length(f"// ==== {block.name} Register Block ", "=", 80))
         for template in block.registers.values():
             regname = block.name + template.name
@@ -48,10 +48,10 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
     out.append(f"")
 
     registers = {}  # type: Dict[str, Union[Register, RegisterTemplate]]
-    for reg in map.registers.values():
+    for reg in rmap.registers.values():
         if not reg.originates_from_template:
             registers[reg.name] = reg
-    for block in map.register_block_templates.values():
+    for block in rmap.register_block_templates.values():
         for template in block.registers.values():
             registers[block.name + template.name] = template
 

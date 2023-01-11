@@ -13,7 +13,7 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, cli: CLI):
+    def generate(cls, rmap: RegisterMap, cli: CLI):
 
         # Options:
         # No comments on pack/unpack/modify macros (Default: Comments)
@@ -31,7 +31,7 @@ class Generator(OutputGenerator):
 
         funcpack_options = parser.parse_args(cli.generator_args)
 
-        name_gen = NameGenerator(map, funcpack_options)
-        enums.generate(map, name_gen, cli, funcpack_options)
-        regs.generate(map, name_gen, cli, funcpack_options)
-        reg_utils.generate(map, name_gen, cli, funcpack_options)
+        name_gen = NameGenerator(rmap, funcpack_options)
+        enums.generate(rmap, name_gen, cli, funcpack_options)
+        regs.generate(rmap, name_gen, cli, funcpack_options)
+        reg_utils.generate(rmap, name_gen, cli, funcpack_options)

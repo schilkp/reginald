@@ -8,12 +8,12 @@ from reginald.datamodel import *
 from reginald.utils import str_pad_to_length
 
 
-def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
+def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, _):
     out = []
 
     out.append(f"/*!")
     out.append(f" * \\file {name.filename_enums()}")
-    out.append(f" * \\brief {map.map_name} Register Enums.")
+    out.append(f" * \\brief {rmap.map_name} Register Enums.")
     out.append(f" * \\note Do not edit: Generated using Reginald.")
     out.append(f" */")
     out.append(f"")
@@ -26,7 +26,7 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
     out.append(str_pad_to_length(f"// ==== Shared Enums ", "=", 80))
     out.append(f"")
 
-    for enum in map.shared_enums.values():
+    for enum in rmap.shared_enums.values():
         out.extend(doxy_comment(enum.docs, prefix=""))
         out.append(f"enum {name.enum_shared(enum)}{{")
 
@@ -38,10 +38,10 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI, _):
         out.append(f"")
 
     registers = {}  # type: Dict[str, Union[Register, RegisterTemplate]]
-    for reg in map.registers.values():
+    for reg in rmap.registers.values():
         if not reg.originates_from_template:
             registers[reg.name] = reg
-    for block in map.register_block_templates.values():
+    for block in rmap.register_block_templates.values():
         for template in block.registers.values():
             registers[block.name + template.name] = template
 

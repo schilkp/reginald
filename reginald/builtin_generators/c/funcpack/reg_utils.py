@@ -6,13 +6,13 @@ from reginald.cli import CLI
 from reginald.datamodel import *
 
 
-def generate(map: RegisterMap, name: NameGenerator, cli: CLI, opt):
+def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
 
     out = []
 
     out.append(f"/*!")
     out.append(f" * \\file {name.filename_reg_utils()}")
-    out.append(f" * \\brief {map.map_name} Registers Utilities.")
+    out.append(f" * \\brief {rmap.map_name} Registers Utilities.")
     out.append(f" * \\note Do not edit: Generated using Reginald.")
     out.append(f" */")
     out.append(f"")
@@ -27,10 +27,10 @@ def generate(map: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f"")
 
     registers = {}  # type: Dict[str, Union[Register, RegisterTemplate]]
-    for reg in map.registers.values():
+    for reg in rmap.registers.values():
         if not reg.originates_from_template:
             registers[reg.name] = reg
-    for block in map.register_block_templates.values():
+    for block in rmap.register_block_templates.values():
         for template in block.registers.values():
             registers[block.name + template.name] = template
 

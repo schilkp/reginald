@@ -6,12 +6,12 @@ from reginald.error import ReginaldException
 
 
 class MapValidator:
-    def __init__(self, map: RegisterMap):
-        self.map = map
+    def __init__(self, rmap: RegisterMap):
+        self.rmap = rmap
 
     def validate(self):
         # Validate all registers:
-        for reg in self.map.registers.values():
+        for reg in self.rmap.registers.values():
             self._validate_register(reg)
 
     def _validate_register(self, reg: Register):

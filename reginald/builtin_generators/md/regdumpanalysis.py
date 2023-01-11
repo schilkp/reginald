@@ -54,7 +54,7 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, cli: CLI):
+    def generate(cls, rmap: RegisterMap, cli: CLI):
 
         if len(cli.generator_args) != 1:
             raise ReginaldException("md_dumpanalysis requires a yaml binary dump as it's only argument")
@@ -66,15 +66,15 @@ class Generator(OutputGenerator):
         out = []
 
         # Generate header:
-        out.append(f"# {map.map_name} Register Dump Analysis")
+        out.append(f"# {rmap.map_name} Register Dump Analysis")
         out.append(f"")
         out.append(f"")
 
         for adr in adrs:
-            register_name = map.get_registername_at(adr)
+            register_name = rmap.get_registername_at(adr)
 
             if register_name is not None:
-                reg = map.registers[register_name]
+                reg = rmap.registers[register_name]
                 out.append(f"## 0x{adr:0X} - {register_name}")
                 out.append(f"  - 0x{dump[adr]:X}")
                 out.append(f"  - 0b{dump[adr]:b}")
@@ -163,7 +163,7 @@ class Generator(OutputGenerator):
             out.append(f"")
             out.append(f"")
 
-        output_file = os.path.join(cli.output_path, f"{map.map_name.lower()}_analysis.md")
+        output_file = os.path.join(cli.output_path, f"{rmap.map_name.lower()}_analysis.md")
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(out))
         print(f"Generated {output_file}...")

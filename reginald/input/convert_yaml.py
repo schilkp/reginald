@@ -21,7 +21,7 @@ class YAMLConverter:
 
     def convert(self) -> RegisterMap:
         bt = f"{self.yaml.map_name}"
-        self.map = RegisterMap(
+        self.rmap = RegisterMap(
             map_name=self.yaml.map_name,
             docs=self._convert_docs(self.yaml, bt),
             shared_enums={},
@@ -35,7 +35,7 @@ class YAMLConverter:
         self._convert_register_block_templates(bt)
         self._convert_registers(bt)
 
-        return self.map
+        return self.rmap
 
     def _convert_docs(self, thing, bt: str) -> Docs:
 
@@ -76,7 +76,7 @@ class YAMLConverter:
                 docs=docs,
                 entries=entries)
 
-        self.map.shared_enums = result
+        self.rmap.shared_enums = result
 
     def _convert_enum_entry(self, entry_name: str, entry: YAML_RegEnumEntry, bt: str) -> RegEnumEntry:
         bt = bt + f" -> {entry_name}"
@@ -122,7 +122,7 @@ class YAMLConverter:
                 docs=block_docs,
                 registers=register_templates)
 
-        self.map.register_block_templates = block_templates
+        self.rmap.register_block_templates = block_templates
 
     def _convert_always_write(self, always_write: Optional[YAML_AlwaysWrite], bt: str) -> Optional[AlwaysWrite]:
         bt = bt + f" -> always_write"
@@ -214,9 +214,9 @@ class YAMLConverter:
 
         if isinstance(field.enum, str):
             # References shared enun
-            if field.enum not in self.map.shared_enums:
+            if field.enum not in self.rmap.shared_enums:
                 raise ReginaldException(f"{bt}: Register references shared enum that does not exists.")
-            return self.map.shared_enums[field.enum]
+            return self.rmap.shared_enums[field.enum]
         else:
             # Inline enum
             enum_docs = self._convert_docs(field, bt)
@@ -277,10 +277,10 @@ class YAMLConverter:
                 inst = r
                 inst_name = name
 
-                if inst.register_block_template not in self.map.register_block_templates:
+                if inst.register_block_template not in self.rmap.register_block_templates:
                     raise ReginaldException(f"{bt}: Block template {inst.register_block_template} unknown!")
 
-                block_template = self.map.register_block_templates[inst.register_block_template]
+                block_template = self.rmap.register_block_templates[inst.register_block_template]
 
                 if isinstance(inst.start_adr, Dict):
                     # Multiple instantiations
@@ -301,14 +301,14 @@ class YAMLConverter:
                     self._add_block_template_instance(inst_name, inst.start_adr, block_template, bt)
 
     def _add_register(self, reg: Register, bt: str):
-        if reg.name in self.map.registers:
+        if reg.name in self.rmap.registers:
             raise ReginaldException(f"{bt}: Register with name {reg.name} already exists!")
 
         if reg.adr in self.existing_adrs:
             raise ReginaldException(f"{bt}: Another Register already exists at address {reg.adr}: {self.existing_adrs[reg.adr]}!")
         self.existing_adrs[reg.adr] = reg.name
 
-        self.map.registers[reg.name] = reg
+        self.rmap.registers[reg.name] = reg
 
     def _add_block_template_instance(self, instance_name: str, start_adr: NonNegativeInt, template: RegisterBlockTemplate, bt: str):
         template.instances[start_adr] = instance_name

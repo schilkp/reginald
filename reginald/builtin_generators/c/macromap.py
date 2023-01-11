@@ -13,9 +13,9 @@ class Generator(OutputGenerator):
         return "TODO"
 
     @classmethod
-    def generate(cls, map: RegisterMap, cli: CLI):
+    def generate(cls, rmap: RegisterMap, cli: CLI):
 
-        mapname = map.map_name
+        mapname = rmap.map_name
         mapname_macro = c_sanitize(mapname).upper()
 
         out = []
@@ -32,10 +32,10 @@ class Generator(OutputGenerator):
         # combine physical registers and register templates:
         registers = {}  # type: Dict[str, Union[Register, RegisterTemplate]]
 
-        for register in map.registers.values():
+        for register in rmap.registers.values():
             registers[register.name] = register
 
-        for block_template in map.register_block_templates.values():
+        for block_template in rmap.register_block_templates.values():
             for template in block_template.registers.values():
                 registers[block_template.name + template.name] = template
 
@@ -96,7 +96,7 @@ class Generator(OutputGenerator):
         out.append(f"")
         out.append(f"#endif /* {mapname_macro}_REG_H_ */")
 
-        output_file = os.path.join(cli.output_path, f"{map.map_name.lower()}_regs.h")
+        output_file = os.path.join(cli.output_path, f"{rmap.map_name.lower()}_regs.h")
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(out))
         print(f"Generated {output_file}...")
