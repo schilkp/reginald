@@ -98,6 +98,11 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f"")
 
     for reg_name, reg in registers.items():
+
+        if len(reg.fields) == 0:
+            # Don't generate structs + funcs if there are no fields.
+            continue
+
         out.append(f"/**")
         out.append(f" * \\defgroup {name.doxygroup_regfuncs(reg_name)} {reg_name} register modify/pack/unpack utilities.")
         out.append(f" * @{{")
