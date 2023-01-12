@@ -52,6 +52,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f"#define {name.generic_modify_macro()}(_struct_ptr_, _val_) _Generic((_struct_ptr_), \\")
     out.append(f"/* type : selected function */ \\")
     for reg_name, reg in registers.items():
+        if len(reg.fields) == 0:
+            # Register does not have packing funcs if there are no fields.
+            continue
         struct_name = name.reg_struct_name(reg_name)
         modify_func = name.reg_modify_func(reg_name)
         out.append(f" struct {struct_name}* : {modify_func},  \\")
@@ -71,6 +74,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f"#define {name.generic_pack_macro()}(_struct_ptr_) _Generic((_struct_ptr_), \\")
     out.append(f"/* type : selected function */ \\")
     for reg_name, reg in registers.items():
+        if len(reg.fields) == 0:
+            # Register does not have packing funcs if there are no fields.
+            continue
         struct_name = name.reg_struct_name(reg_name)
         pack_func = name.reg_pack_func(reg_name)
         out.append(f" struct {struct_name}* : {pack_func},  \\")
@@ -87,6 +93,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f"#define {name.generic_unpack_macro()}(_struct_ptr_, _val_) _Generic((_struct_ptr_), \\")
     out.append(f"/* type : selected function */ \\")
     for reg_name, reg in registers.items():
+        if len(reg.fields) == 0:
+            # Register does not have packing funcs if there are no fields.
+            continue
         struct_name = name.reg_struct_name(reg_name)
         unpack_func = name.reg_unpack_func(reg_name)
         out.append(f" struct {struct_name}* : {unpack_func},  \\")
@@ -142,7 +151,7 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
 
         if opt.short_packfunc_comment:
             out.append(f"/** @brief Pack the '{reg_name}' register's fields into their binary representation. */")
-        else: 
+        else:
             out.append(f"/**")
             out.append(f" * @brief Pack the '{reg_name}' register's fields into their binary representation")
             out.append(f" * All fields are set to the struct's values.")
@@ -158,7 +167,7 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
 
         if opt.short_packfunc_comment:
             out.append(f"/** @brief Unpack the '{reg_name}' register's binary representation into seperate fields. */")
-        else: 
+        else:
             out.append(f"/**")
             out.append(f" * @brief Unpack the '{reg_name}' register's binary representation into seperate fields")
             out.append(f" * @param r buffer to store the unpacked fields")
@@ -188,7 +197,7 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
             member_type = name.reg_struct_member_type(reg_name, field)
             mask = field.bits.get_bitmask()
             shift = field.bits.lsb_position()
-            out.append(f"  .{member_name} = ({member_type}) ((val >> {shift}U) & 0x{mask:X}U), \\")
+            out.append(f"  .{member_name} = ({member_type}) (((_VAL_) >> {shift}U) & 0x{mask:X}U), \\")
         out.append(f"}}")
         out.append(f"")
 

@@ -28,22 +28,22 @@ class NameGenerator():
     def reg_adr_macro(self, regname: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_reg_{regname_macro}"
+        return f"{mapname_macro}_REG_{regname_macro}"
 
     def reg_resetval_macro(self, regname: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_reg_{regname_macro}__RESETVAL"
+        return f"{mapname_macro}_REG_{regname_macro}__RESETVAL"
 
     def reg_alwayswrite_mask_macro(self, regname: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_reg_{regname_macro}__ALWAYSWRITE_MASK"
+        return f"{mapname_macro}_REG_{regname_macro}__ALWAYSWRITE_MASK"
 
     def reg_alwayswrite_val_macro(self, regname: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_reg_{regname_macro}__ALWAYSWRITE_VAL"
+        return f"{mapname_macro}_REG_{regname_macro}__ALWAYSWRITE_VAL"
 
     def reg_struct_name(self, regname: str) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
