@@ -138,15 +138,15 @@ class NameGenerator():
 
     def generic_modify_macro(self) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        return f"{mapname_macro}_REG_MODIFY"
+        return f"{mapname_macro}_MODIFY"
 
     def generic_pack_macro(self) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        return f"{mapname_macro}_REG_PACK"
+        return f"{mapname_macro}_PACK"
 
     def generic_unpack_macro(self) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        return f"{mapname_macro}_REG_UNPACK"
+        return f"{mapname_macro}_UNPACK"
 
     def lookup_resetval_func(self) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
