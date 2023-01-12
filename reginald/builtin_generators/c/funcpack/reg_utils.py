@@ -26,6 +26,34 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f"#include \"{name.filename_regs()}\"")
     out.append(f"")
 
+    out.append(f"/**")
+    out.append(f" * @brief Lookup a register's reset value")
+    out.append(f" * @param adr register address")
+    out.append(f" * @param val buffer to store reset value. invalid if function returns 0.")
+    out.append(f" * @return 1 if a register exists at this address and has a resetval, 0 otherwise.")
+    out.append(f" */")
+    packed_type = name.reg_maximum_packed_type()
+    adr_type = name.adr_type()
+    out.append(f"static inline int {name.lookup_resetval_func()}({adr_type} adr, {packed_type} *val){{")
+    out.append(f"  switch(adr) {{")
+    for reg in rmap.registers.values():
+        if reg.reset_val is None:
+            continue
+        if reg.originates_from_template and reg.originates_from_register_template:
+            regname = reg.originates_from_template.name + reg.originates_from_register_template.name
+            out.append(f"    case {name.reg_adr_macro(reg.name)}:")
+            out.append(f"      *val = {name.reg_resetval_macro(regname)};")
+            out.append(f"      return 1;")
+        else:
+            out.append(f"    case {name.reg_adr_macro(reg.name)}:")
+            out.append(f"      *val = {name.reg_resetval_macro(reg.name)};")
+            out.append(f"      return 1;")
+    out.append(f"   default:")
+    out.append(f"     return 0;")
+    out.append(f"  }}")
+    out.append(f"}}")
+
+    out.append(f"")
     registers = {}  # type: Dict[str, Union[Register, RegisterTemplate]]
     for reg in rmap.registers.values():
         if not reg.originates_from_template:

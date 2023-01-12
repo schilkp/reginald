@@ -140,6 +140,7 @@ class Register:
     adr: Optional[NonNegativeInt]
     always_write: Optional[AlwaysWrite]
     originates_from_template: Optional[RegisterBlockTemplate]
+    originates_from_register_template: Optional[RegisterTemplate]
     reset_val: Optional[int]
 
     def get_unused_bits(self, include_always_write: bool) -> Bits:

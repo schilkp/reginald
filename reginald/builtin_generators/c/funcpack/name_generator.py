@@ -1,3 +1,4 @@
+from math import log2
 from typing import Union
 
 from reginald.datamodel import (Field, RegEnum, RegEnumEntry, Register,
@@ -22,8 +23,16 @@ class NameGenerator():
         mapname_c = c_sanitize(self.rmap.map_name).lower()
         return f"{mapname_c}_reg_utils.h"
 
+    def adr_type(self) -> str:
+        max_adr = max([reg.adr for reg in self.rmap.registers.values() if reg.adr is not None])
+        return c_fitting_unsigned_type(round(log2(max_adr)+0.5))
+
     def reg_packed_type(self, reg: Union[Register, RegisterTemplate]) -> str:
         return c_fitting_unsigned_type(reg.bitwidth)
+
+    def reg_maximum_packed_type(self) -> str:
+        max_width = max([reg.bitwidth for reg in self.rmap.registers.values()])
+        return c_fitting_unsigned_type(max_width)
 
     def reg_adr_macro(self, regname: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
@@ -138,6 +147,10 @@ class NameGenerator():
     def generic_unpack_macro(self) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         return f"{mapname_macro}_REG_UNPACK"
+
+    def lookup_resetval_func(self) -> str:
+        mapname_c = c_sanitize(self.rmap.map_name).lower()
+        return f"{mapname_c}_lookup_resetval"
 
     def doxygroup_genericfuncs(self) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
