@@ -98,5 +98,5 @@ class Generator(OutputGenerator):
 
         output_file = os.path.join(cli.output_path, f"{rmap.map_name.lower()}_regs.h")
         with open(output_file, 'w') as outfile:
-            outfile.write("\n".join(out))
+            outfile.write("\n".join(out)+"\n")
         print(f"Generated {output_file}...")

@@ -68,5 +68,5 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, _):
 
     output_file = os.path.join(cli.output_path, name.filename_enums())
     with open(output_file, 'w') as outfile:
-        outfile.write("\n".join(out))
+        outfile.write("\n".join(out)+"\n")
     print(f"Generated {output_file}...")
