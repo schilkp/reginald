@@ -171,8 +171,9 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
         for field in reg.fields.values():
             member_name = name.reg_struct_member(field)
             mask = field.bits.get_bitmask()
+            unpos_mask = field.bits.get_unpositioned_bits().get_bitmask()
             shift = field.bits.lsb_position()
-            out.append(f"  val = (val & ~0x{mask:X}U) | ({packed_type}) ((r->{member_name} & 0x{mask:X}U) << {shift}U);")
+            out.append(f"  val = (val & ~0x{mask:X}U) | ({packed_type}) ((r->{member_name} & 0x{unpos_mask:X}U) << {shift}U);")
         out.append(f" return val;")
         out.append(f"}}")
         out.append(f"")
@@ -207,7 +208,7 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
             member_type = name.reg_struct_member_type(reg_name, field)
             mask = field.bits.get_bitmask()
             shift = field.bits.lsb_position()
-            out.append(f"  r->{member_name} = ({member_type}) ((val >> {shift}U) & 0x{mask:X}U);")
+            out.append(f"  r->{member_name} = ({member_type}) ((val & 0x{mask:X}U) >> {shift}U);")
         out.append(f"}}")
         out.append(f"")
 
@@ -225,7 +226,7 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
             member_type = name.reg_struct_member_type(reg_name, field)
             mask = field.bits.get_bitmask()
             shift = field.bits.lsb_position()
-            out.append(f"  .{member_name} = ({member_type}) (((_VAL_) >> {shift}U) & 0x{mask:X}U), \\")
+            out.append(f"  .{member_name} = ({member_type}) (((_VAL_) & 0x{mask:X}U) >> {shift}U), \\")
         out.append(f"}}")
         out.append(f"")
 
