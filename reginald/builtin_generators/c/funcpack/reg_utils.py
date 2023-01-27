@@ -65,6 +65,11 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f" * \\defgroup {name.doxygroup_genericfuncs()} Generic register modify/pack/unpack utilities.")
     out.append(f" * @{{")
     out.append(f" */")
+    out.append(f"")
+    out.append(f"// Disable clang-format for this section, since _Generic formatting is buggy up to v14 and")
+    out.append(f"// v15 is too new to require.")
+    out.append(f"// clang-format off")
+    out.append(f"")
 
     # Generate generic modify, pack and unpack macro:
     out.append(f"/**")
@@ -78,16 +83,15 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f" * @return packed register representation")
     out.append(f" */")
     out.append(f"#define {name.generic_modify_macro()}(_struct_ptr_, _val_) _Generic((_struct_ptr_), \\")
-    out.append(f"/* type : selected function */ \\")
     for reg_name, reg in registers.items():
         if len(reg.fields) == 0:
             # Register does not have packing funcs if there are no fields.
             continue
         struct_name = name.reg_struct_name(reg_name)
         modify_func = name.reg_modify_func(reg_name)
-        out.append(f" struct {struct_name}* : {modify_func},  \\")
+        out.append(f"    struct {struct_name}* : {modify_func},  \\")
     out[-1] = out[-1].replace(",", "")
-    out.append(f")(_struct_ptr_, _val_)")
+    out.append(f"  )(_struct_ptr_, _val_)")
     out.append(f"")
 
     out.append(f"/**")
@@ -100,16 +104,15 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f" * @return packed register representation")
     out.append(f" */")
     out.append(f"#define {name.generic_pack_macro()}(_struct_ptr_) _Generic((_struct_ptr_), \\")
-    out.append(f"/* type : selected function */ \\")
     for reg_name, reg in registers.items():
         if len(reg.fields) == 0:
             # Register does not have packing funcs if there are no fields.
             continue
         struct_name = name.reg_struct_name(reg_name)
         pack_func = name.reg_pack_func(reg_name)
-        out.append(f" struct {struct_name}* : {pack_func},  \\")
+        out.append(f"    struct {struct_name}* : {pack_func},  \\")
     out[-1] = out[-1].replace(",", "")
-    out.append(f")(_struct_ptr_)")
+    out.append(f"  )(_struct_ptr_)")
     out.append(f"")
 
     out.append(f"/**")
@@ -126,11 +129,13 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
             continue
         struct_name = name.reg_struct_name(reg_name)
         unpack_func = name.reg_unpack_func(reg_name)
-        out.append(f" struct {struct_name}* : {unpack_func},  \\")
+        out.append(f"    struct {struct_name}* : {unpack_func},  \\")
     out[-1] = out[-1].replace(",", "")
-    out.append(f")(_struct_ptr_)")
+    out.append(f"  )(_struct_ptr_)")
     out.append(f"")
 
+    out.append(f"// clang-format on")
+    out.append(f"")
     out.append(f"/** @}} */")
     out.append(f"")
 
