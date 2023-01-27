@@ -122,7 +122,6 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
     out.append(f" * @param _val_ packed register representation")
     out.append(f" */")
     out.append(f"#define {name.generic_unpack_macro()}(_struct_ptr_, _val_) _Generic((_struct_ptr_), \\")
-    out.append(f"/* type : selected function */ \\")
     for reg_name, reg in registers.items():
         if len(reg.fields) == 0:
             # Register does not have packing funcs if there are no fields.
@@ -131,7 +130,7 @@ def generate(rmap: RegisterMap, name: NameGenerator, cli: CLI, opt):
         unpack_func = name.reg_unpack_func(reg_name)
         out.append(f"    struct {struct_name}* : {unpack_func},  \\")
     out[-1] = out[-1].replace(",", "")
-    out.append(f"  )(_struct_ptr_)")
+    out.append(f"  )(_struct_ptr_, _val_)")
     out.append(f"")
 
     out.append(f"// clang-format on")
