@@ -198,13 +198,15 @@ class YAMLConverter:
             access = self._convert_access(field.access, bt)
             docs = self._convert_docs(field, bt)
             enum = self._convert_field_enum(field_name, field, bt)
+            reset_val = field.reset_val
 
             result[field_name] = Field(
                 name=field_name,
                 bits=bits,
                 docs=docs,
                 access=access,
-                enum=enum)
+                enum=enum,
+                reset_val=reset_val)
 
         return result
 
