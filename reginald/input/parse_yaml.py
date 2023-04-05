@@ -33,7 +33,6 @@ class YAML_Field:
     access: Optional[YAML_Access] = None
     doc: Optional[str] = None
     brief: Optional[str] = None
-    reset_val: Optional[NonNegativeInt] = None
     enum: Optional[Union[Dict[str, YAML_RegEnumEntry], str]] = None
 
 

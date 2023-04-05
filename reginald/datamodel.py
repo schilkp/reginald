@@ -72,7 +72,6 @@ class Field:
     bits: Bits
     access: List[AccessMode]
     docs: Docs
-    reset_val: Optional[int] = None
     enum: Optional[RegEnum] = None
 
     def get_bitrange(self) -> BitRange:
