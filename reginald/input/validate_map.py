@@ -21,10 +21,15 @@ class MapValidator:
         for field in reg.fields.values():
             self._validate_field(reg, field, bt)
 
-        # Validate that resetval fits into this registers:
         if reg.reset_val is not None:
+            # Validate that resetval fits into this registers:
             if not fits_into_bitwidth(reg.reset_val, reg.bitwidth):
                 raise ReginaldException(f"{bt}: reset_val does not fit into register!")
+            # Validate that resetval value does not conflict with field resetvals values:
+            for field in reg.fields.values():
+                if field.reset_val is not None:
+                    if field.reset_val != ((reg.reset_val & field.bits.get_bitmask()) >> field.bits.lsb_position()):
+                        raise ReginaldException(f"{bt}: reset_val does not match field reset_val!")
 
         # Validate that no fields overlap:
         field_at_bit = {}
@@ -56,4 +61,10 @@ class MapValidator:
             for enum_entry in field.enum.entries.values():
                 mask = field.bits.get_unpositioned_bits().get_bitmask()
                 if enum_entry.value & mask != enum_entry.value:
-                    raise ReginaldException("{bt}: Enum does not fit into field!")
+                    raise ReginaldException(f"{bt}: Enum does not fit into field!")
+
+        # Validate that resetval fits into field:
+        if field.reset_val is not None:
+            mask = field.bits.get_unpositioned_bits().get_bitmask()
+            if field.reset_val & mask != field.reset_val:
+                raise ReginaldException(f"{bt}: reset_val does not fit into field!")
