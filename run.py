@@ -1,18 +1,17 @@
 import sys
 
-from reginald.args import parse_args
+from reginald.cli import parse_args
 from reginald.error import ReginaldException
 from reginald.input.convert_yaml import YAMLConverter
 from reginald.input.parse_yaml import YAML_RegisterMap
 from reginald.input.validate_map import MapValidator
-
 
 def main():
 
     try:
 
         # Parse command line args:
-        cli = parse_args()
+        cli, generator = parse_args()
 
         # Open, parse, and validate input file:
         r = YAML_RegisterMap.from_yaml_file(cli.input_file)
@@ -20,7 +19,7 @@ def main():
         MapValidator(r).validate()
 
         # Generate output using selected generator:
-        cli.generator.generate(r, cli)
+        generator.generate(r, cli.input_file, cli.output_file, cli.generator_args)
 
         print("Done!")
 

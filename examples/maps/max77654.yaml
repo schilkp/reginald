@@ -53,6 +53,9 @@ registers:
     adr: 0x04
     reset_val: 0x00
     brief: Global Interrupt flag register 1.
+    always_write:
+        mask: 0x80
+        val: 0
     fields:
       LDO1_F:
         bits: [6]
@@ -105,7 +108,7 @@ registers:
       WDT_OFF:
         bits: [6]
         access: r
-        brief: Watchdog Timer OFF Flag 
+        brief: Watchdog Timer OFF Flag
         doc: >
           This bit sets when the watchdog timer expires and causes
           a power-off (WDT_MODE = 0).
@@ -176,6 +179,9 @@ registers:
     adr: 0x08
     reset_val: 0x7F
     brief: Interrupt Masking 1
+    always_write:
+      mask: 0x80
+      val: 0x0
     fields:
       LDO1_M:
         bits: [6]
@@ -339,7 +345,7 @@ registers:
             brief: No Action
           SFT_CRST:
             val: 0x1
-            brief: Software cold reset. 
+            brief: Software cold reset.
             doc: >
               The device powers down, resets,
               and then powers up again.
@@ -360,9 +366,57 @@ registers:
               occurs.
 
   CNFG_GPIOn:
-    start_adr: {0: 0x11, 1: 0x12, 2: 0x13}
-    replace_str_with_instance_id: "n"
-    register_block_template: "CNFG_GPIOn"
+    instances: {CNFG_GPIO0: 0x11, CNFG_GPIO1: 0x12, CNFG_GPIO2: 0x13}
+    registers:
+      "":
+        adr: 0x0
+        reset_val: 0x01
+        brief: GPIO Configuration
+        always_write:
+          mask: 0xC0
+          val: 0
+        fields:
+          ALT:
+            bits: [5]
+            access: [r, w]
+            brief: Alternate Mode Enable for GPIO0
+            enum: EN
+          DBEN_GPI:
+            bits: [4]
+            access: [r, w]
+            brief: General Purpose Input Debounce Timer enable (30ms)
+            enum: EN
+          DOUT:
+            bits: [3]
+            access: [r, w]
+            brief: General Purpose Output Data Output
+          DRV:
+            bits: [2]
+            access: [r, w]
+            brief: General Purpose Output Driver Type
+            enum:
+              OD:
+                val: 0
+                brief: "Open-drain"
+              PP:
+                val: 1
+                brief: "Push-Pull"
+          DI:
+            bits: [1]
+            access: r
+            brief: GPIO Digital Input val.
+          DIR:
+            bits: [0]
+            access: [r, w]
+            brief: GPIO Direction
+            enum:
+              OUTPUT:
+                val: 0
+                brief: "Output"
+              INPUT:
+                val: 1
+                brief: "Input"
+
   CID:
     adr: 0x14
     reset_val: 0x00
@@ -371,7 +425,7 @@ registers:
       CID_MSB:
         bits: [7]
         brief: Bit 4 of the chip identification code.
-      CID_LSB: 
+      CID_LSB:
         bits: 0-3
         brief: Bits 0 to 3 of the chip identification code.
 
@@ -379,6 +433,9 @@ registers:
     adr: 0x17
     reset_val: 0x30
     brief: Watchdog timer configurtion.
+    always_write:
+      mask: 0xC0
+      val: 0x0
     fields:
       WDT_PER:
         bits: [5, 4]
@@ -422,10 +479,13 @@ registers:
     adr: 0x01
     reset_val: 0x00
     brief: Charger Interrupt flag register
+    always_write:
+      mask: 0x80
+      val: 0x00
     fields:
       SYS_CNFG_I:
         bits: [6]
-        brief: System Voltage Configuration Error Interrupt 
+        brief: System Voltage Configuration Error Interrupt
         doc: Triggers if VSYS-REG <= VFAST- CHG + 200mV
       SYS_CTRL_I:
         bits: [5]
@@ -437,7 +497,7 @@ registers:
         doc: This bit asserts when the input reaches current limit (ICHGIN-LIM) or VCHGIN falls below VCHGIN_MIN.
       TJ_REG_I:
         bits: [3]
-        brief: Die Junction Temperature Regulation Interrupt. 
+        brief: Die Junction Temperature Regulation Interrupt.
         doc: This bit asserts when the die temperature (TJ) exceeds TJ-REG.
       CHGIN_I:
         bits: [2]
@@ -453,6 +513,9 @@ registers:
     adr: 0x02
     reset_val: 0x00
     brief: Charger status register A.
+    always_write:
+      mask: 0x80
+      val: 0x0
     fields:
       VCHGIN_MIN_STAT:
         bits: [6]
@@ -476,7 +539,7 @@ registers:
             brief: Thermistor is disabled (THM_EN = 0).
           THM_COLD:
             val: 0x1
-            brief: Battery is cold as programmed by THM_COLD[1:0]. 
+            brief: Battery is cold as programmed by THM_COLD[1:0].
             doc: If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs.
           THM_COOL:
             val: 0x2
@@ -486,7 +549,7 @@ registers:
             brief: Battery is warm as programmed by THM_WARM[1:0].
           THM_HOT:
             val: 0x4
-            brief: Battery is hot as programmed by THM_HOT[1:0]. 
+            brief: Battery is hot as programmed by THM_HOT[1:0].
             doc: If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs.
           THM_OK:
             val: 0x5
@@ -503,7 +566,7 @@ registers:
         enum:
           "OFF":
             val: 0x0
-            brief: Off
+            brief: "Off"
           PQ:
             val: 0x1
             brief: Prequalification mode.
@@ -567,6 +630,9 @@ registers:
     adr: 0x07
     reset_val: 0x00
     brief: Charger Interrupt masking
+    always_write:
+      mask: 0x80
+      val: 0x0
     fields:
       SYS_CNFG_I:
         bits: [6]
@@ -838,7 +904,7 @@ registers:
             brief: 100degC
       VSYS_REG:
         bits: 0-4
-        brief: System Voltage Regulation (VSYS-REG) 
+        brief: System Voltage Regulation (VSYS-REG)
         doc: >
           This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
           with 25mV increments. Program VSYS_REG to at least 200mV above
@@ -939,9 +1005,9 @@ registers:
     fields:
       CHG_CC:
         bits: 2-7
-        brief: Sets the fast-charge constant current val, IFAST-CHG. 
+        brief: Sets the fast-charge constant current val, IFAST-CHG.
         doc: >
-          This 6-bit configuration is a linear transfer function 
+          This 6-bit configuration is a linear transfer function
           that starts at 7.5mA and ends at 300mA, with 7.5mA increments.
       T_FAST_CHG:
         bits: [1, 0]
@@ -985,6 +1051,9 @@ registers:
     adr: 0x26
     reset_val: 0x00
     brief: Charger Config register G.
+    always_write:
+      mask: 0x1
+      val: 0x0
     fields:
       CHG_CV:
         bits: 2-7
@@ -992,7 +1061,7 @@ registers:
         doc: >
           This 6-bit configuration is a linear transfer function that
           starts at 3.6V and ends at 4.6V, with 25mV increments. Program
-          VSYS_REG to at least 200mV above the higher of VFAST-CHG and 
+          VSYS_REG to at least 200mV above the higher of VFAST-CHG and
           VFAST-CHG- JEITA.
       USBS:
         bits: [1]
@@ -1002,6 +1071,9 @@ registers:
     adr: 0x27
     reset_val: 0x00
     brief: Charger Config register H.
+    always_write:
+      mask: 0x3
+      val: 0x0
     fields:
       CHG_CV_JEITA:
         bits: 2-7
@@ -1099,63 +1171,27 @@ registers:
             brief: SYS voltage monitor
 
   CNFG_SBBn:
-    start_adr: {0: 0x29, 1: 0x2B, 3: 0x2D}
-    replace_str_with_instance_id: "n"
-    register_block_template: "CNFG_SBBn"
-
-  CNFG_SBB_TOP:
-    adr: 0x2F
-    reset_val: 0x00
-    brief: SBB Top Config.
-    fields:
-      ICHGIN_LIM_DEF:
-        bits: [7]
-        access: r
-        brief: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
-      DRV_SBB:
-        bits: [1, 0]
-        access: [r, w]
-        brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
-        enum:
-          FASTEST:
-            val: 0x0
-            brief: Fastest transition time
-          FAST:
-            val: 0x1
-            brief: A little slower than FASTEST
-          SLOW:
-            val: 0x2
-            brief: A little slower than SLOW
-          SLOWEST:
-            val: 0x3
-            brief: A little slower than SLOWEST
-
-  CNFG_LDOn:
-    start_adr: {0: 0x38, 1: 0x3A}
-    replace_str_with_instance_id: "n"
-    register_block_template: "CNFG_LDOn"
-
-
-
-register_block_templates:
-  CNFG_SBBn:
+    instances: {CNFG_SBB0: 0x29, CNFG_SBB1: 0x2B, CNFG_SBB3: 0x2D}
     registers:
       _A:
-        offset: 0x0
+        adr: 0x0
         reset_val: 0x00
         brief: SBBn Config A.
         fields:
           TV_SBB:
             bits: 0-6
             brief: SIMO Buck-Boost Channel Target Output Voltage
-            doc: 
+            doc:
               This 7-bit configuration is a linear transfer
               function that starts at 0.8V, ends at 5.5V, with
               50mV increments.
       _B:
-        offset: 0x1
+        adr: 0x1
         reset_val: 0x00
         brief: SBBn Config B.
+        always_write:
+          mask: 0x80
+          val: 0x0
         fields:
           OP_MODE:
             bits: [6]
@@ -1195,23 +1231,54 @@ register_block_templates:
               whether the channel is forced on or off.
             enum: REG_EN
 
+  CNFG_SBB_TOP:
+    adr: 0x2F
+    reset_val: 0x00
+    brief: SBB Top Config.
+    fields:
+      ICHGIN_LIM_DEF:
+        bits: [7]
+        access: r
+        brief: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
+      DRV_SBB:
+        bits: [1, 0]
+        access: [r, w]
+        brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
+        enum:
+          FASTEST:
+            val: 0x0
+            brief: Fastest transition time
+          FAST:
+            val: 0x1
+            brief: A little slower than FASTEST
+          SLOW:
+            val: 0x2
+            brief: A little slower than SLOW
+          SLOWEST:
+            val: 0x3
+            brief: A little slower than SLOWEST
+
   CNFG_LDOn:
+    instances: {CNFG_LDO0: 0x38, CNFG_LDO1: 0x3A}
     registers:
       _A:
-        offset: 0x00
+        adr: 0x00
         reset_val: 0x00
         brief: LDOn Config A.
+        always_write:
+          mask: 0x80
+          val: 0x00
         fields:
           TV_LDO:
             bits: 0-6
-            brief: LDO Target Output Voltage 
+            brief: LDO Target Output Voltage
             doc: >
               This 7-bit configuration is a linear transfer
               function that starts at 0.8V and ends at
               3.975V, with 25mV increments.
 
       _B:
-        offset: 0x01
+        adr: 0x01
         reset_val: 0x00
         brief: LDOn Config B.
         fields:
@@ -1236,58 +1303,8 @@ register_block_templates:
               Selects either an FPS slot the channel powers-up and powers-down in or
               whether the channel is forced on or off.
             enum: REG_EN
-    
-  CNFG_GPIOn:
-    registers:
-      "":
-        offset: 0x0
-        reset_val: 0x01
-        brief: GPIO Configuration
-        fields:
-          ALT:
-            bits: [5]
-            access: [r, w]
-            brief: Alternate Mode Enable for GPIO0
-            enum: EN
-          DBEN_GPI:
-            bits: [4]
-            access: [r, w]
-            brief: General Purpose Input Debounce Timer enable (30ms)
-            enum: EN
-          DOUT:
-            bits: [3]
-            access: [r, w]
-            brief: General Purpose Output Data Output
-          DRV:
-            bits: [2]
-            access: [r, w]
-            brief: General Purpose Output Driver Type
-            enum:
-              OD:
-                val: 0
-                brief: "Open-drain"
-              PP:
-                val: 1
-                brief: "Push-Pull"
-          DI:
-            bits: [1]
-            access: r
-            brief: GPIO Digital Input val.
-          DIR:
-            bits: [0]
-            access: [r, w]
-            brief: GPIO Direction
-            enum:
-              OUTPUT:
-                val: 0
-                brief: "Output"
-              INPUT:
-                val: 1
-                brief: "Input"
 
-
-shared_enums:
-
+enums:
   REG_EN:
     enum:
       FPS_SLOT_0:
@@ -1332,4 +1349,3 @@ shared_enums:
       DISABLED:
         val: 1
         brief: "Disabled/Masked"
-

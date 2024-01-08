@@ -1,14 +1,16 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import List
 
 from reginald.datamodel import RegisterMap
 
 
 class OutputGenerator(ABC):
-    @abstractclassmethod
-    def generate(cls, rmap: RegisterMap, args: List[str]):
+    @classmethod
+    @abstractmethod
+    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         raise NotImplementedError
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def description(cls) -> str:
         raise NotImplementedError

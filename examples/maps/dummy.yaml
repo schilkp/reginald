@@ -1,0 +1,74 @@
+---
+map_name: DummyChip
+default_register_bitwidth: 8
+
+registers:
+  STATUS:
+    adr: 0x00
+    reset_val: 0x00
+    brief: Status.
+    doc: More extensive documentaiton.
+    access: r
+    bitwidth: 8
+    always_write:
+      mask: 0b00110000
+      val:  0b00010000
+    fields:
+      FIELD1:
+        bits: [7,6]
+        access: r
+        enum: STAT
+      FIELD2:
+        bits: "3-0"
+        access: r
+        brief: Another cool field.
+        doc: Important details.
+        enum:
+          EN:
+            val: 0x3
+            brief: Is on.
+            doc: important details.
+
+  CHn:
+    instances: {"CH1": 0x10, "CH2": 0x20, "CH3": 0x30}
+    brief: Channel control.
+    doc: One for every channel.
+    registers:
+      _CNFG:
+        adr: 0x0
+        reset_val: 0x00
+        fields:
+          A:
+            bits: [0]
+            brief: Controls value A
+            enum:
+              "ON":
+                val: 0x1
+              "OFF":
+                val: 0x0
+      _STATUS:
+        adr: 0x1
+        reset_val: 0x00
+        fields:
+          STATUS:
+            bits: "0-2"
+            brief: Status
+            enum: STAT
+
+enums:
+  STAT:
+    brief: Current status.
+    doc: More details.
+    enum:
+      COOL:
+        val: 0x1
+        brief: All cool.
+        doc: Nothing to worry about.
+      NOT_COOL:
+        val: 0x2
+        brief: All not so cool.
+        doc: Should be worried.
+      HOT:
+        val: 0x3
+        brief: All pretty hot.
+        doc: panic.

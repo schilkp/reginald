@@ -62,6 +62,19 @@ class Bits:
     def from_bitlist(cls, bitlist: List[NonNegativeInt]):
         return Bits(bitlist=bitlist)
 
+    @classmethod
+    def from_mask(cls, mask: NonNegativeInt):
+        bitlist = []
+        pos = 0
+
+        while mask != 0:
+            if mask & 0x1:
+                bitlist.append(pos)
+            mask = mask >> 1
+            pos += 1
+
+        return Bits(bitlist=bitlist)
+
     def get_bitlist(self) -> List[NonNegativeInt]:
         return self.bitlist
 

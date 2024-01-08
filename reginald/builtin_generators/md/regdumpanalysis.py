@@ -1,4 +1,3 @@
-import os
 from typing import Dict, List, Union
 
 import yaml
@@ -7,7 +6,6 @@ from pydantic.dataclasses import dataclass
 from tabulate import tabulate
 from yaml import SafeLoader
 
-from reginald.cli import CLI
 from reginald.datamodel import *
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
@@ -51,15 +49,30 @@ class YamlBinaryDump:
 class Generator(OutputGenerator):
     @classmethod
     def description(cls):
-        return "TODO"
+        return "Markdown register dump decode."
 
     @classmethod
-    def generate(cls, rmap: RegisterMap, cli: CLI):
+    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+        out = []
 
-        if len(cli.generator_args) != 1:
+        _ = input_file
+        _ = args
+
+        registers = []
+        for block in rmap.registers.values():
+            for template_name, template in block.registers.items():
+                for instance_name, instance_adr in block.instances.items():
+                    register_name = instance_name + template_name
+                    register_adr = instance_adr + template.offset
+
+                    registers.append((register_adr, register_name, template))
+
+        registers.sort(key=lambda x: x[0])
+
+        if len(args) != 1:
             raise ReginaldException("md_dumpanalysis requires a yaml binary dump as it's only argument")
 
-        dump_yaml = YamlBinaryDump.from_yaml_file(cli.generator_args[0])
+        dump_yaml = YamlBinaryDump.from_yaml_file(args[0])
         dump = dump_yaml.flatten()
         adrs = sorted(dump.keys())
 
@@ -71,20 +84,26 @@ class Generator(OutputGenerator):
         out.append(f"")
 
         for adr in adrs:
-            register_name = rmap.get_registername_at(adr)
 
-            if register_name is not None:
-                reg = rmap.registers[register_name]
-                out.append(f"## 0x{adr:0X} - {register_name}")
+            reg = None
+
+            for r in registers:
+                if r[0] == adr:
+                    reg = r
+                    break
+
+            if reg is not None:
+                reg_adr, reg_name, reg_template = reg
+                out.append(f"## 0x{reg_adr:0X} - {reg_name}")
                 out.append(f"  - 0x{dump[adr]:X}")
                 out.append(f"  - 0b{dump[adr]:b}")
 
                 # Collect all bitranges that make up this register - field or not:
                 register_bitranges = []  # type: List[BitRange]
-                for field in reg.fields.values():
+                for field in reg_template.fields.values():
                     for range in field.get_bitranges():
                         register_bitranges.append(range)
-                register_bitranges.extend(reg.get_unused_bits(include_always_write=True).get_bitranges())
+                register_bitranges.extend(reg_template.get_unused_bits(include_always_write=True).get_bitranges())
 
                 # Sort bitranges:
                 register_bitranges = sorted(register_bitranges, key=lambda x: x.lsb_position, reverse=True)
@@ -102,13 +121,13 @@ class Generator(OutputGenerator):
                     value_row.append(f"0x{field_val:X}")
 
                     # Retrieve field that coresponds to this range (if any):
-                    field_name = reg.get_fieldname_at(bitrange.lsb_position)
+                    field_name = reg_template.get_fieldname_at(bitrange.lsb_position)
 
                     if field_name is not None:
                         field_row.append(field_name)
 
                         # Lookup if this value in this value coresponds to an enum:
-                        field = reg.fields[field_name]
+                        field = reg_template.fields[field_name]
                         if field.enum is not None:
                             enum_entryname = field.lookup_enum_entry_name(field_val)
                             if enum_entryname is not None:
@@ -118,8 +137,8 @@ class Generator(OutputGenerator):
                         else:
                             decode_row.append(f"?")
 
-                    elif reg.is_bit_always_write(bitrange.lsb_position):
-                        val = reg.get_always_write_value(Bits.from_bitrange(bitrange))
+                    elif reg_template.is_bit_always_write(bitrange.lsb_position):
+                        val = reg_template.get_always_write_value(Bits.from_bitrange(bitrange))
                         field = f"Always write 0x{val:x}"
                         field_row.append(field)
                         if val == field_val:
@@ -138,17 +157,17 @@ class Generator(OutputGenerator):
                 # Field info:
                 out.append(f"*Bitfields*:")
 
-                for field_name, field in reg.fields.items():
+                for field_name, field in reg_template.fields.items():
                     field_val = field.bits.extract_this_field_from(dump[adr])
                     out.append(f"   - {field_name}: 0x{field_val:X}")
-                    out.extend(field.docs.two_line(prefix="  -"))
+                    out.extend(field.docs.as_two_line(prefix="     - "))
 
                     if field.enum is not None:
                         enum_entryname = field.lookup_enum_entry_name(field_val)
                         if enum_entryname is not None:
                             entry = field.enum.entries[enum_entryname]
                             out.append(f"       - *SELECTED*: {enum_entryname}")
-                            out.extend(entry.docs.two_line(prefix="         - "))
+                            out.extend(entry.docs.as_two_line(prefix="         - "))
                         else:
                             decode_row.append(
                                 f"       - *DECODE ERROR*: This field accepts an enum, but it's value does not correspond to any enum entry.")
@@ -163,7 +182,6 @@ class Generator(OutputGenerator):
             out.append(f"")
             out.append(f"")
 
-        output_file = os.path.join(cli.output_path, f"{rmap.map_name.lower()}_analysis.md")
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(out))
         print(f"Generated {output_file}...")

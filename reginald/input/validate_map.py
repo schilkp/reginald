@@ -1,7 +1,7 @@
 
 
 from reginald.bits import fits_into_bitwidth
-from reginald.datamodel import Field, Register, RegisterMap
+from reginald.datamodel import *
 from reginald.error import ReginaldException
 
 
@@ -11,10 +11,11 @@ class MapValidator:
 
     def validate(self):
         # Validate all registers:
-        for reg in self.rmap.registers.values():
-            self._validate_register(reg)
+        for block in self.rmap.registers.values():
+            for template in block.registers.values():
+                self._validate_template(template)
 
-    def _validate_register(self, reg: Register):
+    def _validate_template(self, reg: Register):
         bt = f"registers -> {reg.name}"
 
         # Validate all fields:

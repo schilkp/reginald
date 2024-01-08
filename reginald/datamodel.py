@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import Dict, List, Optional
 
-from pydantic import NonNegativeInt, PositiveInt
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
 from reginald.bits import BitRange, Bits
 from reginald.utils import str_oneline
@@ -22,12 +21,11 @@ class AccessMode(Enum):
                 raise ValueError()
 
 
-@dataclass
-class Docs:
+class Docs(BaseModel):
     brief: Optional[str]
     doc: Optional[str]
 
-    def multi_line(self, prefix: str) -> List[str]:
+    def as_multi_line(self, prefix: str) -> List[str]:
         result = []
         if self.brief is not None:
             result.append(prefix + self.brief)
@@ -36,7 +34,7 @@ class Docs:
                 result.append(prefix + line)
         return result
 
-    def two_line(self, prefix: str) -> List[str]:
+    def as_two_line(self, prefix: str) -> List[str]:
         result = []
         if self.brief is not None:
             result.append(prefix + self.brief)
@@ -45,29 +43,25 @@ class Docs:
         return result
 
 
-@dataclass
-class RegEnumEntry:
+class RegEnumEntry(BaseModel):
     name: str
     value: NonNegativeInt
     docs: Docs
 
 
-@dataclass
-class RegEnum:
+class RegEnum(BaseModel):
     name: str
     is_shared: bool
     docs: Docs
     entries: Dict[str, RegEnumEntry]
 
 
-@dataclass
-class AlwaysWrite:
+class AlwaysWrite(BaseModel):
     bits: Bits
     value: NonNegativeInt
 
 
-@dataclass
-class Field:
+class Field(BaseModel):
     name: str
     bits: Bits
     access: List[AccessMode]
@@ -95,53 +89,14 @@ class Field:
         return None
 
 
-@dataclass
-class RegisterTemplate:
+class Register(BaseModel):
     name: str
-    instances: Dict[NonNegativeInt, str]
-    register_block_name: str
     fields: Dict[str, Field]
     bitwidth: PositiveInt
     offset: NonNegativeInt
     always_write: Optional[AlwaysWrite]
-    reset_val: Optional[int]
+    reset_val: Optional[NonNegativeInt]
     docs: Docs
-
-    def get_unused_bits(self, include_always_write: bool) -> Bits:
-
-        bits = list(range(self.bitwidth))
-
-        for field in self.fields.values():
-            for bit in field.bits.bitlist:
-                bits.remove(bit)
-
-        if not include_always_write:
-            if self.always_write is not None:
-                for bit in self.always_write.bits.bitlist:
-                    bits.remove(bit)
-
-        return Bits(bitlist=bits)
-
-
-@dataclass
-class RegisterBlockTemplate:
-    name: str
-    instances: Dict[NonNegativeInt, str]
-    docs: Docs
-    registers: Dict[str, RegisterTemplate]
-
-
-@dataclass
-class Register:
-    name: str
-    fields: Dict[str, Field]
-    bitwidth: PositiveInt
-    docs: Docs
-    adr: Optional[NonNegativeInt]
-    always_write: Optional[AlwaysWrite]
-    originates_from_template: Optional[RegisterBlockTemplate]
-    originates_from_register_template: Optional[RegisterTemplate]
-    reset_val: Optional[int]
 
     def get_unused_bits(self, include_always_write: bool) -> Bits:
 
@@ -180,16 +135,15 @@ class Register:
         return (self.always_write.value & bits.get_bitmask()) >> bits.lsb_position()
 
 
-@dataclass
-class RegisterMap:
-    map_name: str
+class RegisterBlock(BaseModel):
+    name: str
+    instances: Dict[str, NonNegativeInt]
     docs: Docs
     registers: Dict[str, Register]
-    shared_enums: Dict[str, RegEnum]
-    register_block_templates: Dict[str, RegisterBlockTemplate]
 
-    def get_registername_at(self, adr: NonNegativeInt) -> Optional[str]:
-        for reg in self.registers.values():
-            if reg.adr is not None and reg.adr == adr:
-                return reg.name
-        return None
+
+class RegisterMap(BaseModel):
+    map_name: str
+    docs: Docs
+    registers: Dict[str, RegisterBlock]
+    enums: Dict[str, RegEnum]

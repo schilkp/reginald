@@ -1,8 +1,7 @@
 from math import log2
 from typing import Union
 
-from reginald.datamodel import (Field, RegEnum, RegEnumEntry, Register,
-                                RegisterMap, RegisterTemplate)
+from reginald.datamodel import *
 from reginald.utils import c_fitting_unsigned_type, c_sanitize
 
 
@@ -24,84 +23,87 @@ class NameGenerator():
         return f"{mapname_c}_reg_utils.h"
 
     def adr_type(self) -> str:
-        max_adr = max([reg.adr for reg in self.rmap.registers.values() if reg.adr is not None])
+        adrs = []
+        for block in self.rmap.registers.values():
+            for instance_start in block.instances.values():
+                for reg_template in block.registers.values():
+                    adrs.append(instance_start+reg_template.offset)
+
+        max_adr = max(adrs)
         return c_fitting_unsigned_type(round(log2(max_adr)+0.5))
 
-    def reg_packed_type(self, reg: Union[Register, RegisterTemplate]) -> str:
+    def reg_packed_type(self, reg: Register) -> str:
         return c_fitting_unsigned_type(reg.bitwidth)
 
     def reg_maximum_packed_type(self) -> str:
-        max_width = max([reg.bitwidth for reg in self.rmap.registers.values()])
+
+        widths = []
+        for block in self.rmap.registers.values():
+            for reg_template in block.registers.values():
+                widths.append(reg_template.bitwidth)
+        max_width = max(widths)
         return c_fitting_unsigned_type(max_width)
 
-    def reg_adr_macro(self, regname: str) -> str:
+    def reg_adr_macro(self, instance_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
+        regname_macro = c_sanitize(instance_name).upper()
         return f"{mapname_macro}_REG_{regname_macro}"
 
-    def reg_resetval_macro(self, regname: str) -> str:
+    def reg_resetval_macro(self, block_name: str, template_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_REG_{regname_macro}__RESETVAL"
+        blockname_macro = c_sanitize(block_name).upper()
+        templatename_macro = c_sanitize(template_name).upper()
+        return f"{mapname_macro}_REG_{blockname_macro}{templatename_macro}__RESETVAL"
 
-    def reg_alwayswrite_mask_macro(self, regname: str) -> str:
+    def reg_alwayswrite_mask_macro(self, block_name: str, template_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_REG_{regname_macro}__ALWAYSWRITE_MASK"
+        blockname_macro = c_sanitize(block_name).upper()
+        templatename_macro = c_sanitize(template_name).upper()
+        return f"{mapname_macro}_REG_{blockname_macro}{templatename_macro}__ALWAYSWRITE_MASK"
 
-    def reg_alwayswrite_val_macro(self, regname: str) -> str:
+    def reg_alwayswrite_val_macro(self, block_name: str, template_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_REG_{regname_macro}__ALWAYSWRITE_VAL"
+        blockname_macro = c_sanitize(block_name).upper()
+        templatename_macro = c_sanitize(template_name).upper()
+        return f"{mapname_macro}_REG_{blockname_macro}{templatename_macro}__ALWAYSWRITE_VAL"
 
-    def reg_struct_name(self, regname: str) -> str:
+    def reg_struct_name(self, block_name: str, template_name: str) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
-        regname_c = c_sanitize(regname).lower()
+        regname_c = c_sanitize(block_name).lower() + c_sanitize(template_name).lower()
         return f"{mapname_c}_reg_{regname_c}"
 
     def reg_struct_member(self, field: Field) -> str:
         fieldname_c = c_sanitize(field.name).lower()
         return fieldname_c
 
-    def reg_struct_member_type(self, regname: str, field: Field) -> str:
+    def reg_struct_member_type(self, block_name: str, template_name: str, field: Field) -> str:
         if field.enum is None:
             return c_fitting_unsigned_type(field.bits.total_width())
         else:
             if field.enum.is_shared:
                 return "enum "+self.enum_shared(field.enum)
             else:
-                return "enum "+self.enum_field(regname, field.enum)
+                return "enum "+self.enum_field(block_name, template_name, field.enum)
 
-    def reg_modify_func(self, regname: str) -> str:
+    def reg_modify_func(self, block_name: str, template_name: str) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
-        regname_c = c_sanitize(regname).lower()
+        regname_c = c_sanitize(block_name).lower() + c_sanitize(template_name).lower()
         return f"{mapname_c}_modify_{regname_c}"
 
-    def reg_pack_func(self, regname: str) -> str:
+    def reg_pack_func(self, block_name: str, template_name: str) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
-        regname_c = c_sanitize(regname).lower()
+        regname_c = c_sanitize(block_name).lower() + c_sanitize(template_name).lower()
         return f"{mapname_c}_pack_{regname_c}"
 
-    def reg_unpack_func(self, regname: str) -> str:
+    def reg_unpack_func(self, block_name: str, template_name: str) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
-        regname_c = c_sanitize(regname).lower()
+        regname_c = c_sanitize(block_name).lower() + c_sanitize(template_name).lower()
         return f"{mapname_c}_unpack_{regname_c}"
 
-    def reg_unpack_macro(self, regname: str) -> str:
+    def reg_unpack_macro(self, block_name: str, template_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
+        regname_macro = c_sanitize(block_name).upper() + c_sanitize(template_name).upper()
         return f"{mapname_macro}_UNPACK_{regname_macro}"
-
-    def block_offset_macro(self, regname: str) -> str:
-        mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
-        return f"{mapname_macro}_{regname_macro}__OFFSET"
-
-    def block_instance_start_macro(self, blockname: str, instance_name: str) -> str:
-        mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        blockname_macro = c_sanitize(blockname).upper()
-        instance_name_macro = c_sanitize(instance_name).upper()
-        return f"{mapname_macro}_{blockname_macro}_{instance_name_macro}__START"
 
     def enum_shared(self, enum: RegEnum) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
@@ -114,19 +116,19 @@ class NameGenerator():
         entryname_macro = c_sanitize(entry.name).upper()
         return f"{mapname_macro}_{enumname_macro}_{entryname_macro}"
 
-    def enum_field(self, reg_name: str, enum: RegEnum) -> str:
+    def enum_field(self, block_name: str, template_name: str, enum: RegEnum) -> str:
         mapname_c = c_sanitize(self.rmap.map_name).lower()
-        regname_c = c_sanitize(reg_name).lower()
+        regname_c = c_sanitize(block_name).lower() + c_sanitize(template_name).lower()
         enumname_c = c_sanitize(enum.name).lower()
         if self.opt.field_enum_prefix:
             return f"{mapname_c}_{regname_c}_{enumname_c}"
         else:
             return f"{mapname_c}_{enumname_c}"
 
-    def enum_field_entry(self, reg_name: str, enum: RegEnum, entry: RegEnumEntry) -> str:
+    def enum_field_entry(self, block_name: str, template_name: str, enum: RegEnum, entry: RegEnumEntry) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         enumname_macro = c_sanitize(enum.name).upper()
-        regname_macro = c_sanitize(reg_name).upper()
+        regname_macro = c_sanitize(block_name).upper() + c_sanitize(template_name).upper()
         entryname_macro = c_sanitize(entry.name).upper()
         if self.opt.field_enum_prefix:
             return f"{mapname_macro}_{regname_macro}_{enumname_macro}_{entryname_macro}"
@@ -156,7 +158,7 @@ class NameGenerator():
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
         return f"{mapname_macro}_GENERICFUNCS"
 
-    def doxygroup_regfuncs(self, regname: str) -> str:
+    def doxygroup_regfuncs(self, block_name: str, template_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(regname).upper()
+        regname_macro = c_sanitize(block_name).upper() + c_sanitize(template_name).upper()
         return f"{mapname_macro}_{regname_macro}_FUNCS"
