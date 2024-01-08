@@ -1,5 +1,4 @@
 from math import log2
-from typing import Union
 
 from reginald.datamodel import *
 from reginald.utils import c_fitting_unsigned_type, c_sanitize
@@ -24,10 +23,10 @@ class NameGenerator():
 
     def adr_type(self) -> str:
         adrs = []
-        for block in self.rmap.registers.values():
+        for block in self.rmap.register_blocks.values():
             for instance_start in block.instances.values():
-                for reg_template in block.registers.values():
-                    adrs.append(instance_start+reg_template.offset)
+                for reg_template in block.register_templates.values():
+                    adrs.append(instance_start+reg_template.adr)
 
         max_adr = max(adrs)
         return c_fitting_unsigned_type(round(log2(max_adr)+0.5))
@@ -38,16 +37,11 @@ class NameGenerator():
     def reg_maximum_packed_type(self) -> str:
 
         widths = []
-        for block in self.rmap.registers.values():
-            for reg_template in block.registers.values():
+        for block in self.rmap.register_blocks.values():
+            for reg_template in block.register_templates.values():
                 widths.append(reg_template.bitwidth)
         max_width = max(widths)
         return c_fitting_unsigned_type(max_width)
-
-    def reg_adr_macro(self, instance_name: str) -> str:
-        mapname_macro = c_sanitize(self.rmap.map_name).upper()
-        regname_macro = c_sanitize(instance_name).upper()
-        return f"{mapname_macro}_REG_{regname_macro}"
 
     def reg_resetval_macro(self, block_name: str, template_name: str) -> str:
         mapname_macro = c_sanitize(self.rmap.map_name).upper()

@@ -74,8 +74,8 @@ def generate(rmap: RegisterMap, name: NameGenerator, output_file: str, opt):
     out.append(f" */")
     out.append(f"#define {name.generic_modify_macro()}(_struct_ptr_, _val_) _Generic((_struct_ptr_), \\")
 
-    for block_name, block in rmap.registers.items():
-        for template_name, template in block.registers.items():
+    for block_name, block in rmap.register_blocks.items():
+        for template_name, template in block.register_templates.items():
             if len(template.fields) == 0:
                 # Register does not have packing funcs if there are no fields.
                 continue
@@ -96,8 +96,8 @@ def generate(rmap: RegisterMap, name: NameGenerator, output_file: str, opt):
     out.append(f" * @return packed register representation")
     out.append(f" */")
     out.append(f"#define {name.generic_pack_macro()}(_struct_ptr_) _Generic((_struct_ptr_), \\")
-    for block_name, block in rmap.registers.items():
-        for template_name, template in block.registers.items():
+    for block_name, block in rmap.register_blocks.items():
+        for template_name, template in block.register_templates.items():
             if len(template.fields) == 0:
                 # Register does not have packing funcs if there are no fields.
                 continue
@@ -115,8 +115,8 @@ def generate(rmap: RegisterMap, name: NameGenerator, output_file: str, opt):
     out.append(f" * @param _val_ packed register representation")
     out.append(f" */")
     out.append(f"#define {name.generic_unpack_macro()}(_struct_ptr_, _val_) _Generic((_struct_ptr_), \\")
-    for block_name, block in rmap.registers.items():
-        for template_name, template in block.registers.items():
+    for block_name, block in rmap.register_blocks.items():
+        for template_name, template in block.register_templates.items():
             if len(template.fields) == 0:
                 # Register does not have packing funcs if there are no fields.
                 continue
@@ -132,8 +132,8 @@ def generate(rmap: RegisterMap, name: NameGenerator, output_file: str, opt):
     out.append(f"/** @}} */")
     out.append(f"")
 
-    for block_name, block in rmap.registers.items():
-        for template_name, template in block.registers.items():
+    for block_name, block in rmap.register_blocks.items():
+        for template_name, template in block.register_templates.items():
 
             if len(template.fields) == 0:
                 # Don't generate structs + funcs if there are no fields.

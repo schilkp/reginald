@@ -1,5 +1,7 @@
+import functools
+from copy import deepcopy
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Self
 
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
@@ -93,7 +95,8 @@ class Register(BaseModel):
     name: str
     fields: Dict[str, Field]
     bitwidth: PositiveInt
-    offset: NonNegativeInt
+    is_block_template: bool
+    adr: NonNegativeInt
     always_write: Optional[AlwaysWrite]
     reset_val: Optional[NonNegativeInt]
     docs: Docs
@@ -134,16 +137,54 @@ class Register(BaseModel):
 
         return (self.always_write.value & bits.get_bitmask()) >> bits.lsb_position()
 
+    def get_populated_template(self, instance_name: str, instance_adr: NonNegativeInt) -> Self:
+        if not self.is_block_template:
+            raise ValueError()
+
+        adr = self.adr + instance_adr
+        name = instance_name + self.name
+        reg = deepcopy(self)
+        reg.is_block_template = False
+        reg.adr = adr
+        reg.name = name
+        return reg
+
+    def get_local_enums(self) -> List[RegEnum]:
+        return [field.enum for field in self.fields.values() if isinstance(field.enum, RegEnum) and not field.enum.is_shared]
+
 
 class RegisterBlock(BaseModel):
     name: str
     instances: Dict[str, NonNegativeInt]
     docs: Docs
-    registers: Dict[str, Register]
+    register_templates: Dict[str, Register]
 
 
 class RegisterMap(BaseModel):
     map_name: str
     docs: Docs
-    registers: Dict[str, RegisterBlock]
+    register_blocks: Dict[str, RegisterBlock]
     enums: Dict[str, RegEnum]
+
+    @functools.cached_property
+    def physical_registers(self) -> Dict[NonNegativeInt, Register]:
+        regs = {}
+        for block in self.register_blocks.values():
+            for template in block.register_templates.values():
+                for instance_name, instance_adr in block.instances.items():
+                    reg = template.get_populated_template(instance_name, instance_adr)
+                    regs[reg.adr] = reg
+
+        return regs
+
+    @functools.cached_property
+    def addresses(self) -> List[NonNegativeInt]:
+        return list(self.physical_registers.keys())
+
+    @functools.cached_property
+    def max_address(self) -> NonNegativeInt:
+        return max(self.addresses)
+
+    @functools.cached_property
+    def max_register_bitwidth(self) -> NonNegativeInt:
+        return max([reg.bitwidth for block in self.register_blocks.values() for reg in block.register_templates.values()])

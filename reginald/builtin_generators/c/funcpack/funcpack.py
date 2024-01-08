@@ -6,36 +6,30 @@ from reginald.datamodel import *
 from reginald.generator import OutputGenerator
 
 class GeneratorRegs(OutputGenerator):
-    @classmethod
-    def description(cls) -> str:
+    def description(self) -> str:
         return "C header with register structs."
 
-    @classmethod
-    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         _ = input_file
         funcpack_options = parse_args(args)
         name_gen = NameGenerator(rmap, funcpack_options)
         regs.generate(rmap, name_gen,  output_file)
 
 class GeneratorRegUtils(OutputGenerator):
-    @classmethod
-    def description(cls) -> str:
+    def description(self) -> str:
         return "C header with register packing/unpacking functions."
 
-    @classmethod
-    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         _ = input_file
         funcpack_options = parse_args(args)
         name_gen = NameGenerator(rmap, funcpack_options)
         reg_utils.generate(rmap, name_gen,  output_file, funcpack_options)
 
 class GeneratorEnums(OutputGenerator):
-    @classmethod
-    def description(cls) -> str:
+    def description(self) -> str:
         return "C header register field enums."
 
-    @classmethod
-    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         _ = input_file
         funcpack_options = parse_args(args)
         name_gen = NameGenerator(rmap, funcpack_options)

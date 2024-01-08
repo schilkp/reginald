@@ -6,23 +6,21 @@ from reginald.utils import str_list
 
 
 class Generator(OutputGenerator):
-    @classmethod
-    def description(cls):
+    def description(self):
         return "Markdown register documentation."
 
-    @classmethod
-    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         out = []
 
         _ = input_file
         _ = args
 
         registers = []
-        for block in rmap.registers.values():
-            for template_name, template in block.registers.items():
+        for block in rmap.register_blocks.values():
+            for template_name, template in block.register_templates.items():
                 for instance_name, instance_adr in block.instances.items():
                     register_name = instance_name + template_name
-                    register_adr = instance_adr + template.offset
+                    register_adr = instance_adr + template.adr
 
                     registers.append((register_adr, register_name, template))
 

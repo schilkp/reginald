@@ -36,8 +36,8 @@ def generate(rmap: RegisterMap, name: NameGenerator, output_file: str):
         out.append(f"}};")
         out.append(f"")
 
-    for block_name, block in rmap.registers.items():
-        for template_name, template in block.registers.items():
+    for block_name, block in rmap.register_blocks.items():
+        for template_name, template in block.register_templates.items():
 
             e = [field.enum for field in template.fields.values() if isinstance(field.enum, RegEnum) and not field.enum.is_shared]
             enum_count = len(e)

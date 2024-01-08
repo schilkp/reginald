@@ -1,6 +1,6 @@
 import argparse
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Type
+from typing import Dict, List, Tuple
 
 import reginald.builtin_generators.c.funcpack.funcpack
 import reginald.builtin_generators.c.macromap
@@ -10,13 +10,13 @@ from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 
 builtin_generators = {
-    'c.macromap': reginald.builtin_generators.c.macromap.Generator,
-    'c.funcpack.regs': reginald.builtin_generators.c.funcpack.funcpack.GeneratorRegs,
-    'c.funcpack.regutils': reginald.builtin_generators.c.funcpack.funcpack.GeneratorRegUtils,
-    'c.funcpack.enums': reginald.builtin_generators.c.funcpack.funcpack.GeneratorEnums,
-    'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator,
-    'md.doc': reginald.builtin_generators.md.doc.Generator
-}  # type: Dict[str, Type[OutputGenerator]]
+    'c.macromap': reginald.builtin_generators.c.macromap.Generator(),
+    'c.funcpack.regs': reginald.builtin_generators.c.funcpack.funcpack.GeneratorRegs(),
+    'c.funcpack.regutils': reginald.builtin_generators.c.funcpack.funcpack.GeneratorRegUtils(),
+    'c.funcpack.enums': reginald.builtin_generators.c.funcpack.funcpack.GeneratorEnums(),
+    'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator(),
+    'md.doc': reginald.builtin_generators.md.doc.Generator()
+}  # type: Dict[str, OutputGenerator]
 
 
 @dataclass
@@ -26,7 +26,7 @@ class CLI:
     generator_args: List[str]
 
 
-def parse_args() -> Tuple[CLI, Type[OutputGenerator]]:
+def parse_args() -> Tuple[CLI, OutputGenerator]:
 
     builtin_choices_text = []
     for name, generator in builtin_generators.items():

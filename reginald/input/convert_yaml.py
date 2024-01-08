@@ -24,11 +24,11 @@ class YAMLConverter:
             map_name=self.yaml.map_name,
             docs=self._convert_docs(self.yaml, bt),
             enums={},
-            registers={})
+            register_blocks={})
 
         # Order is critical: register conversion requires enums to be converted.
         self.rmap.enums = self._convert_enums(bt)
-        self.rmap.registers = self._convert_registers(bt)
+        self.rmap.register_blocks = self._convert_registers(bt)
 
         return self.rmap
 
@@ -212,9 +212,8 @@ class YAMLConverter:
             name=name,
             docs=docs,
             instances={name: adr},
-            registers={"": Register(
-                name="", fields=fields, bitwidth=bitwidth, offset=0, always_write=always_write, reset_val=reset_val, docs=docs
-
+            register_templates={"": Register(
+                name="", fields=fields, bitwidth=bitwidth, adr=0, always_write=always_write, reset_val=reset_val, docs=docs, is_block_template=True
             )}
         )
 
@@ -238,7 +237,8 @@ class YAMLConverter:
                 name=reg_name,
                 fields=fields,
                 bitwidth=bitwidth,
-                offset=adr,
+                is_block_template=True,
+                adr=adr,
                 always_write=always_write,
                 reset_val=reset_val, docs=docs,
             )
@@ -247,5 +247,5 @@ class YAMLConverter:
             name=name,
             docs=docs,
             instances=b.instances,
-            registers=registers
+            register_templates=registers
         )

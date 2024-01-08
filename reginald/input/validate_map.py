@@ -11,8 +11,8 @@ class MapValidator:
 
     def validate(self):
         # Validate all registers:
-        for block in self.rmap.registers.values():
-            for template in block.registers.values():
+        for block in self.rmap.register_blocks.values():
+            for template in block.register_templates.values():
                 self._validate_template(template)
 
     def _validate_template(self, reg: Register):

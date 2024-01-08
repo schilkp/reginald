@@ -6,12 +6,10 @@ from reginald.utils import c_sanitize, str_pad_to_length
 
 
 class Generator(OutputGenerator):
-    @classmethod
-    def description(cls):
+    def description(self):
         return "C header with traditional register and field macros."
 
-    @classmethod
-    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
 
         _ = input_file
         _ = args
@@ -31,9 +29,9 @@ class Generator(OutputGenerator):
         out.append(f"")
 
         # TODO: Block start adrs + offset adrs
-        for block_name, block in rmap.registers.items():
+        for block_name, block in rmap.register_blocks.items():
 
-            for register_template_name, register_template in block.registers.items():
+            for register_template_name, register_template in block.register_templates.items():
 
 
                 out.append(str_pad_to_length(f"// ==== {block_name + register_template_name} ", "=", 80))
@@ -49,7 +47,7 @@ class Generator(OutputGenerator):
 
                     register_prefix = f"{mapname_macro}__REG_{reg_name}"
 
-                    adr = instance_start + register_template.offset
+                    adr = instance_start + register_template.adr
 
                     docstr = f"({register_template.docs.brief})" if register_template.docs.brief is not None else ""
                     defines.append((f"#define {register_prefix}", f"(0x{adr:02X}U)", f"// Register Address {docstr}"))
