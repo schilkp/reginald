@@ -6,9 +6,9 @@ from reginald.datamodel import RegisterMap
 
 class OutputGenerator(ABC):
     @abstractmethod
-    def generate(cls, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         raise NotImplementedError
 
     @abstractmethod
-    def description(cls) -> str:
+    def description(self) -> str:
         raise NotImplementedError

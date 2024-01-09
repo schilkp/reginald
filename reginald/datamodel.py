@@ -27,14 +27,14 @@ class Docs(BaseModel):
     brief: Optional[str]
     doc: Optional[str]
 
-    def as_multi_line(self, prefix: str) -> List[str]:
+    def as_multi_line(self, prefix: str) -> str:
         result = []
         if self.brief is not None:
             result.append(prefix + self.brief)
         if self.doc is not None:
             for line in self.doc.splitlines():
                 result.append(prefix + line)
-        return result
+        return "\n".join(result).strip()
 
     def as_two_line(self, prefix: str) -> List[str]:
         result = []
@@ -44,6 +44,8 @@ class Docs(BaseModel):
             result.append(prefix + str_oneline(self.doc))
         return result
 
+    def empty(self) -> bool:
+        return (self.brief is None) and (self.doc is None )
 
 class RegEnumEntry(BaseModel):
     name: str

@@ -80,7 +80,3 @@ dmypy.json
 *.pyc
 
 log.txt
-
-*.md
-*.h
-*.c

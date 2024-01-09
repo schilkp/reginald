@@ -7,7 +7,7 @@ registers:
     adr: 0x00
     reset_val: 0x00
     brief: Status.
-    doc: More extensive documentaiton.
+    doc: More extensive documentation.
     access: r
     bitwidth: 8
     always_write:

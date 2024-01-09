@@ -218,6 +218,7 @@ registers:
         access: [r, w]
         brief: GPI Falling Interrupt Mask/Disabled
         enum: INT_MASK
+
   INTM_GLBL0:
     adr: 0x09
     reset_val: 0xFF
