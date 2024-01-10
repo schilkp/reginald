@@ -1,5 +1,5 @@
-from typing import List
 from os import path
+from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 

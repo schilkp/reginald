@@ -1194,7 +1194,7 @@ registers:
           mask: 0x80
           val: 0x0
         fields:
-          OP_MODE:
+          SBB_OP_MODE:
             bits: [6]
             brief: Operation Mode of SBBn
             enum:
@@ -1283,7 +1283,7 @@ registers:
         reset_val: 0x00
         brief: LDOn Config B.
         fields:
-          OP_MODE:
+          LDO_OP_MODE:
             bits: [4]
             brief: Operation Mode of LDO0
             enum:

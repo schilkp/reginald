@@ -13,10 +13,10 @@ class MapValidator:
         # Validate all registers:
         for block in self.rmap.register_blocks.values():
             for template in block.register_templates.values():
-                self._validate_template(template)
+                self._validate_template(block, template)
 
-    def _validate_template(self, reg: Register):
-        bt = f"registers -> {reg.name}"
+    def _validate_template(self, block: RegisterBlock, reg: Register):
+        bt = f"registers -> {block.name+reg.name}"
 
         # Validate all fields:
         for field in reg.fields.values():

@@ -2,7 +2,7 @@ import argparse
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-import reginald.builtin_generators.c.funcpack.funcpack
+import reginald.builtin_generators.c.funcpack
 import reginald.builtin_generators.c.macromap
 import reginald.builtin_generators.md.doc
 import reginald.builtin_generators.md.regdumpanalysis
@@ -11,9 +11,7 @@ from reginald.generator import OutputGenerator
 
 builtin_generators = {
     'c.macromap': reginald.builtin_generators.c.macromap.Generator(),
-    'c.funcpack.regs': reginald.builtin_generators.c.funcpack.funcpack.GeneratorRegs(),
-    'c.funcpack.regutils': reginald.builtin_generators.c.funcpack.funcpack.GeneratorRegUtils(),
-    'c.funcpack.enums': reginald.builtin_generators.c.funcpack.funcpack.GeneratorEnums(),
+    'c.funcpack': reginald.builtin_generators.c.funcpack.Generator(),
     'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator(),
     'md.doc': reginald.builtin_generators.md.doc.Generator()
 }  # type: Dict[str, OutputGenerator]
