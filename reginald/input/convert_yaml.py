@@ -1,9 +1,9 @@
 import re
 from typing import Dict, List, Optional
 
-from pydantic import NonNegativeInt, PositiveInt
+from pydantic import PositiveInt
 
-from reginald.bits import Bits, fits_into_bitwidth
+from reginald.bits import Bits
 from reginald.datamodel import (AccessMode, AlwaysWrite, Docs, Field, RegEnum,
                                 RegEnumEntry, Register, RegisterBlock,
                                 RegisterMap)
@@ -213,7 +213,14 @@ class YAMLConverter:
             docs=docs,
             instances={name: adr},
             register_templates={"": Register(
-                name="", fields=fields, bitwidth=bitwidth, adr=0, always_write=always_write, reset_val=reset_val, docs=docs, is_block_template=True
+                name="",
+                fields=fields,
+                bitwidth=bitwidth,
+                adr=0,
+                always_write=always_write,
+                reset_val=reset_val,
+                docs=docs,
+                is_block_template=True
             )}
         )
 

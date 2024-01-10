@@ -1,8 +1,9 @@
 import argparse
+from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
-from reginald.datamodel import *
+from reginald.datamodel import RegisterMap
 from reginald.generator import OutputGenerator
 from reginald.jinja2_generator import render_jinja2_template
 

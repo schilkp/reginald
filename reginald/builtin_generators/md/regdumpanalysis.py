@@ -1,12 +1,12 @@
 from typing import Dict, List, Union
 
 import yaml
-from pydantic import ValidationError
+from pydantic import ValidationError, NonNegativeInt
 from pydantic.dataclasses import dataclass
 from tabulate import tabulate
 from yaml import SafeLoader
 
-from reginald.datamodel import *
+from reginald.datamodel import RegisterMap, Bits
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 
@@ -97,7 +97,7 @@ class Generator(OutputGenerator):
                 out.append(f"  - 0b{dump[adr]:b}")
 
                 # Collect all bitranges that make up this register - field or not:
-                register_bitranges = []  # type: List[BitRange]
+                register_bitranges = []
                 for field in reg_template.fields.values():
                     for range in field.get_bitranges():
                         register_bitranges.append(range)
@@ -131,7 +131,7 @@ class Generator(OutputGenerator):
                             if enum_entryname is not None:
                                 decode_row.append(f"{enum_entryname} (0x{field_val:X})")
                             else:
-                                decode_row.append(f"DECODE ERROR")
+                                decode_row.append(f"ERROR")
                         else:
                             decode_row.append(f"?")
 
@@ -168,7 +168,7 @@ class Generator(OutputGenerator):
                             out.extend(entry.docs.as_two_line(prefix="         - "))
                         else:
                             decode_row.append(
-                                f"       - *DECODE ERROR*: This field accepts an enum, but it's value does not correspond to any enum entry.")
+                                f"       - *ERROR*: This field accepts an enum, but it's value does not correspond to any enum entry.")
                     else:
                         decode_row.append(f"?")
 

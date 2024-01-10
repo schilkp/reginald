@@ -1,7 +1,7 @@
 
 
 from reginald.bits import fits_into_bitwidth
-from reginald.datamodel import *
+from reginald.datamodel import Field, Register, RegisterBlock, RegisterMap
 from reginald.error import ReginaldException
 
 

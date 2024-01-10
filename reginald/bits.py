@@ -53,7 +53,7 @@ class Bits:
         bitlist = []
         for range in ranges:
             for bit in range.get_bitlist():
-                if not bit in bitlist:
+                if bit not in bitlist:
                     bitlist.append(bit)
 
         return Bits.from_bitlist(bitlist)
@@ -135,7 +135,7 @@ class Bits:
         bitlist_is = self.bitlist
         bitlist_inv = []
         for bit in range(maximum_width):
-            if not bit in bitlist_is:
+            if bit not in bitlist_is:
                 bitlist_inv.append(bit)
 
         return Bits.from_bitlist(bitlist_inv)
@@ -145,7 +145,7 @@ class Bits:
         bitlist_or = a.bitlist
 
         for bit in b.bitlist:
-            if not bit in bitlist_or:
+            if bit not in bitlist_or:
                 bitlist_or.append(bit)
 
         return Bits.from_bitlist(bitlist_or)

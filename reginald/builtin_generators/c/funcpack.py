@@ -1,7 +1,9 @@
 import argparse
 from os import path
+from typing import List
 
-from reginald.datamodel import *
+from reginald.datamodel import (Docs, Field, RegEnum, Register, RegisterBlock,
+                                RegisterMap)
 from reginald.generator import OutputGenerator
 from reginald.utils import (c_fitting_unsigned_type, c_sanitize,
                             str_pad_to_length)
@@ -67,21 +69,27 @@ class Generator(OutputGenerator):
                 emit(f"")
 
                 for instance_name, instance_start in block.instances.items():
-                    emit(
-                        f"#define {macro_prefix}_{c_macro(instance_name+template.name)} (0x{template.adr+instance_start:X}U) //!< {instance_name+template.name} address")
+                    emit(f"#define {macro_prefix}_{c_macro(instance_name+template.name)} "
+                         f"(0x{template.adr+instance_start:X}U)"
+                         "//!< {instance_name+template.name} address")
 
                 if len(block.instances) > 1 and len(block.register_templates) > 1:
-                    emit(
-                        f"#define {macro_prefix}_{c_macro(block.name+template.name)}_OFFSET (0x{template.adr:X}U) //!< Offset of {block.name+template.name} from {block.name} block start")
+                    emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}_OFFSET"
+                         f"(0x{template.adr:X}U)"
+                         f"//!< Offset of {block.name+template.name} from {block.name} block start")
 
                 if template.reset_val is not None:
-                    emit(f"#define {macro_prefix}_{macro_reg_template}_RESET (0x{template.reset_val:X}U) //!< {block.name+template.name} reset value")
+                    emit(f"#define {macro_prefix}_{macro_reg_template}_RESET"
+                         f"(0x{template.reset_val:X}U) "
+                         f"//!< {block.name+template.name} reset value")
 
                 if template.always_write is not None:
-                    emit(
-                        f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK (0x{template.always_write.bits.get_bitmask():X}U) //!< {block.name+template.name} always write mask")
-                    emit(
-                        f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE (0x{template.always_write.value:X}U) //!< {block.name+template.name} always write value")
+                    emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK "
+                         f"(0x{template.always_write.bits.get_bitmask():X}U)"
+                         f"//!< {block.name+template.name} always write mask")
+                    emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE"
+                         f"(0x{template.always_write.value:X}U)"
+                         f"//!< {block.name+template.name} always write value")
 
                 for enum in template.get_local_enums():
                     emit(f"")
@@ -89,7 +97,8 @@ class Generator(OutputGenerator):
                     emit(f"enum {name_register_enum(rmap, block, template, enum, opts)} {{")
                     for entry in enum.entries.values():
                         emit(doxy_comment(entry.docs, prefix="  "))
-                        emit(f"  {c_macro(name_register_enum(rmap, block,template, enum, opts))}_{c_macro(entry.name)} = 0x{entry.value:X}U,")
+                        emit(f"  {c_macro(name_register_enum(rmap, block,template, enum, opts))}_{c_macro(entry.name)}"
+                             f"= 0x{entry.value:X}U,")
                     emit(f"}};")
 
                 if len(template.fields) == 0:
@@ -97,7 +106,7 @@ class Generator(OutputGenerator):
                     continue
 
                 struct_name = name_register_struct(rmap, block, template)
-                struct_packed_type = c_fitting_unsigned_type(template.bitwidth)
+                packed_type = c_fitting_unsigned_type(template.bitwidth)
 
                 emit("")
                 emit(doxy_comment(template.docs, note="use pack/unpack/overwrite functions for conversion to/form packed register value"))
@@ -115,7 +124,7 @@ class Generator(OutputGenerator):
                 emit(doxy_comment(Docs(
                     brief="Convert register struct to packed register value.",
                     doc="All bits that are not part of a field or specified as 'always write' are kept as in 'val'.")))
-                emit(f"static inline {struct_packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {struct_packed_type} val) {{")
+                emit(f"static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{")
                 if template.always_write is not None:
                     emit(f"  val &= ~{macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK;")
                     emit(f"  val |= {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE;")
@@ -123,19 +132,19 @@ class Generator(OutputGenerator):
                     mask = field.bits.get_bitmask()
                     unpos_mask = field.bits.get_unpositioned_bits().get_bitmask()
                     shift = field.bits.lsb_position()
-                    emit(f"  val = (val & ~0x{mask:X}U) | ({struct_packed_type}) ((r->{c_code(field.name)} & 0x{unpos_mask:X}U) << {shift}U);")
+                    emit(f"  val = (val & ~0x{mask:X}U) | ({packed_type}) ((r->{c_code(field.name)} & 0x{unpos_mask:X}U) << {shift}U);")
                 emit(f" return val;")
                 emit(f"}}")
 
                 emit(f"")
                 emit(doxy_comment(Docs(brief="Convert register struct to packed register value.", doc=None)))
-                emit(f"static inline {struct_packed_type} {struct_name}_pack(const struct {struct_name} *r) {{")
+                emit(f"static inline {packed_type} {struct_name}_pack(const struct {struct_name} *r) {{")
                 emit(f"  return {struct_name}_overwrite(r, 0);")
                 emit(f"}}")
 
                 emit(f"")
                 emit(doxy_comment(Docs(brief="Convert packed register value to register struct.", doc=None)))
-                emit(f"static inline struct {struct_name} {struct_name}_unpack({struct_packed_type} val) {{")
+                emit(f"static inline struct {struct_name} {struct_name}_unpack({packed_type} val) {{")
                 emit(f"  return {{")
                 for field in template.fields.values():
                     mask = field.bits.get_bitmask()
@@ -147,7 +156,7 @@ class Generator(OutputGenerator):
 
                 emit(f"")
                 emit(doxy_comment(Docs(brief="Convert packed register value to into a register struct.", doc=None)))
-                emit(f"static inline void {struct_name}_unpack_into({struct_packed_type} val, struct {struct_name} *s) {{")
+                emit(f"static inline void {struct_name}_unpack_into({packed_type} val, struct {struct_name} *s) {{")
                 emit(f"  *s = {struct_name}_unpack(val);")
                 emit(f"}}")
                 emit(f"")
@@ -247,17 +256,17 @@ def doxy_comment(docs: Docs, prefix: str = "", note: str | None = None) -> List[
         case (False, True, False):
             return [f"{prefix}/** @note {note} */"]
         case _:
-            l = []
-            l.append(f"{prefix}/**")
+            out = []
+            out.append(f"{prefix}/**")
             if brief is not None:
-                l.append(f"{prefix} * @brief {brief}")
+                out.append(f"{prefix} * @brief {brief}")
             if note is not None:
-                l.append(f"{prefix} * @note {note}")
+                out.append(f"{prefix} * @note {note}")
             if doc is not None:
                 for line in doc.splitlines():
-                    l.append(f"{prefix} * {line}")
-            l.append(f"{prefix} */")
-            return l
+                    out.append(f"{prefix} * {line}")
+            out.append(f"{prefix} */")
+            return out
 
 
 def c_macro(s: str) -> str:

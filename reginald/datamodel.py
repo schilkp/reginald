@@ -135,7 +135,7 @@ class Register(BaseModel):
         if self.always_write is None:
             raise ValueError()
         for bit in bits.bitlist:
-            if not bit in self.always_write.bits.bitlist:
+            if bit not in self.always_write.bits.bitlist:
                 raise ValueError()
 
         return (self.always_write.value & bits.get_bitmask()) >> bits.lsb_position()

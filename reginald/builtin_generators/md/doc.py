@@ -1,6 +1,8 @@
+from typing import List
+
 from tabulate import tabulate
 
-from reginald.datamodel import *
+from reginald.datamodel import RegisterMap, Bits
 from reginald.generator import OutputGenerator
 from reginald.utils import str_list
 
@@ -60,7 +62,7 @@ class Generator(OutputGenerator):
             # Register bitfields table:
 
             # Collect all bitranges that make up this register - field or not:
-            register_bitranges = []  # type: List[BitRange]
+            register_bitranges = []
             for field in template.fields.values():
                 for range in field.get_bitranges():
                     register_bitranges.append(range)

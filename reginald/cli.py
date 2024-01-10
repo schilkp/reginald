@@ -1,10 +1,10 @@
 import argparse
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
-import reginald.builtin_generators.external_jinja2_template
 import reginald.builtin_generators.c.funcpack
 import reginald.builtin_generators.c.macromap
+import reginald.builtin_generators.external_jinja2_template
 import reginald.builtin_generators.md.doc
 import reginald.builtin_generators.md.regdumpanalysis
 from reginald.error import ReginaldException
@@ -16,7 +16,7 @@ builtin_generators = {
     'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator(),
     'md.doc': reginald.builtin_generators.md.doc.Generator(),
     'jinja2': reginald.builtin_generators.external_jinja2_template.Generator()
-}  # type: Dict[str, OutputGenerator]
+}
 
 
 @dataclass
