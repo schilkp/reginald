@@ -71,24 +71,24 @@ class Generator(OutputGenerator):
                 for instance_name, instance_start in block.instances.items():
                     emit(f"#define {macro_prefix}_{c_macro(instance_name+template.name)} "
                          f"(0x{template.adr+instance_start:X}U)"
-                         "//!< {instance_name+template.name} address")
+                         f"//!< {instance_name+template.name} address")
 
                 if len(block.instances) > 1 and len(block.register_templates) > 1:
-                    emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}_OFFSET"
-                         f"(0x{template.adr:X}U)"
+                    emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}_OFFSET "
+                         f"(0x{template.adr:X}U) "
                          f"//!< Offset of {block.name+template.name} from {block.name} block start")
 
                 if template.reset_val is not None:
-                    emit(f"#define {macro_prefix}_{macro_reg_template}_RESET"
+                    emit(f"#define {macro_prefix}_{macro_reg_template}_RESET "
                          f"(0x{template.reset_val:X}U) "
                          f"//!< {block.name+template.name} reset value")
 
                 if template.always_write is not None:
                     emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK "
-                         f"(0x{template.always_write.bits.get_bitmask():X}U)"
+                         f"(0x{template.always_write.bits.get_bitmask():X}U) "
                          f"//!< {block.name+template.name} always write mask")
-                    emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE"
-                         f"(0x{template.always_write.value:X}U)"
+                    emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE "
+                         f"(0x{template.always_write.value:X}U) "
                          f"//!< {block.name+template.name} always write value")
 
                 for enum in template.get_local_enums():
@@ -97,7 +97,7 @@ class Generator(OutputGenerator):
                     emit(f"enum {name_register_enum(rmap, block, template, enum, opts)} {{")
                     for entry in enum.entries.values():
                         emit(doxy_comment(entry.docs, prefix="  "))
-                        emit(f"  {c_macro(name_register_enum(rmap, block,template, enum, opts))}_{c_macro(entry.name)}"
+                        emit(f"  {c_macro(name_register_enum(rmap, block,template, enum, opts))}_{c_macro(entry.name)} "
                              f"= 0x{entry.value:X}U,")
                     emit(f"}};")
 
