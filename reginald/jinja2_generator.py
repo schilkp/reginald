@@ -1,7 +1,7 @@
 from os import path
 from typing import List
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, PackageLoader
 
 import reginald.utils
 from reginald.datamodel import RegisterMap
@@ -18,7 +18,7 @@ class BuiltinJinjaGenerator(OutputGenerator):
 
     def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         env = Environment(
-            loader=FileSystemLoader("reginald/builtin_templates"),
+            loader=PackageLoader("reginald", "builtin_templates"),
             trim_blocks=True, lstrip_blocks=True
         )
 
