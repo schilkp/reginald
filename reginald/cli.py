@@ -2,6 +2,7 @@ import argparse
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
+import reginald.builtin_generators.external_jinja2_template
 import reginald.builtin_generators.c.funcpack
 import reginald.builtin_generators.c.macromap
 import reginald.builtin_generators.md.doc
@@ -13,7 +14,8 @@ builtin_generators = {
     'c.macromap': reginald.builtin_generators.c.macromap.Generator(),
     'c.funcpack': reginald.builtin_generators.c.funcpack.Generator(),
     'md.regdumpanalysis': reginald.builtin_generators.md.regdumpanalysis.Generator(),
-    'md.doc': reginald.builtin_generators.md.doc.Generator()
+    'md.doc': reginald.builtin_generators.md.doc.Generator(),
+    'jinja2': reginald.builtin_generators.external_jinja2_template.Generator()
 }  # type: Dict[str, OutputGenerator]
 
 
@@ -42,7 +44,7 @@ def parse_args() -> Tuple[CLI, OutputGenerator]:
     parser.add_argument('output_generator',
                         help=f"builtin generator to use")
     parser.add_argument('generator_args', nargs=argparse.REMAINDER,
-                        help="additioanl arguments passed to the selected output generator")
+                        help="additional arguments passed to the selected output generator")
 
     args = parser.parse_args()
 
