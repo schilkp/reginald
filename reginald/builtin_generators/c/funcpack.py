@@ -17,12 +17,12 @@ class Generator(OutputGenerator):
         output_file_base = path.basename(output_file)
 
         out = []
+
         def emit(s: str | List[str]):
             if isinstance(s, str):
                 out.append(s)
             else:
                 out.extend(s)
-
 
         emit(f"/**")
         emit(f" * @file {output_file_base}")
@@ -55,11 +55,11 @@ class Generator(OutputGenerator):
             emit(f"}};")
             emit(f"")
 
-        macro_prefix = c_macro(rmap.map_name)+"_REG"
+        macro_prefix = c_macro(rmap.map_name) + "_REG"
 
         for block in rmap.register_blocks.values():
             for template in block.register_templates.values():
-                macro_reg_template = c_macro(block.name+template.name)
+                macro_reg_template = c_macro(block.name + template.name)
 
                 emit(str_pad_to_length(f"// ==== {block.name+template.name} register ", "=", 80))
                 if not template.docs.empty():
@@ -206,7 +206,7 @@ class Generator(OutputGenerator):
         emit(f"#endif /* {c_macro(output_file_base)} */")
 
         with open(output_file, 'w') as outfile:
-            outfile.write("\n".join(out)+"\n")
+            outfile.write("\n".join(out) + "\n")
         print(f"Generated {output_file}...")
 
 
@@ -276,7 +276,7 @@ def name_shared_enum(rmap: RegisterMap, enum: RegEnum) -> str:
 
 def name_register_enum(rmap: RegisterMap, block: RegisterBlock, template: Register, enum: RegEnum, opts) -> str:
     mapname_c = c_code(rmap.map_name)
-    regname_c = c_code(block.name+template.name)
+    regname_c = c_code(block.name + template.name)
     enumname_c = c_code(enum.name)
     if opts.field_enum_prefix:
         return f"{mapname_c}_{regname_c}_{enumname_c}"
@@ -286,7 +286,7 @@ def name_register_enum(rmap: RegisterMap, block: RegisterBlock, template: Regist
 
 def name_register_struct(rmap: RegisterMap, block: RegisterBlock, template: Register) -> str:
     mapname_c = c_code(rmap.map_name)
-    regname_c = c_code(block.name+template.name)
+    regname_c = c_code(block.name + template.name)
     return f"{mapname_c}_reg_{regname_c}"
 
 
@@ -295,6 +295,6 @@ def register_struct_member_type(rmap: RegisterMap, block: RegisterBlock, templat
         return c_fitting_unsigned_type(field.bits.total_width())
     else:
         if field.enum.is_shared:
-            return "enum "+name_shared_enum(rmap, field.enum)
+            return "enum " + name_shared_enum(rmap, field.enum)
         else:
-            return "enum "+name_register_enum(rmap, block, template, field.enum, opts)
+            return "enum " + name_register_enum(rmap, block, template, field.enum, opts)

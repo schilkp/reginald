@@ -120,11 +120,11 @@ class Bits:
         return self.msb_position() - self.lsb_position() + 1
 
     def bitwise_lshift(self, amt: NonNegativeInt):
-        bitlist = [b+amt for b in self.bitlist]
+        bitlist = [b + amt for b in self.bitlist]
         return Bits.from_bitlist(bitlist)
 
     def bitwise_rshift(self, amt: NonNegativeInt):
-        bitlist = [b-amt for b in self.bitlist if b-amt >= 0]
+        bitlist = [b - amt for b in self.bitlist if b - amt >= 0]
         return Bits.from_bitlist(bitlist)
 
     def bitwise_not(self, maximum_width: PositiveInt):
@@ -171,6 +171,6 @@ def fits_into_bitwidth(val: int, bitwidth: int) -> bool:
     if val == 0:
         return True
     if val < 0:
-        return ceil(log2(val*-1)) <= (bitwidth-1)
+        return ceil(log2(val * -1)) <= (bitwidth - 1)
     else:
-        return ceil(log2(val+1)) <= bitwidth
+        return ceil(log2(val + 1)) <= bitwidth

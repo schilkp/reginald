@@ -45,7 +45,8 @@ class Docs(BaseModel):
         return result
 
     def empty(self) -> bool:
-        return (self.brief is None) and (self.doc is None )
+        return (self.brief is None) and (self.doc is None)
+
 
 class RegEnumEntry(BaseModel):
     name: str

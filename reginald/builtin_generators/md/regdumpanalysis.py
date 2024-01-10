@@ -36,7 +36,7 @@ class YamlBinaryDump:
                     if at in dump:
                         raise ReginaldException(f"YamlBinaryDump has two values at address {at}!")
                     dump[at] = value
-                    at = at+1
+                    at = at + 1
 
             else:
                 if at in dump:

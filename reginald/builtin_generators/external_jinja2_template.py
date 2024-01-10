@@ -6,6 +6,7 @@ from reginald.datamodel import *
 from reginald.generator import OutputGenerator
 from reginald.jinja2_generator import render_jinja2_template
 
+
 class Generator(OutputGenerator):
     def description(self) -> str:
         return "Jinja2 template."

@@ -6,6 +6,7 @@ from reginald.input.convert_yaml import YAMLConverter
 from reginald.input.parse_yaml import YAML_RegisterMap
 from reginald.input.validate_map import MapValidator
 
+
 def main():
 
     try:

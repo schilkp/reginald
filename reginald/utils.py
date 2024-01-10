@@ -7,6 +7,7 @@ from reginald.error import ReginaldException
 def c_sanitize(s: str) -> str:
     return re.sub(r"[^_a-zA-Z0-9]", "_", s)
 
+
 def c_fitting_unsigned_type(bitwidth: int) -> str:
     possible_variable_sizes = [8, 16, 32, 64]
     possible_variable_sizes = [size for size in possible_variable_sizes if size >= bitwidth]
@@ -15,6 +16,7 @@ def c_fitting_unsigned_type(bitwidth: int) -> str:
 
     size = min(possible_variable_sizes)
     return f"uint{size}_t"
+
 
 def str_oneline(input: str) -> str:
     if len(input) > 0:

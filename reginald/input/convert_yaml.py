@@ -113,7 +113,7 @@ class YAMLConverter:
                 pos_start = min([int(p) for p in positions])
                 pos_stop = max([int(p) for p in positions])
 
-                new_bits = list(range(pos_start, pos_stop+1))
+                new_bits = list(range(pos_start, pos_stop + 1))
 
             for new_bit in new_bits:
                 if new_bit in bitlist:
@@ -198,7 +198,7 @@ class YAMLConverter:
                 result[name] = self._convert_register_block(name, r, bt)
         return result
 
-    def _convert_register(self,  name: str, r: YAML_Register, bt: str) -> RegisterBlock:
+    def _convert_register(self, name: str, r: YAML_Register, bt: str) -> RegisterBlock:
         bt = bt + f" -> name"
         adr = r.adr
         bitwidth = self._convert_bitwidth(r.bitwidth, bt)
