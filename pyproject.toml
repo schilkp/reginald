@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "reginald"
+version = "0.0.1"
+authors = [
+  { name="Philipp Schilk", email="schilk.philipp@gmail.com" },
+]
+description = "Register-management code generator."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  'PyYAML ~= 6.0',
+  'Jinja2 ~= 3.1',
+  'pydantic ~= 2.5',
+  'more-itertools ~= 10.1',
+  'tabulate ~= 0.9'
+]
+
+[project.urls]
+Homepage = "https://github.com/schilkp/reginald"
+Issues = "https://github.com/schilkp/reginald/issues"
