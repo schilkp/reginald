@@ -2,7 +2,7 @@ _default:
     just --list
 
 format:
-    autopep8 --in-place --recursive run.py reginald/
+    autopep8 --in-place --recursive src/reginald/
 
 lint:
-    flake8 reginald/ run.py
+    flake8 src/reginald/
