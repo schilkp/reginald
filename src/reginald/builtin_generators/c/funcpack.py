@@ -74,20 +74,20 @@ class Generator(OutputGenerator):
                          f"//!< {instance_name+template.name} address")
 
                 if len(block.instances) > 1 and len(block.register_templates) > 1:
-                    emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}_OFFSET "
+                    emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}__OFFSET "
                          f"(0x{template.adr:X}U) "
                          f"//!< Offset of {block.name+template.name} from {block.name} block start")
 
                 if template.reset_val is not None:
-                    emit(f"#define {macro_prefix}_{macro_reg_template}_RESET "
+                    emit(f"#define {macro_prefix}_{macro_reg_template}__RESET "
                          f"(0x{template.reset_val:X}U) "
                          f"//!< {block.name+template.name} reset value")
 
                 if template.always_write is not None:
-                    emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK "
+                    emit(f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK "
                          f"(0x{template.always_write.bits.get_bitmask():X}U) "
                          f"//!< {block.name+template.name} always write mask")
-                    emit(f"#define {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE "
+                    emit(f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE "
                          f"(0x{template.always_write.value:X}U) "
                          f"//!< {block.name+template.name} always write value")
 
@@ -126,8 +126,8 @@ class Generator(OutputGenerator):
                     doc="All bits that are not part of a field or specified as 'always write' are kept as in 'val'.")))
                 emit(f"static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{")
                 if template.always_write is not None:
-                    emit(f"  val &= ~{macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK;")
-                    emit(f"  val |= {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE;")
+                    emit(f"  val &= ~{macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK;")
+                    emit(f"  val |= {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE;")
                 for field in template.fields.values():
                     mask = field.bits.get_bitmask()
                     unpos_mask = field.bits.get_unpositioned_bits().get_bitmask()
