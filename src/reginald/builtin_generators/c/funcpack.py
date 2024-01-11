@@ -11,7 +11,7 @@ from reginald.utils import (c_fitting_unsigned_type, c_sanitize,
 
 class Generator(OutputGenerator):
     def description(self) -> str:
-        return "C header register field enums."
+        return "C header with register structs and conversion functions."
 
     def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
         opts = parse_args(args)
