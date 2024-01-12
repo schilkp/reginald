@@ -163,25 +163,25 @@ class Generator(OutputGenerator):
         for instance_name, instance_start in block.instances.items():
             self.emit(f"#define {macro_prefix}_{c_macro(instance_name+template.name)} "
                       f"(0x{template.adr+instance_start:X}U)"
-                      f"//!< {instance_name+template.name} address")
+                      f"//!< {instance_name+template.name} register address")
 
         if len(block.instances) > 1 and len(block.register_templates) > 1:
             self.emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}__OFFSET "
                       f"(0x{template.adr:X}U) "
-                      f"//!< Offset of {block.name+template.name} from {block.name} block start")
+                      f"//!< Offset of {block.name+template.name} register from {block.name} block start")
 
         if template.reset_val is not None:
             self.emit(f"#define {macro_prefix}_{macro_reg_template}__RESET "
                       f"(0x{template.reset_val:X}U) "
-                      f"//!< {block.name+template.name} reset value")
+                      f"//!< {block.name+template.name} register reset value")
 
         if template.always_write is not None:
             self.emit(f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK "
                       f"(0x{template.always_write.bits.get_bitmask():X}U) "
-                      f"//!< {block.name+template.name} always write mask")
+                      f"//!< {block.name+template.name} register always write mask")
             self.emit(f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE "
                       f"(0x{template.always_write.value:X}U) "
-                      f"//!< {block.name+template.name} always write value")
+                      f"//!< {block.name+template.name} register always write value")
 
     def generate_register_enums(self, rmap: RegisterMap, block: RegisterBlock, template: Register, opts):
         for enum in template.get_local_enums():
