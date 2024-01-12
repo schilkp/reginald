@@ -24,11 +24,6 @@ ARGS = {
            action=argparse.BooleanOptionalAction,
            help="prefix a field enum with the register name",
            default=True),
-    'generic_funcs':
-    GenArg(flag='--generic-funcs',
-           action=argparse.BooleanOptionalAction,
-           help="generate '_Generic' register functions",
-           default=True),
     'registers_as_bitfields':
     GenArg(flag='--registers-as-bitfields',
            action=argparse.BooleanOptionalAction,
@@ -39,6 +34,26 @@ ARGS = {
            action=argparse.BooleanOptionalAction,
            help="include a clang-format guard covering the complete file",
            default=False),
+    'enums':
+    GenArg(flag='--enums',
+           action=argparse.BooleanOptionalAction,
+           help="include all shared and register enums",
+           default=True),
+    'registers':
+    GenArg(flag='--registers',
+           action=argparse.BooleanOptionalAction,
+           help="include all register structs and property defines",
+           default=True),
+    'register_functions':
+    GenArg(flag='--register-functions',
+           action=argparse.BooleanOptionalAction,
+           help="include all register packing/unpacking functions",
+           default=True),
+    'generic_macros':
+    GenArg(flag='--generic-macros',
+           action=argparse.BooleanOptionalAction,
+           help="include '_Generic' packing/unpacking macros",
+           default=True),
 }
 
 
@@ -80,28 +95,39 @@ class Generator(OutputGenerator):
         self.emit(f"#include <stdint.h>")
         self.emit(f"")
 
-        self.generate_shared_enums(rmap)
+        if opts.enums:
+            if len(rmap.enums) > 0:
+                self.generate_shared_enums(rmap)
 
         for block in rmap.register_blocks.values():
             for template in block.register_templates.values():
 
+                if not register_content_to_generate(template, opts):
+                    continue
+
+                self.emit("")
                 self.emit(str_pad_to_length(f"// ==== {block.name+template.name} register ", "=", 80))
                 if not template.docs.empty():
                     self.emit(template.docs.as_multi_line(prefix="// "))
                 self.emit(f"")
 
-                self.generate_register_defines(rmap, block, template)
-                self.generate_register_enums(rmap, block, template, opts)
+                if opts.registers:
+                    self.generate_register_defines(rmap, block, template)
 
-                if len(template.fields) == 0:
-                    # Don't generate structs + funcs if there are no fields.
-                    continue
+                if opts.enums:
+                    self.generate_register_enums(rmap, block, template, opts)
 
-                self.generate_register_struct(rmap, block, template, opts)
-                self.generate_register_funcs(rmap, block, template, opts)
+                if len(template.fields) != 0:
+                    # Generate structs + funcs since register has fields
 
-        if opts.generic_funcs:
-            self.generate_generic_funcs(rmap, opts)
+                    if opts.registers:
+                        self.generate_register_struct(rmap, block, template, opts)
+
+                    if opts.register_functions:
+                        self.generate_register_funcs(rmap, block, template, opts)
+
+        if opts.generic_macros:
+            self.generate_generic_macros(rmap, opts)
 
         if opts.clang_format_guard:
             self.emit(f"// clang-format on")
@@ -230,9 +256,8 @@ class Generator(OutputGenerator):
         self.emit(f"static inline void {struct_name}_unpack_into({packed_type} val, struct {struct_name} *s) {{")
         self.emit(f"  *s = {struct_name}_unpack(val);")
         self.emit(f"}}")
-        self.emit(f"")
 
-    def generate_generic_funcs(self, rmap: RegisterMap, opts):
+    def generate_generic_macros(self, rmap: RegisterMap, opts):
         macro_prefix = c_macro(rmap.map_name) + "_REG"
 
         self.emit(f"")
@@ -330,6 +355,24 @@ def c_macro(s: str) -> str:
 
 def c_code(s: str) -> str:
     return c_sanitize(s).lower()
+
+
+def register_content_to_generate(template: Register, opts) -> bool:
+    if opts.registers:
+        # Will generate address/property defines.
+        return True
+
+    if opts.enums:
+        if len(template.get_local_enums()) > 0:
+            # Will generate register enums.
+            return True
+
+    if opts.register_functions:
+        if len(template.fields) != 0:
+            # Will generate register functions.
+            return True
+
+    return False
 
 
 def name_shared_enum(rmap: RegisterMap, enum: RegEnum) -> str:
