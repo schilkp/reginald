@@ -1,7 +1,8 @@
+from itertools import groupby
 from math import ceil, log2
+from operator import itemgetter
 from typing import List
 
-import more_itertools
 from pydantic import NonNegativeInt, PositiveInt
 from pydantic.dataclasses import dataclass
 
@@ -90,7 +91,7 @@ class Bits:
     def get_bitranges(self) -> List[BitRange]:
         self.bitlist = sorted(self.bitlist)
         ranges = []
-        for group in more_itertools.consecutive_groups(self.bitlist):
+        for group in consecutive_groups(self.bitlist):
             bitlist_group = list(group)
             ranges.append(BitRange(lsb_position=min(bitlist_group),
                           width=(max(bitlist_group) - min(bitlist_group) + 1)))
@@ -174,3 +175,12 @@ def fits_into_bitwidth(val: int, bitwidth: int) -> bool:
         return ceil(log2(val * -1)) <= (bitwidth - 1)
     else:
         return ceil(log2(val + 1)) <= bitwidth
+
+
+def consecutive_groups(iterable, ordering=lambda x: x):
+    # Yield groups of consecutive items.
+    # Taken from more-itertools (https://github.com/more-itertools/more-itertools)
+    for _, g in groupby(
+        enumerate(iterable), key=lambda x: x[0] - ordering(x[1])
+    ):
+        yield map(itemgetter(1), g)

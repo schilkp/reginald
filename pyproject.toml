@@ -21,7 +21,6 @@ dependencies = [
   'PyYAML ~= 6.0',
   'Jinja2 ~= 3.1',
   'pydantic ~= 2.5',
-  'more-itertools ~= 10.1',
   'tabulate ~= 0.9'
 ]
 
