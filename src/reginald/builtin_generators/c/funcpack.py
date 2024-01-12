@@ -145,13 +145,14 @@ class Generator(OutputGenerator):
                 emit(f"")
                 emit(doxy_comment(Docs(brief="Convert packed register value to register struct.", doc=None)))
                 emit(f"static inline struct {struct_name} {struct_name}_unpack({packed_type} val) {{")
-                emit(f"  return {{")
+                emit(f"  struct {struct_name} r = {{")
                 for field in template.fields.values():
                     mask = field.bits.get_bitmask()
                     field_type = register_struct_member_type(rmap, block, template, field, opts)
                     shift = field.bits.lsb_position()
                     emit(f"    .{c_code(field.name)} = ({field_type}) ((val & 0x{mask:X}U) >> {shift}U),")
                 emit(f"  }};")
+                emit(f"  return r;")
                 emit(f"}}")
 
                 emit(f"")
