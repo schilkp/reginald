@@ -350,7 +350,7 @@ def name_register_enum(rmap: RegisterMap, block: RegisterBlock, template: Regist
 def name_register_struct(rmap: RegisterMap, block: RegisterBlock, template: Register) -> str:
     mapname_c = c_code(rmap.map_name)
     regname_c = c_code(block.name + template.name)
-    return f"{mapname_c}_reg_{regname_c}"
+    return f"{mapname_c}_{regname_c}"
 
 
 def register_struct_member_type(rmap: RegisterMap, block: RegisterBlock, template: Register, field: Field, opts) -> str:
