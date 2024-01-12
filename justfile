@@ -6,3 +6,7 @@ format:
 
 lint:
     flake8 src/reginald/
+
+setup_dev:
+    python3 -m venv env
+    env/bin/pip install -e .[dev]
