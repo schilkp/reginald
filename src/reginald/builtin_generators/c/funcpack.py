@@ -66,7 +66,8 @@ class Generator(OutputGenerator):
         self.emit(f" * Parameters:")
         self.emit(f" *   - Generator: c.funcpack")
         for key, val in opts.__dict__.items():
-            self.emit(f" *   - {key}={val}")
+            if val != ARGS[key].default:
+                self.emit(f" *   - {key}={val}")
         self.emit(f" */")
         self.emit(f"#ifndef {c_macro(output_file_base)}_")
         self.emit(f"#define {c_macro(output_file_base)}_")
