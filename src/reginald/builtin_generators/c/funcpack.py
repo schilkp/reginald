@@ -31,7 +31,8 @@ class Generator(OutputGenerator):
         emit(f" * @brief {rmap.map_name} registers")
         emit(f" * @note do not edit directly: generated using reginald from {input_file_base}")
         emit(f" *")
-        emit(f" * Reginald settings:")
+        emit(f" * Parameters:")
+        emit(f" *   - Generator: c.funcpack")
         for key, val in opts.__dict__.items():
             emit(f" *   - {key}={val}")
         emit(f" */")
