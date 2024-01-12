@@ -35,8 +35,11 @@ def parse_args() -> Tuple[CLI, OutputGenerator]:
     builtin_choices_text = "\n".join(builtin_choices_text)
 
     parser = argparse.ArgumentParser(prog="Reginald",
-                                     description='Register map utility', epilog="builtin generators: \n" +
-                                     builtin_choices_text, formatter_class=argparse.RawDescriptionHelpFormatter,)
+                                     description='Register map utility.\nPhilipp Schilk, 2022-2023',
+                                     epilog="builtin generators: \n" + builtin_choices_text,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument('--version', action='version', version='reginald v0.0.1')
     parser.add_argument('input_file',
                         help="input register description yaml")
     parser.add_argument('output_file',
