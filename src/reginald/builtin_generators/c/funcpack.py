@@ -1,7 +1,8 @@
 import argparse
+import dataclasses
 from dataclasses import dataclass
 from os import path
-from typing import Any, List
+from typing import Any, Dict, List
 
 from reginald.datamodel import (Docs, Field, RegEnum, Register, RegisterBlock,
                                 RegisterMap)
@@ -16,6 +17,7 @@ class GenArg():
     action: str | type[argparse.Action]
     help: str
     default: Any
+    kwargs: Dict = dataclasses.field(default_factory=dict)
 
 
 ARGS = {
@@ -54,6 +56,11 @@ ARGS = {
            action=argparse.BooleanOptionalAction,
            help="include '_Generic' packing/unpacking macros",
            default=True),
+    'add_include':
+    GenArg(flag='--add-include',
+           action="store",
+           help="include header file in generated header",
+           default=[], kwargs={"nargs": "+"}),
 }
 
 
@@ -93,6 +100,8 @@ class Generator(OutputGenerator):
             self.emit(f"")
 
         self.emit(f"#include <stdint.h>")
+        for include in opts.add_include:
+            self.emit(f"#include \"{include}\"")
         self.emit(f"")
 
         if opts.enums:
@@ -317,7 +326,7 @@ def parse_args(args: List[str]):
         description="C Output generator, using functions for register management.")
 
     for arg in ARGS.values():
-        parser.add_argument(arg.flag, action=arg.action, help=arg.help, default=arg.default)
+        parser.add_argument(arg.flag, action=arg.action, help=arg.help, default=arg.default, **arg.kwargs)
 
     return parser.parse_args(args)
 
