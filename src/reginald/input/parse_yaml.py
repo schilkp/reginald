@@ -13,7 +13,7 @@ YAML_Access = Union[List[str], str]
 
 
 class YAML_RegEnumEntry(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     val: NonNegativeInt
     doc: Optional[str] = None
@@ -21,7 +21,7 @@ class YAML_RegEnumEntry(BaseModel):
 
 
 class YAML_Enum(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     enum: Dict[str, YAML_RegEnumEntry]
     doc: Optional[str] = None
@@ -29,7 +29,7 @@ class YAML_Enum(BaseModel):
 
 
 class YAML_Field(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     bits: YAML_Bits
     access: Optional[YAML_Access] = None
@@ -39,14 +39,14 @@ class YAML_Field(BaseModel):
 
 
 class YAML_AlwaysWrite(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     mask: NonNegativeInt
     val: NonNegativeInt
 
 
 class YAML_Register(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     fields: Dict[str, YAML_Field] = pydantic.Field(default_factory=dict)
     access: Optional[YAML_Access] = None
@@ -59,7 +59,7 @@ class YAML_Register(BaseModel):
 
 
 class YAML_RegisterBlock(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     instances: Dict[str, NonNegativeInt]
     brief: Optional[str] = None
@@ -68,7 +68,7 @@ class YAML_RegisterBlock(BaseModel):
 
 
 class YAML_RegisterMap(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', strict=True)
 
     map_name: str
     default_register_bitwidth: PositiveInt
