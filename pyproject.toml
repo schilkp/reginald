@@ -29,4 +29,4 @@ Homepage = "https://github.com/schilkp/reginald"
 Issues = "https://github.com/schilkp/reginald/issues"
 
 [project.optional-dependencies]
-dev = [ "autopep8", "flake8" ]
+dev = [ "autopep8", "flake8", "build", "twine"]
