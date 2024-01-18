@@ -57,4 +57,4 @@ class MapValidator:
             for enum_entry in field.enum.entries.values():
                 mask = field.bits.get_unpositioned_bits().get_bitmask()
                 if enum_entry.value & mask != enum_entry.value:
-                    raise ReginaldException("{bt}: Enum does not fit into field!")
+                    raise ReginaldException(f"{bt}: Enum does not fit into field!")
