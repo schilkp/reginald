@@ -22,8 +22,6 @@ def main():
         # Generate output using selected generator:
         generator.generate(r, cli.input_file, cli.output_file, cli.generator_args)
 
-        print("Done!")
-
     except ReginaldException as e:
         print(e, file=sys.stderr)
         exit(-1)

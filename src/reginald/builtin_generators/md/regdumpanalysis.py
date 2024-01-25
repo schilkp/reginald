@@ -182,4 +182,3 @@ class Generator(OutputGenerator):
 
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(out))
-        print(f"Generated {output_file}...")

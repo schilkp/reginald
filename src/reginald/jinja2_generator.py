@@ -44,4 +44,3 @@ def render_jinja2_template(template, rmap: RegisterMap, input_file: str, output_
 
     with open(output_file, 'w') as outfile:
         outfile.write(result)
-    print(f"Generated {output_file}...")

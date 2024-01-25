@@ -146,7 +146,6 @@ class Generator(OutputGenerator):
 
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(self.out) + "\n")
-        print(f"Generated {output_file}...")
 
     def emit(self, s: str | List[str]):
         if isinstance(s, str):
