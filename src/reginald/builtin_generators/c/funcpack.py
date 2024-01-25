@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from os import path
 from typing import Any, Dict, List
 
+from tabulate import tabulate
+
 from reginald.datamodel import (Docs, Field, RegEnum, Register, RegisterBlock,
                                 RegisterMap)
 from reginald.generator import OutputGenerator
@@ -169,28 +171,32 @@ class Generator(OutputGenerator):
         macro_reg_template = c_macro(block.name + template.name)
         macro_prefix = c_macro(rmap.map_name) + "_REG"
 
+        defines = []  # type: List[List[str]]
+
         for instance_name, instance_start in block.instances.items():
-            self.emit(f"#define {macro_prefix}_{c_macro(instance_name+template.name)} "
-                      f"(0x{template.adr+instance_start:X}U)"
-                      f"//!< {instance_name+template.name} register address")
+            defines.append([f"#define {macro_prefix}_{c_macro(instance_name+template.name)}",
+                            f"(0x{template.adr+instance_start:X}U)",
+                            f"//!< {instance_name+template.name} register address"])
 
         if len(block.instances) > 1 and len(block.register_templates) > 1:
-            self.emit(f"#define {macro_prefix}_{c_macro(block.name+template.name)}__OFFSET "
-                      f"(0x{template.adr:X}U) "
-                      f"//!< Offset of {block.name+template.name} register from {block.name} block start")
+            defines.append([f"#define {macro_prefix}_{c_macro(block.name+template.name)}__OFFSET",
+                            f"(0x{template.adr:X}U)",
+                            f"//!< Offset of {block.name+template.name} register from {block.name} block start"])
 
         if template.reset_val is not None:
-            self.emit(f"#define {macro_prefix}_{macro_reg_template}__RESET "
-                      f"(0x{template.reset_val:X}U) "
-                      f"//!< {block.name+template.name} register reset value")
+            defines.append([f"#define {macro_prefix}_{macro_reg_template}__RESET",
+                            f"(0x{template.reset_val:X}U)",
+                            f"//!< {block.name+template.name} register reset value"])
 
         if template.always_write is not None:
-            self.emit(f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK "
-                      f"(0x{template.always_write.bits.get_bitmask():X}U) "
-                      f"//!< {block.name+template.name} register always write mask")
-            self.emit(f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE "
-                      f"(0x{template.always_write.value:X}U) "
-                      f"//!< {block.name+template.name} register always write value")
+            defines.append([f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK",
+                            f"(0x{template.always_write.bits.get_bitmask():X}U)",
+                            f"//!< {block.name+template.name} register always write mask"])
+            defines.append([f"#define {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE",
+                            f"(0x{template.always_write.value:X}U)",
+                            f"//!< {block.name+template.name} register always write value"])
+
+        self.emit(tabulate(defines, tablefmt='plain', disable_numparse=True))
 
     def generate_register_enums(self, rmap: RegisterMap, block: RegisterBlock, template: Register, opts):
         for enum in template.get_local_enums():
