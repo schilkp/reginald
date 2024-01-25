@@ -243,7 +243,7 @@ class Generator(OutputGenerator):
             shift = field.bits.lsb_position()
             self.emit(
                 f"  val = (val & ~0x{mask:X}U) | ({packed_type}) ((r->{c_code(field.name)} & 0x{unpos_mask:X}U) << {shift}U);")
-        self.emit(f" return val;")
+        self.emit(f"  return val;")
         self.emit(f"}}")
 
         self.emit(f"")
