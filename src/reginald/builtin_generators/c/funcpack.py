@@ -37,7 +37,7 @@ ARGS = {
     GenArg(flag='--clang-format-guard',
            action=argparse.BooleanOptionalAction,
            help="include a clang-format guard covering the complete file",
-           default=False),
+           default=True),
     'enums':
     GenArg(flag='--enums',
            action=argparse.BooleanOptionalAction,
@@ -82,6 +82,9 @@ class Generator(OutputGenerator):
 
         self.out = []
 
+        if opts.clang_format_guard:
+            self.emit(f"// clang-format off")
+
         self.emit(f"/**")
         self.emit(f" * @file {output_file_base}")
         self.emit(f" * @brief {rmap.map_name} registers")
@@ -96,10 +99,6 @@ class Generator(OutputGenerator):
         self.emit(f"#ifndef {c_macro(output_file_base)}_")
         self.emit(f"#define {c_macro(output_file_base)}_")
         self.emit(f"")
-
-        if opts.clang_format_guard:
-            self.emit(f"// clang-format off")
-            self.emit(f"")
 
         self.emit(f"#include <stdint.h>")
         for include in opts.add_include:
@@ -138,12 +137,12 @@ class Generator(OutputGenerator):
                         self.generate_register_funcs(rmap, block, template, opts)
 
         if opts.generic_macros:
-            self.generate_generic_macros(rmap, opts)
+            self.generate_generic_macros(rmap)
 
-        if opts.clang_format_guard:
-            self.emit(f"// clang-format on")
         self.emit(f"")
         self.emit(f"#endif /* {c_macro(output_file_base)} */")
+        if opts.clang_format_guard:
+            self.emit(f"// clang-format on")
 
         with open(output_file, 'w') as outfile:
             outfile.write("\n".join(self.out) + "\n")
@@ -274,13 +273,8 @@ class Generator(OutputGenerator):
             self.emit(f"  s->{c_code(field.name)} = ({field_type}) ((val & 0x{mask:X}U) >> {shift}U);")
         self.emit(f"}}")
 
-    def generate_generic_macros(self, rmap: RegisterMap, opts):
+    def generate_generic_macros(self, rmap: RegisterMap):
         macro_prefix = c_macro(rmap.map_name) + "_REG"
-
-        self.emit(f"")
-        if not opts.clang_format_guard:
-            self.emit(f"// Disable clang-format for this section, since _Generic formatting is buggy up to v14.")
-            self.emit(f"// clang-format off")
 
         self.emit(f"")
         self.emit(doxy_comment(Docs(
@@ -321,9 +315,6 @@ class Generator(OutputGenerator):
         self.emit(f"  )(_val_,_struct_ptr_)")
 
         self.emit(f"")
-        if not opts.clang_format_guard:
-            self.emit(f"// clang-format on")
-
 
 def parse_args(args: List[str]):
 
