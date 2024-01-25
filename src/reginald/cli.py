@@ -39,7 +39,7 @@ def parse_args() -> Tuple[CLI, OutputGenerator]:
                                      epilog="builtin generators: \n" + builtin_choices_text,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('--version', action='version', version='reginald v0.0.2')
+    parser.add_argument('--version', action='version', version='reginald ' + reginald.__version__)
     parser.add_argument('input_file',
                         help="input register description yaml")
     parser.add_argument('output_file',

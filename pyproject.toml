@@ -2,14 +2,13 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-
 [project]
 name = "reginald"
-version = "0.0.2"
 authors = [
   { name="Philipp Schilk", email="schilk.philipp@gmail.com" },
 ]
 description = "Register-management code generator."
+dynamic = ['version'] # Version defined in __init__.py
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -29,4 +28,8 @@ Homepage = "https://github.com/schilkp/reginald"
 Issues = "https://github.com/schilkp/reginald/issues"
 
 [project.optional-dependencies]
-dev = [ "autopep8", "flake8", "build", "twine"]
+dev = [ "autopep8", "flake8", "build", "twine" ]
+
+[tool.hatch.version]
+# Use version as defined in __init__.py:
+path = "src/reginald/__init__.py"
