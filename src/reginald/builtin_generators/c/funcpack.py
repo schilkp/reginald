@@ -254,12 +254,12 @@ class Generator(OutputGenerator):
 
         self.emit(f"")
         self.emit(doxy_comment(Docs(brief="Convert packed register value to register struct initialization", doc=None)))
-        self.emit(f"#define {c_macro(struct_name)}_UNPACK(_VAL_) {{ \\")
+        self.emit(f"#define {c_macro(struct_name)}_UNPACK(_VAL_) {{ ".ljust(99, " ") + "\\")
         for field in template.fields.values():
             mask = field.bits.get_bitmask()
             field_type = register_struct_member_type(rmap, block, template, field, opts)
             shift = field.bits.lsb_position()
-            self.emit(f"  .{c_code(field.name)} = ({field_type}) (((_VAL_) & 0x{mask:X}U) >> {shift}U), \\")
+            self.emit(f"  .{c_code(field.name)} = ({field_type}) (((_VAL_) & 0x{mask:X}U) >> {shift}U),".ljust(99, " ") + "\\")
         self.emit(f"}}")
         self.emit(f"")
 
@@ -315,6 +315,7 @@ class Generator(OutputGenerator):
         self.emit(f"  )(_val_,_struct_ptr_)")
 
         self.emit(f"")
+
 
 def parse_args(args: List[str]):
 
