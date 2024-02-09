@@ -255,10 +255,10 @@ class Generator(OutputGenerator):
         self.emit(doxy_comment(Docs(brief="Convert packed register value to register struct initialization", doc=None)))
         self.emit(f"#define {c_macro(struct_name)}_UNPACK(_VAL_) {{ ".ljust(99, " ") + "\\")
         for field in template.fields.values():
-            mask = field.bits.get_bitmask()
+            mask = field.bits.get_unpositioned_bits().get_bitmask()
             field_type = register_struct_member_type(rmap, block, template, field, opts)
             shift = field.bits.lsb_position()
-            self.emit(f"  .{c_code(field.name)} = ({field_type}) (((_VAL_) & 0x{mask:X}U) >> {shift}U),".ljust(99, " ") + "\\")
+            self.emit(f"  .{c_code(field.name)} = ({field_type}) (((_VAL_) >> {shift}U) & 0x{mask:X}U),".ljust(99, " ") + "\\")
         self.emit(f"}}")
         self.emit(f"")
 
@@ -266,10 +266,10 @@ class Generator(OutputGenerator):
         self.emit(doxy_comment(Docs(brief="Convert packed register value to into a register struct.", doc=None)))
         self.emit(f"static inline void {struct_name}_unpack_into({packed_type} val, struct {struct_name} *s) {{")
         for field in template.fields.values():
-            mask = field.bits.get_bitmask()
+            mask = field.bits.get_unpositioned_bits().get_bitmask()
             field_type = register_struct_member_type(rmap, block, template, field, opts)
             shift = field.bits.lsb_position()
-            self.emit(f"  s->{c_code(field.name)} = ({field_type}) ((val & 0x{mask:X}U) >> {shift}U);")
+            self.emit(f"  s->{c_code(field.name)} = ({field_type}) ((val  >> {shift}U) & 0x{mask:X}U);")
         self.emit(f"}}")
 
     def generate_generic_macros(self, rmap: RegisterMap):
