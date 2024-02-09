@@ -134,7 +134,7 @@ class Generator(OutputGenerator):
                         self.generate_register_struct(rmap, block, template, opts)
 
                     if opts.register_functions:
-                        self.generate_register_funcs(rmap, block, template, opts)
+                        self.generate_register_funcs(rmap, block, template)
 
         if opts.generic_macros:
             self.generate_generic_macros(rmap)
@@ -222,7 +222,7 @@ class Generator(OutputGenerator):
                 self.emit(f"  {field_type} {c_code(field.name)};")
         self.emit(f"}};")
 
-    def generate_register_funcs(self, rmap: RegisterMap, block: RegisterBlock, template: Register, opts):
+    def generate_register_funcs(self, rmap: RegisterMap, block: RegisterBlock, template: Register):
         struct_name = name_register_struct(rmap, block, template)
         packed_type = c_fitting_unsigned_type(template.bitwidth)
         macro_reg_template = c_macro(block.name + template.name)
@@ -234,14 +234,15 @@ class Generator(OutputGenerator):
             doc="All bits that are not part of a field or specified as 'always write' are kept as in 'val'.")))
         self.emit(f"static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{")
         if template.always_write is not None:
-            self.emit(f"  val &= ~{macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK;")
+            self.emit(f"  val &= ~({packed_type}){macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK;")
             self.emit(f"  val |= {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE;")
         for field in template.fields.values():
             mask = field.bits.get_bitmask()
             unpos_mask = field.bits.get_unpositioned_bits().get_bitmask()
             shift = field.bits.lsb_position()
-            self.emit(
-                f"  val = (val & ~0x{mask:X}U) | ({packed_type}) ((r->{c_code(field.name)} & 0x{unpos_mask:X}U) << {shift}U);")
+            self.emit(f"  val = ({packed_type})("+f"(val & ~({packed_type})0x{mask:X}U) | " +
+                      f"(((({packed_type})r->{c_code(field.name)}) & 0x{unpos_mask:X}U) " +
+                      f"<< (({packed_type}) {shift}U)));")
         self.emit(f"  return val;")
         self.emit(f"}}")
 
