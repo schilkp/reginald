@@ -1,12 +1,12 @@
 from typing import Dict, List, Union
 
 import yaml
-from pydantic import ValidationError, NonNegativeInt
+from pydantic import NonNegativeInt, ValidationError
 from pydantic.dataclasses import dataclass
 from tabulate import tabulate
 from yaml import SafeLoader
 
-from reginald.datamodel import RegisterMap, Bits
+from reginald.datamodel import Bits, RegisterMap
 from reginald.error import ReginaldException
 from reginald.generator import OutputGenerator
 
@@ -55,7 +55,6 @@ class Generator(OutputGenerator):
 
         _ = input_file
         _ = output_file
-        _ = args
 
         registers = []
         for block in rmap.register_blocks.values():
