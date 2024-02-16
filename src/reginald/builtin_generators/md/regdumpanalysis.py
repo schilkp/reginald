@@ -50,10 +50,11 @@ class Generator(OutputGenerator):
     def description(self):
         return "Markdown register dump decode."
 
-    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]) -> List[str]:
         out = []
 
         _ = input_file
+        _ = output_file
         _ = args
 
         registers = []
@@ -180,5 +181,4 @@ class Generator(OutputGenerator):
             out.append(f"")
             out.append(f"")
 
-        with open(output_file, 'w') as outfile:
-            outfile.write("\n".join(out))
+        return out

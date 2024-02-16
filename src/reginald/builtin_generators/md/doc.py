@@ -11,7 +11,7 @@ class Generator(OutputGenerator):
     def description(self):
         return "Markdown register documentation."
 
-    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]) -> List[str]:
         out = []
 
         _ = input_file
@@ -135,5 +135,4 @@ class Generator(OutputGenerator):
             out.append("")
             out.append("---")
 
-        with open(output_file, 'w') as outfile:
-            outfile.write("\n".join(out))
+        return out

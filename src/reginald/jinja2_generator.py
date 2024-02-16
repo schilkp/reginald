@@ -16,7 +16,7 @@ class BuiltinJinjaGenerator(OutputGenerator):
     def description(self) -> str:
         return self.desc
 
-    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]) -> List[str]:
         env = Environment(
             loader=PackageLoader("reginald", "builtin_templates"),
             trim_blocks=True, lstrip_blocks=True
@@ -24,12 +24,12 @@ class BuiltinJinjaGenerator(OutputGenerator):
 
         template = env.get_template(self.template_name)
 
-        render_jinja2_template(template, rmap, input_file, output_file, args)
+        return render_jinja2_template(template, rmap, input_file, output_file, args)
 
 
-def render_jinja2_template(template, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+def render_jinja2_template(template, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]) -> List[str]:
 
-    result = template.render(
+    return template.render(
         rmap=rmap,
         input_file_full=input_file,
         input_file=path.basename(input_file),
@@ -40,7 +40,4 @@ def render_jinja2_template(template, rmap: RegisterMap, input_file: str, output_
         c_fitting_unsigned_type=reginald.utils.c_fitting_unsigned_type,
         str_pad_to_length=reginald.utils.str_pad_to_length,
         hex=hex,
-    )
-
-    with open(output_file, 'w') as outfile:
-        outfile.write(result)
+    ).splitlines()

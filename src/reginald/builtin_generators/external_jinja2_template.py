@@ -12,7 +12,7 @@ class Generator(OutputGenerator):
     def description(self) -> str:
         return "Jinja2 template."
 
-    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]) -> List[str]:
         parser = argparse.ArgumentParser(prog="jinja2", description=self.description())
         parser.add_argument('template',
                             help="jinj2 template file")
@@ -28,4 +28,4 @@ class Generator(OutputGenerator):
 
         template = env.get_template(parsed_args.template)
 
-        render_jinja2_template(template, rmap, input_file, output_file, parsed_args.template_args)
+        return render_jinja2_template(template, rmap, input_file, output_file, parsed_args.template_args)

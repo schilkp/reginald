@@ -75,7 +75,7 @@ class Generator(OutputGenerator):
     def description(self) -> str:
         return "C header with register structs and conversion functions."
 
-    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]):
+    def generate(self, rmap: RegisterMap, input_file: str, output_file: str, args: List[str]) -> List[str]:
         opts = parse_args(args)
         input_file_base = path.basename(input_file)
         output_file_base = path.basename(output_file)
@@ -144,8 +144,7 @@ class Generator(OutputGenerator):
         if opts.clang_format_guard:
             self.emit(f"// clang-format on")
 
-        with open(output_file, 'w') as outfile:
-            outfile.write("\n".join(self.out) + "\n")
+        return self.out
 
     def emit(self, s: str | List[str]):
         if isinstance(s, str):
