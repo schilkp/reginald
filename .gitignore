@@ -84,3 +84,6 @@ log.txt
 dist/
 
 out/
+
+out.h
+out.md
