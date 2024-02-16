@@ -24,6 +24,7 @@ class CLI:
     input_file: str
     output_file: str
     generator_args: List[str]
+    verify: bool
 
 
 def parse_args() -> Tuple[CLI, OutputGenerator]:
@@ -40,6 +41,7 @@ def parse_args() -> Tuple[CLI, OutputGenerator]:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--version', action='version', version='reginald ' + reginald.__version__)
+    parser.add_argument('--verify', action='store_true', help="verify that existing file is up-to-date")
     parser.add_argument('input_file',
                         help="input register description yaml")
     parser.add_argument('output_file',
@@ -59,4 +61,5 @@ def parse_args() -> Tuple[CLI, OutputGenerator]:
 
     return CLI(input_file=args.input_file,
                output_file=args.output_file,
-               generator_args=args.generator_args), generator
+               generator_args=args.generator_args,
+               verify=args.verify), generator

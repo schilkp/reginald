@@ -193,7 +193,7 @@ class Generator(OutputGenerator):
                             f"(0x{template.always_write.value:X}U)",
                             f"//!< {block.name+template.name} register always write value"])
 
-        self.emit(tabulate(defines, tablefmt='plain', disable_numparse=True))
+        self.emit(tabulate(defines, tablefmt='plain', disable_numparse=True).splitlines())
 
     def generate_register_enums(self, rmap: RegisterMap, block: RegisterBlock, template: Register, opts):
         for enum in template.get_local_enums():
