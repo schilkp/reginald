@@ -42,7 +42,7 @@
   
   // ==== BASIC register =========================================================
   
-  #define SNAPSHOTTER32B_REG_BASIC  (0x0U)  //!< BASIC register address
+  #define SNAPSHOTTER32B_BASIC  (0x0U)  //!< BASIC register address
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter32b_basic {
@@ -98,10 +98,10 @@
   // Status.
   // More extensive documentation.
   
-  #define SNAPSHOTTER32B_REG_COMPLICATED                     (0xFU)         //!< COMPLICATED register address
-  #define SNAPSHOTTER32B_REG_COMPLICATED__RESET              (0xFFFFFFFFU)  //!< COMPLICATED register reset value
-  #define SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0xC30U)       //!< COMPLICATED register always write mask
-  #define SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0xC10U)       //!< COMPLICATED register always write value
+  #define SNAPSHOTTER32B_COMPLICATED                     (0xFU)         //!< COMPLICATED register address
+  #define SNAPSHOTTER32B_COMPLICATED__RESET              (0xFFFFFFFFU)  //!< COMPLICATED register reset value
+  #define SNAPSHOTTER32B_COMPLICATED__ALWAYSWRITE_MASK   (0xC30U)       //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER32B_COMPLICATED__ALWAYSWRITE_VALUE  (0xC10U)       //!< COMPLICATED register always write value
   
   /**
    * @brief Another cool field.
@@ -134,8 +134,8 @@
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
   static inline uint32_t snapshotter32b_complicated_overwrite(const struct snapshotter32b_complicated *r, uint32_t val) {
-    val &= ~(uint32_t)SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_MASK;
-    val |= SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val &= ~(uint32_t)SNAPSHOTTER32B_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER32B_COMPLICATED__ALWAYSWRITE_VALUE;
     val = (uint32_t)((val & ~(uint32_t)0xC0U) | ((((uint32_t)r->field1) & 0x3U) << ((uint32_t) 6U)));
     val = (uint32_t)((val & ~(uint32_t)0xFU) | ((((uint32_t)r->field2) & 0xFU) << ((uint32_t) 0U)));
     return val;
@@ -161,11 +161,11 @@
   
   // ==== CHn_CNFG register ======================================================
   
-  #define SNAPSHOTTER32B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
-  #define SNAPSHOTTER32B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
-  #define SNAPSHOTTER32B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
-  #define SNAPSHOTTER32B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
-  #define SNAPSHOTTER32B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  #define SNAPSHOTTER32B_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER32B_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER32B_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER32B_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER32B_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
   
   /** @brief Controls value A */
   enum snapshotter32b_chn_cnfg_a {
@@ -210,11 +210,11 @@
   
   // ==== CHn_STATUS register ====================================================
   
-  #define SNAPSHOTTER32B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
-  #define SNAPSHOTTER32B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
-  #define SNAPSHOTTER32B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
-  #define SNAPSHOTTER32B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
-  #define SNAPSHOTTER32B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  #define SNAPSHOTTER32B_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER32B_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER32B_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER32B_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER32B_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter32b_chn_status {
@@ -251,7 +251,7 @@
    * @brief Convert register struct to packed register value.
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
-  #define SNAPSHOTTER32B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER32B_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
       struct snapshotter32b_basic* : snapshotter32b_basic_overwrite,  \
       struct snapshotter32b_complicated* : snapshotter32b_complicated_overwrite,  \
       struct snapshotter32b_chn_cnfg* : snapshotter32b_chn_cnfg_overwrite,  \
@@ -259,7 +259,7 @@
     )(_struct_ptr_, _val_)
   
   /** @brief Convert register struct to packed register value. */
-  #define SNAPSHOTTER32B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER32B_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter32b_basic* : snapshotter32b_basic_pack,  \
       struct snapshotter32b_complicated* : snapshotter32b_complicated_pack,  \
       struct snapshotter32b_chn_cnfg* : snapshotter32b_chn_cnfg_pack,  \
@@ -267,7 +267,7 @@
     )(_struct_ptr_)
   
   /** @brief Convert packed register value to into a register struct. */
-  #define SNAPSHOTTER32B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER32B_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter32b_basic* : snapshotter32b_basic_unpack_into,  \
       struct snapshotter32b_complicated* : snapshotter32b_complicated_unpack_into,  \
       struct snapshotter32b_chn_cnfg* : snapshotter32b_chn_cnfg_unpack_into,  \
@@ -322,7 +322,7 @@
   
   // ==== BASIC register =========================================================
   
-  #define SNAPSHOTTER64B_REG_BASIC  (0x0U)  //!< BASIC register address
+  #define SNAPSHOTTER64B_BASIC  (0x0U)  //!< BASIC register address
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter64b_basic {
@@ -378,10 +378,10 @@
   // Status.
   // More extensive documentation.
   
-  #define SNAPSHOTTER64B_REG_COMPLICATED                     (0xFU)         //!< COMPLICATED register address
-  #define SNAPSHOTTER64B_REG_COMPLICATED__RESET              (0xFFFFFFFFU)  //!< COMPLICATED register reset value
-  #define SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0xC30U)       //!< COMPLICATED register always write mask
-  #define SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0xC10U)       //!< COMPLICATED register always write value
+  #define SNAPSHOTTER64B_COMPLICATED                     (0xFU)         //!< COMPLICATED register address
+  #define SNAPSHOTTER64B_COMPLICATED__RESET              (0xFFFFFFFFU)  //!< COMPLICATED register reset value
+  #define SNAPSHOTTER64B_COMPLICATED__ALWAYSWRITE_MASK   (0xC30U)       //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER64B_COMPLICATED__ALWAYSWRITE_VALUE  (0xC10U)       //!< COMPLICATED register always write value
   
   /**
    * @brief Another cool field.
@@ -414,8 +414,8 @@
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
   static inline uint64_t snapshotter64b_complicated_overwrite(const struct snapshotter64b_complicated *r, uint64_t val) {
-    val &= ~(uint64_t)SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_MASK;
-    val |= SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val &= ~(uint64_t)SNAPSHOTTER64B_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER64B_COMPLICATED__ALWAYSWRITE_VALUE;
     val = (uint64_t)((val & ~(uint64_t)0xC0U) | ((((uint64_t)r->field1) & 0x3U) << ((uint64_t) 6U)));
     val = (uint64_t)((val & ~(uint64_t)0xFU) | ((((uint64_t)r->field2) & 0xFU) << ((uint64_t) 0U)));
     return val;
@@ -441,11 +441,11 @@
   
   // ==== CHn_CNFG register ======================================================
   
-  #define SNAPSHOTTER64B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
-  #define SNAPSHOTTER64B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
-  #define SNAPSHOTTER64B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
-  #define SNAPSHOTTER64B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
-  #define SNAPSHOTTER64B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  #define SNAPSHOTTER64B_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER64B_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER64B_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER64B_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER64B_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
   
   /** @brief Controls value A */
   enum snapshotter64b_chn_cnfg_a {
@@ -490,11 +490,11 @@
   
   // ==== CHn_STATUS register ====================================================
   
-  #define SNAPSHOTTER64B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
-  #define SNAPSHOTTER64B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
-  #define SNAPSHOTTER64B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
-  #define SNAPSHOTTER64B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
-  #define SNAPSHOTTER64B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  #define SNAPSHOTTER64B_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER64B_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER64B_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER64B_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER64B_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter64b_chn_status {
@@ -531,7 +531,7 @@
    * @brief Convert register struct to packed register value.
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
-  #define SNAPSHOTTER64B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER64B_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
       struct snapshotter64b_basic* : snapshotter64b_basic_overwrite,  \
       struct snapshotter64b_complicated* : snapshotter64b_complicated_overwrite,  \
       struct snapshotter64b_chn_cnfg* : snapshotter64b_chn_cnfg_overwrite,  \
@@ -539,7 +539,7 @@
     )(_struct_ptr_, _val_)
   
   /** @brief Convert register struct to packed register value. */
-  #define SNAPSHOTTER64B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER64B_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter64b_basic* : snapshotter64b_basic_pack,  \
       struct snapshotter64b_complicated* : snapshotter64b_complicated_pack,  \
       struct snapshotter64b_chn_cnfg* : snapshotter64b_chn_cnfg_pack,  \
@@ -547,7 +547,7 @@
     )(_struct_ptr_)
   
   /** @brief Convert packed register value to into a register struct. */
-  #define SNAPSHOTTER64B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER64B_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter64b_basic* : snapshotter64b_basic_unpack_into,  \
       struct snapshotter64b_complicated* : snapshotter64b_complicated_unpack_into,  \
       struct snapshotter64b_chn_cnfg* : snapshotter64b_chn_cnfg_unpack_into,  \
@@ -602,7 +602,7 @@
   
   // ==== BASIC register =========================================================
   
-  #define SNAPSHOTTER8B_REG_BASIC  (0x0U)  //!< BASIC register address
+  #define SNAPSHOTTER8B_BASIC  (0x0U)  //!< BASIC register address
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter8b_basic {
@@ -654,10 +654,10 @@
   // Status.
   // More extensive documentation.
   
-  #define SNAPSHOTTER8B_REG_COMPLICATED                     (0xFU)   //!< COMPLICATED register address
-  #define SNAPSHOTTER8B_REG_COMPLICATED__RESET              (0x0U)   //!< COMPLICATED register reset value
-  #define SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0x30U)  //!< COMPLICATED register always write mask
-  #define SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0x10U)  //!< COMPLICATED register always write value
+  #define SNAPSHOTTER8B_COMPLICATED                     (0xFU)   //!< COMPLICATED register address
+  #define SNAPSHOTTER8B_COMPLICATED__RESET              (0x0U)   //!< COMPLICATED register reset value
+  #define SNAPSHOTTER8B_COMPLICATED__ALWAYSWRITE_MASK   (0x30U)  //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER8B_COMPLICATED__ALWAYSWRITE_VALUE  (0x10U)  //!< COMPLICATED register always write value
   
   /**
    * @brief Another cool field.
@@ -690,8 +690,8 @@
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
   static inline uint8_t snapshotter8b_complicated_overwrite(const struct snapshotter8b_complicated *r, uint8_t val) {
-    val &= ~(uint8_t)SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_MASK;
-    val |= SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val &= ~(uint8_t)SNAPSHOTTER8B_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER8B_COMPLICATED__ALWAYSWRITE_VALUE;
     val = (uint8_t)((val & ~(uint8_t)0xC0U) | ((((uint8_t)r->field1) & 0x3U) << ((uint8_t) 6U)));
     val = (uint8_t)((val & ~(uint8_t)0xFU) | ((((uint8_t)r->field2) & 0xFU) << ((uint8_t) 0U)));
     return val;
@@ -717,11 +717,11 @@
   
   // ==== CHn_CNFG register ======================================================
   
-  #define SNAPSHOTTER8B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
-  #define SNAPSHOTTER8B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
-  #define SNAPSHOTTER8B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
-  #define SNAPSHOTTER8B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
-  #define SNAPSHOTTER8B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  #define SNAPSHOTTER8B_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER8B_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER8B_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER8B_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER8B_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
   
   /** @brief Controls value A */
   enum snapshotter8b_chn_cnfg_a {
@@ -762,11 +762,11 @@
   
   // ==== CHn_STATUS register ====================================================
   
-  #define SNAPSHOTTER8B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
-  #define SNAPSHOTTER8B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
-  #define SNAPSHOTTER8B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
-  #define SNAPSHOTTER8B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
-  #define SNAPSHOTTER8B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  #define SNAPSHOTTER8B_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER8B_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER8B_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER8B_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER8B_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter8b_chn_status {
@@ -803,7 +803,7 @@
    * @brief Convert register struct to packed register value.
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
-  #define SNAPSHOTTER8B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER8B_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
       struct snapshotter8b_basic* : snapshotter8b_basic_overwrite,  \
       struct snapshotter8b_complicated* : snapshotter8b_complicated_overwrite,  \
       struct snapshotter8b_chn_cnfg* : snapshotter8b_chn_cnfg_overwrite,  \
@@ -811,7 +811,7 @@
     )(_struct_ptr_, _val_)
   
   /** @brief Convert register struct to packed register value. */
-  #define SNAPSHOTTER8B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER8B_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter8b_basic* : snapshotter8b_basic_pack,  \
       struct snapshotter8b_complicated* : snapshotter8b_complicated_pack,  \
       struct snapshotter8b_chn_cnfg* : snapshotter8b_chn_cnfg_pack,  \
@@ -819,7 +819,7 @@
     )(_struct_ptr_)
   
   /** @brief Convert packed register value to into a register struct. */
-  #define SNAPSHOTTER8B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER8B_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter8b_basic* : snapshotter8b_basic_unpack_into,  \
       struct snapshotter8b_complicated* : snapshotter8b_complicated_unpack_into,  \
       struct snapshotter8b_chn_cnfg* : snapshotter8b_chn_cnfg_unpack_into,  \
@@ -874,7 +874,7 @@
   
   // ==== BASIC register =========================================================
   
-  #define SNAPSHOTTER9B_REG_BASIC  (0x0U)  //!< BASIC register address
+  #define SNAPSHOTTER9B_BASIC  (0x0U)  //!< BASIC register address
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter9b_basic {
@@ -930,10 +930,10 @@
   // Status.
   // More extensive documentation.
   
-  #define SNAPSHOTTER9B_REG_COMPLICATED                     (0xFU)   //!< COMPLICATED register address
-  #define SNAPSHOTTER9B_REG_COMPLICATED__RESET              (0x0U)   //!< COMPLICATED register reset value
-  #define SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0x30U)  //!< COMPLICATED register always write mask
-  #define SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0x10U)  //!< COMPLICATED register always write value
+  #define SNAPSHOTTER9B_COMPLICATED                     (0xFU)   //!< COMPLICATED register address
+  #define SNAPSHOTTER9B_COMPLICATED__RESET              (0x0U)   //!< COMPLICATED register reset value
+  #define SNAPSHOTTER9B_COMPLICATED__ALWAYSWRITE_MASK   (0x30U)  //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER9B_COMPLICATED__ALWAYSWRITE_VALUE  (0x10U)  //!< COMPLICATED register always write value
   
   /**
    * @brief Another cool field.
@@ -966,8 +966,8 @@
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
   static inline uint16_t snapshotter9b_complicated_overwrite(const struct snapshotter9b_complicated *r, uint16_t val) {
-    val &= ~(uint16_t)SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_MASK;
-    val |= SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val &= ~(uint16_t)SNAPSHOTTER9B_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER9B_COMPLICATED__ALWAYSWRITE_VALUE;
     val = (uint16_t)((val & ~(uint16_t)0x1C0U) | ((((uint16_t)r->field1) & 0x7U) << ((uint16_t) 6U)));
     val = (uint16_t)((val & ~(uint16_t)0xFU) | ((((uint16_t)r->field2) & 0xFU) << ((uint16_t) 0U)));
     return val;
@@ -993,11 +993,11 @@
   
   // ==== CHn_CNFG register ======================================================
   
-  #define SNAPSHOTTER9B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
-  #define SNAPSHOTTER9B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
-  #define SNAPSHOTTER9B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
-  #define SNAPSHOTTER9B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
-  #define SNAPSHOTTER9B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  #define SNAPSHOTTER9B_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER9B_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER9B_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER9B_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER9B_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
   
   /** @brief Controls value A */
   enum snapshotter9b_chn_cnfg_a {
@@ -1038,11 +1038,11 @@
   
   // ==== CHn_STATUS register ====================================================
   
-  #define SNAPSHOTTER9B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
-  #define SNAPSHOTTER9B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
-  #define SNAPSHOTTER9B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
-  #define SNAPSHOTTER9B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
-  #define SNAPSHOTTER9B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  #define SNAPSHOTTER9B_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER9B_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER9B_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER9B_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER9B_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
   
   /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
   struct snapshotter9b_chn_status {
@@ -1079,7 +1079,7 @@
    * @brief Convert register struct to packed register value.
    * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
    */
-  #define SNAPSHOTTER9B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER9B_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
       struct snapshotter9b_basic* : snapshotter9b_basic_overwrite,  \
       struct snapshotter9b_complicated* : snapshotter9b_complicated_overwrite,  \
       struct snapshotter9b_chn_cnfg* : snapshotter9b_chn_cnfg_overwrite,  \
@@ -1087,7 +1087,7 @@
     )(_struct_ptr_, _val_)
   
   /** @brief Convert register struct to packed register value. */
-  #define SNAPSHOTTER9B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER9B_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter9b_basic* : snapshotter9b_basic_pack,  \
       struct snapshotter9b_complicated* : snapshotter9b_complicated_pack,  \
       struct snapshotter9b_chn_cnfg* : snapshotter9b_chn_cnfg_pack,  \
@@ -1095,7 +1095,7 @@
     )(_struct_ptr_)
   
   /** @brief Convert packed register value to into a register struct. */
-  #define SNAPSHOTTER9B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+  #define SNAPSHOTTER9B_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
       struct snapshotter9b_basic* : snapshotter9b_basic_unpack_into,  \
       struct snapshotter9b_complicated* : snapshotter9b_complicated_unpack_into,  \
       struct snapshotter9b_chn_cnfg* : snapshotter9b_chn_cnfg_unpack_into,  \

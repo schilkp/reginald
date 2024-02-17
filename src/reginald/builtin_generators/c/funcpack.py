@@ -166,7 +166,7 @@ class Generator(OutputGenerator):
 
     def generate_register_defines(self, rmap: RegisterMap, block: RegisterBlock, template: Register):
         macro_reg_template = c_macro(block.name + template.name)
-        macro_prefix = c_macro(rmap.map_name) + "_REG"
+        macro_prefix = c_macro(rmap.map_name)
 
         defines = []  # type: List[List[str]]
 
@@ -225,7 +225,7 @@ class Generator(OutputGenerator):
         struct_name = name_register_struct(rmap, block, template)
         packed_type = c_fitting_unsigned_type(template.bitwidth)
         macro_reg_template = c_macro(block.name + template.name)
-        macro_prefix = c_macro(rmap.map_name) + "_REG"
+        macro_prefix = c_macro(rmap.map_name)
 
         self.emit(f"")
         self.emit(doxy_comment(Docs(
@@ -271,7 +271,7 @@ class Generator(OutputGenerator):
         self.emit(f"}}")
 
     def generate_generic_macros(self, rmap: RegisterMap):
-        macro_prefix = c_macro(rmap.map_name) + "_REG"
+        macro_prefix = c_macro(rmap.map_name)
 
         self.emit(f"")
         self.emit(doxy_comment(Docs(
