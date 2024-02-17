@@ -1,0 +1,767 @@
+# serializer version: 1
+# name: test_md_docs_32b
+  '''
+  # Snapshotter32B Register Map
+  
+  ## Overview:
+  
+  
+  | Address   | Register    | Fields                                         |
+  |:----------|:------------|:-----------------------------------------------|
+  | 0x0       | BASIC       | FIELD0, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5 |
+  | 0xf       | COMPLICATED | FIELD1, FIELD2                                 |
+  | 0x10      | CH1_CNFG    | Y, A                                           |
+  | 0x11      | CH1_STATUS  | STATUS                                         |
+  | 0x20      | CH2_CNFG    | Y, A                                           |
+  | 0x21      | CH2_STATUS  | STATUS                                         |
+  | 0x30      | CH3_CNFG    | Y, A                                           |
+  | 0x31      | CH3_STATUS  | STATUS                                         |
+  
+  ## Registers:
+  ### BASIC:
+   - Address: 0x0
+  
+  |  Bits:  |  31-9  |  8  |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:------:|:---:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  | FIELD0 |  ?  | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Access: |        |  ?  |        |        |        |        |        |
+  
+  
+  *Bitfields*:
+  
+    - FIELD0:
+  
+    - FIELD1:
+  
+    - FIELD2:
+  
+    - FIELD3:
+  
+    - FIELD4:
+  
+    - FIELD5:
+  
+  ---
+  ### COMPLICATED:
+   - Status.
+   - More extensive documentation.
+   - Address: 0xF
+   - Reset Val: 0xFFFFFFFF
+  
+  |  Bits:  |  31-8  |  7-6   |       5-4        |  3-0   |
+  |:-------:|:------:|:------:|:----------------:|:------:|
+  | Field:  |   ?    | FIELD1 | Always write 0x1 | FIELD2 |
+  | Access: |   ?    |   r    |                  |   r    |
+  
+  
+  *Bitfields*:
+  
+    - FIELD1 [r]:
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+    - FIELD2 [r]:
+      - Another cool field.
+      - Important details.
+      - Accepts:
+        - EN: 0x3 (Is on.)
+  
+  ---
+  ### CH1_CNFG:
+   - Address: 0x10
+   - Reset Val: 0x0
+  
+  |  Bits:  |  31-30  |  29-1  |  0  |
+  |:-------:|:-------:|:------:|:---:|
+  | Field:  |    Y    |   ?    |  A  |
+  | Access: |         |   ?    |     |
+  
+  
+  *Bitfields*:
+  
+    - Y:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH1_STATUS:
+   - Address: 0x11
+   - Reset Val: 0x0
+  
+  |  Bits:  |  31-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Access: |   ?    |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH2_CNFG:
+   - Address: 0x20
+   - Reset Val: 0x0
+  
+  |  Bits:  |  31-30  |  29-1  |  0  |
+  |:-------:|:-------:|:------:|:---:|
+  | Field:  |    Y    |   ?    |  A  |
+  | Access: |         |   ?    |     |
+  
+  
+  *Bitfields*:
+  
+    - Y:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH2_STATUS:
+   - Address: 0x21
+   - Reset Val: 0x0
+  
+  |  Bits:  |  31-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Access: |   ?    |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH3_CNFG:
+   - Address: 0x30
+   - Reset Val: 0x0
+  
+  |  Bits:  |  31-30  |  29-1  |  0  |
+  |:-------:|:-------:|:------:|:---:|
+  | Field:  |    Y    |   ?    |  A  |
+  | Access: |         |   ?    |     |
+  
+  
+  *Bitfields*:
+  
+    - Y:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH3_STATUS:
+   - Address: 0x31
+   - Reset Val: 0x0
+  
+  |  Bits:  |  31-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Access: |   ?    |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  '''
+# ---
+# name: test_md_docs_64b
+  '''
+  # Snapshotter64B Register Map
+  
+  ## Overview:
+  
+  
+  | Address   | Register    | Fields                                         |
+  |:----------|:------------|:-----------------------------------------------|
+  | 0x0       | BASIC       | FIELD0, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5 |
+  | 0xf       | COMPLICATED | FIELD1, FIELD2                                 |
+  | 0x10      | CH1_CNFG    | Y, A                                           |
+  | 0x11      | CH1_STATUS  | STATUS                                         |
+  | 0x20      | CH2_CNFG    | Y, A                                           |
+  | 0x21      | CH2_STATUS  | STATUS                                         |
+  | 0x30      | CH3_CNFG    | Y, A                                           |
+  | 0x31      | CH3_STATUS  | STATUS                                         |
+  
+  ## Registers:
+  ### BASIC:
+   - Address: 0x0
+  
+  |  Bits:  |  63-9  |  8  |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:------:|:---:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  | FIELD0 |  ?  | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Access: |        |  ?  |        |        |        |        |        |
+  
+  
+  *Bitfields*:
+  
+    - FIELD0:
+  
+    - FIELD1:
+  
+    - FIELD2:
+  
+    - FIELD3:
+  
+    - FIELD4:
+  
+    - FIELD5:
+  
+  ---
+  ### COMPLICATED:
+   - Status.
+   - More extensive documentation.
+   - Address: 0xF
+   - Reset Val: 0xFFFFFFFF
+  
+  |  Bits:  |  63-8  |  7-6   |       5-4        |  3-0   |
+  |:-------:|:------:|:------:|:----------------:|:------:|
+  | Field:  |   ?    | FIELD1 | Always write 0x1 | FIELD2 |
+  | Access: |   ?    |   r    |                  |   r    |
+  
+  
+  *Bitfields*:
+  
+    - FIELD1 [r]:
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+    - FIELD2 [r]:
+      - Another cool field.
+      - Important details.
+      - Accepts:
+        - EN: 0x3 (Is on.)
+  
+  ---
+  ### CH1_CNFG:
+   - Address: 0x10
+   - Reset Val: 0x0
+  
+  |  Bits:  |  63-30  |  29-1  |  0  |
+  |:-------:|:-------:|:------:|:---:|
+  | Field:  |    Y    |   ?    |  A  |
+  | Access: |         |   ?    |     |
+  
+  
+  *Bitfields*:
+  
+    - Y:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH1_STATUS:
+   - Address: 0x11
+   - Reset Val: 0x0
+  
+  |  Bits:  |  63-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Access: |   ?    |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH2_CNFG:
+   - Address: 0x20
+   - Reset Val: 0x0
+  
+  |  Bits:  |  63-30  |  29-1  |  0  |
+  |:-------:|:-------:|:------:|:---:|
+  | Field:  |    Y    |   ?    |  A  |
+  | Access: |         |   ?    |     |
+  
+  
+  *Bitfields*:
+  
+    - Y:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH2_STATUS:
+   - Address: 0x21
+   - Reset Val: 0x0
+  
+  |  Bits:  |  63-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Access: |   ?    |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH3_CNFG:
+   - Address: 0x30
+   - Reset Val: 0x0
+  
+  |  Bits:  |  63-30  |  29-1  |  0  |
+  |:-------:|:-------:|:------:|:---:|
+  | Field:  |    Y    |   ?    |  A  |
+  | Access: |         |   ?    |     |
+  
+  
+  *Bitfields*:
+  
+    - Y:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH3_STATUS:
+   - Address: 0x31
+   - Reset Val: 0x0
+  
+  |  Bits:  |  63-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Access: |   ?    |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  '''
+# ---
+# name: test_md_docs_8b
+  '''
+  # Snapshotter8B Register Map
+  
+  ## Overview:
+  
+  
+  | Address   | Register    | Fields                                 |
+  |:----------|:------------|:---------------------------------------|
+  | 0x0       | BASIC       | FIELD1, FIELD2, FIELD3, FIELD4, FIELD5 |
+  | 0xf       | COMPLICATED | FIELD1, FIELD2                         |
+  | 0x10      | CH1_CNFG    | A                                      |
+  | 0x11      | CH1_STATUS  | STATUS                                 |
+  | 0x20      | CH2_CNFG    | A                                      |
+  | 0x21      | CH2_STATUS  | STATUS                                 |
+  | 0x30      | CH3_CNFG    | A                                      |
+  | 0x31      | CH3_STATUS  | STATUS                                 |
+  
+  ## Registers:
+  ### BASIC:
+   - Address: 0x0
+  
+  |  Bits:  |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Access: |        |        |        |        |        |
+  
+  
+  *Bitfields*:
+  
+    - FIELD1:
+  
+    - FIELD2:
+  
+    - FIELD3:
+  
+    - FIELD4:
+  
+    - FIELD5:
+  
+  ---
+  ### COMPLICATED:
+   - Status.
+   - More extensive documentation.
+   - Address: 0xF
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-6   |       5-4        |  3-0   |
+  |:-------:|:------:|:----------------:|:------:|
+  | Field:  | FIELD1 | Always write 0x1 | FIELD2 |
+  | Access: |   r    |                  |   r    |
+  
+  
+  *Bitfields*:
+  
+    - FIELD1 [r]:
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+    - FIELD2 [r]:
+      - Another cool field.
+      - Important details.
+      - Accepts:
+        - EN: 0x3 (Is on.)
+  
+  ---
+  ### CH1_CNFG:
+   - Address: 0x10
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-1  |  0  |
+  |:-------:|:-----:|:---:|
+  | Field:  |   ?   |  A  |
+  | Access: |   ?   |     |
+  
+  
+  *Bitfields*:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH1_STATUS:
+   - Address: 0x11
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Access: |   ?   |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH2_CNFG:
+   - Address: 0x20
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-1  |  0  |
+  |:-------:|:-----:|:---:|
+  | Field:  |   ?   |  A  |
+  | Access: |   ?   |     |
+  
+  
+  *Bitfields*:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH2_STATUS:
+   - Address: 0x21
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Access: |   ?   |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH3_CNFG:
+   - Address: 0x30
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-1  |  0  |
+  |:-------:|:-----:|:---:|
+  | Field:  |   ?   |  A  |
+  | Access: |   ?   |     |
+  
+  
+  *Bitfields*:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH3_STATUS:
+   - Address: 0x31
+   - Reset Val: 0x0
+  
+  |  Bits:  |  7-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Access: |   ?   |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  '''
+# ---
+# name: test_md_docs_9b
+  '''
+  # Snapshotter9B Register Map
+  
+  ## Overview:
+  
+  
+  | Address   | Register    | Fields                                         |
+  |:----------|:------------|:-----------------------------------------------|
+  | 0x0       | BASIC       | FIELD0, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5 |
+  | 0xf       | COMPLICATED | FIELD1, FIELD2                                 |
+  | 0x10      | CH1_CNFG    | A                                              |
+  | 0x11      | CH1_STATUS  | STATUS                                         |
+  | 0x20      | CH2_CNFG    | A                                              |
+  | 0x21      | CH2_STATUS  | STATUS                                         |
+  | 0x30      | CH3_CNFG    | A                                              |
+  | 0x31      | CH3_STATUS  | STATUS                                         |
+  
+  ## Registers:
+  ### BASIC:
+   - Address: 0x0
+  
+  |  Bits:  |   8    |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:------:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  | FIELD0 | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Access: |        |        |        |        |        |        |
+  
+  
+  *Bitfields*:
+  
+    - FIELD0:
+  
+    - FIELD1:
+  
+    - FIELD2:
+  
+    - FIELD3:
+  
+    - FIELD4:
+  
+    - FIELD5:
+  
+  ---
+  ### COMPLICATED:
+   - Status.
+   - More extensive documentation.
+   - Address: 0xF
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-6   |       5-4        |  3-0   |
+  |:-------:|:------:|:----------------:|:------:|
+  | Field:  | FIELD1 | Always write 0x1 | FIELD2 |
+  | Access: |   r    |                  |   r    |
+  
+  
+  *Bitfields*:
+  
+    - FIELD1 [r]:
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+    - FIELD2 [r]:
+      - Another cool field.
+      - Important details.
+      - Accepts:
+        - EN: 0x3 (Is on.)
+  
+  ---
+  ### CH1_CNFG:
+   - Address: 0x10
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-7  |  6-0  |
+  |:-------:|:-----:|:-----:|
+  | Field:  |   A   |   ?   |
+  | Access: |       |   ?   |
+  
+  
+  *Bitfields*:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH1_STATUS:
+   - Address: 0x11
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Access: |   ?   |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH2_CNFG:
+   - Address: 0x20
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-7  |  6-0  |
+  |:-------:|:-----:|:-----:|
+  | Field:  |   A   |   ?   |
+  | Access: |       |   ?   |
+  
+  
+  *Bitfields*:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH2_STATUS:
+   - Address: 0x21
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Access: |   ?   |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  ### CH3_CNFG:
+   - Address: 0x30
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-7  |  6-0  |
+  |:-------:|:-----:|:-----:|
+  | Field:  |   A   |   ?   |
+  | Access: |       |   ?   |
+  
+  
+  *Bitfields*:
+  
+    - A:
+      - Controls value A
+      - Accepts:
+        - ON: 0x1
+        - OFF: 0x0
+  
+  ---
+  ### CH3_STATUS:
+   - Address: 0x31
+   - Reset Val: 0x0
+  
+  |  Bits:  |  8-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Access: |   ?   |        |
+  
+  
+  *Bitfields*:
+  
+    - STATUS:
+      - Status
+      - Accepts:
+        - COOL: 0x1 (All cool.)
+        - NOT_COOL: 0x2 (All not so cool.)
+        - HOT: 0x3 (All pretty hot.)
+  
+  ---
+  '''
+# ---

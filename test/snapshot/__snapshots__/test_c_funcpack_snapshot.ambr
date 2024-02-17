@@ -1,0 +1,1109 @@
+# serializer version: 1
+# name: test_c_funcpack_32b
+  '''
+  // clang-format off
+  /**
+   * @file c_funcpack_snapshot_32b.h
+   * @brief Snapshotter32B registers
+   * @note do not edit directly: generated using reginald from input_32b.yaml
+   *
+   * Parameters:
+   *   - Generator: c.funcpack
+   */
+  #ifndef C_FUNCPACK_SNAPSHOT_32B_H_
+  #define C_FUNCPACK_SNAPSHOT_32B_H_
+  
+  #include <stdint.h>
+  
+  // ==== Shared enums ===========================================================
+  
+  /**
+   * @brief Current status.
+   * More details.
+   */
+  enum snapshotter32b_stat {
+    /**
+     * @brief All cool.
+     * Nothing to worry about.
+     */
+    SNAPSHOTTER32B_STAT_COOL = 0x1U,
+    /**
+     * @brief All not so cool.
+     * Should be worried.
+     */
+    SNAPSHOTTER32B_STAT_NOT_COOL = 0x2U,
+    /**
+     * @brief All pretty hot.
+     * panic.
+     */
+    SNAPSHOTTER32B_STAT_HOT = 0x3U,
+  };
+  
+  
+  // ==== BASIC register =========================================================
+  
+  #define SNAPSHOTTER32B_REG_BASIC  (0x0U)  //!< BASIC register address
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter32b_basic {
+    uint32_t field0 : 23;
+    uint8_t field1 : 2;
+    uint8_t field2 : 1;
+    uint8_t field3 : 2;
+    uint8_t field4 : 2;
+    uint8_t field5 : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint32_t snapshotter32b_basic_overwrite(const struct snapshotter32b_basic *r, uint32_t val) {
+    val = (uint32_t)((val & ~(uint32_t)0xFFFFFE00U) | ((((uint32_t)r->field0) & 0x7FFFFFU) << ((uint32_t) 9U)));
+    val = (uint32_t)((val & ~(uint32_t)0xC0U) | ((((uint32_t)r->field1) & 0x3U) << ((uint32_t) 6U)));
+    val = (uint32_t)((val & ~(uint32_t)0x20U) | ((((uint32_t)r->field2) & 0x1U) << ((uint32_t) 5U)));
+    val = (uint32_t)((val & ~(uint32_t)0x18U) | ((((uint32_t)r->field3) & 0x3U) << ((uint32_t) 3U)));
+    val = (uint32_t)((val & ~(uint32_t)0x6U) | ((((uint32_t)r->field4) & 0x3U) << ((uint32_t) 1U)));
+    val = (uint32_t)((val & ~(uint32_t)0x1U) | ((((uint32_t)r->field5) & 0x1U) << ((uint32_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint32_t snapshotter32b_basic_pack(const struct snapshotter32b_basic *r) {
+    return snapshotter32b_basic_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER32B_BASIC_UNPACK(_VAL_) {                                                       \
+    .field0 = ((_VAL_) >> 9U) & 0x7FFFFFU,                                                           \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 5U) & 0x1U,                                                                \
+    .field3 = ((_VAL_) >> 3U) & 0x3U,                                                                \
+    .field4 = ((_VAL_) >> 1U) & 0x3U,                                                                \
+    .field5 = ((_VAL_) >> 0U) & 0x1U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter32b_basic_unpack_into(uint32_t val, struct snapshotter32b_basic *s) {
+    s->field0 = ((val  >> 9U) & 0x7FFFFFU);
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 5U) & 0x1U);
+    s->field3 = ((val  >> 3U) & 0x3U);
+    s->field4 = ((val  >> 1U) & 0x3U);
+    s->field5 = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== COMPLICATED register ===================================================
+  // Status.
+  // More extensive documentation.
+  
+  #define SNAPSHOTTER32B_REG_COMPLICATED                     (0xFU)         //!< COMPLICATED register address
+  #define SNAPSHOTTER32B_REG_COMPLICATED__RESET              (0xFFFFFFFFU)  //!< COMPLICATED register reset value
+  #define SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0xC30U)       //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0xC10U)       //!< COMPLICATED register always write value
+  
+  /**
+   * @brief Another cool field.
+   * Important details.
+   */
+  enum snapshotter32b_complicated_field2 {
+    /**
+     * @brief Is on.
+     * important details.
+     */
+    SNAPSHOTTER32B_COMPLICATED_FIELD2_EN = 0x3U,
+  };
+  
+  /**
+   * @brief Status.
+   * @note use pack/unpack/overwrite functions for conversion to/form packed register value
+   * More extensive documentation.
+   */
+  struct snapshotter32b_complicated {
+    enum snapshotter32b_stat field1 : 2;
+    /**
+     * @brief Another cool field.
+     * Important details.
+     */
+    enum snapshotter32b_complicated_field2 field2 : 4;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint32_t snapshotter32b_complicated_overwrite(const struct snapshotter32b_complicated *r, uint32_t val) {
+    val &= ~(uint32_t)SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER32B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val = (uint32_t)((val & ~(uint32_t)0xC0U) | ((((uint32_t)r->field1) & 0x3U) << ((uint32_t) 6U)));
+    val = (uint32_t)((val & ~(uint32_t)0xFU) | ((((uint32_t)r->field2) & 0xFU) << ((uint32_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint32_t snapshotter32b_complicated_pack(const struct snapshotter32b_complicated *r) {
+    return snapshotter32b_complicated_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER32B_COMPLICATED_UNPACK(_VAL_) {                                                 \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 0U) & 0xFU,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter32b_complicated_unpack_into(uint32_t val, struct snapshotter32b_complicated *s) {
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 0U) & 0xFU);
+  }
+  
+  // ==== CHn_CNFG register ======================================================
+  
+  #define SNAPSHOTTER32B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER32B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER32B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER32B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER32B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  
+  /** @brief Controls value A */
+  enum snapshotter32b_chn_cnfg_a {
+    SNAPSHOTTER32B_CHN_CNFG_A_ON = 0x1U,
+    SNAPSHOTTER32B_CHN_CNFG_A_OFF = 0x0U,
+  };
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter32b_chn_cnfg {
+    uint8_t y : 2;
+    /** @brief Controls value A */
+    enum snapshotter32b_chn_cnfg_a a : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint32_t snapshotter32b_chn_cnfg_overwrite(const struct snapshotter32b_chn_cnfg *r, uint32_t val) {
+    val = (uint32_t)((val & ~(uint32_t)0xC0000000U) | ((((uint32_t)r->y) & 0x3U) << ((uint32_t) 30U)));
+    val = (uint32_t)((val & ~(uint32_t)0x1U) | ((((uint32_t)r->a) & 0x1U) << ((uint32_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint32_t snapshotter32b_chn_cnfg_pack(const struct snapshotter32b_chn_cnfg *r) {
+    return snapshotter32b_chn_cnfg_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER32B_CHN_CNFG_UNPACK(_VAL_) {                                                    \
+    .y = ((_VAL_) >> 30U) & 0x3U,                                                                    \
+    .a = ((_VAL_) >> 0U) & 0x1U,                                                                     \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter32b_chn_cnfg_unpack_into(uint32_t val, struct snapshotter32b_chn_cnfg *s) {
+    s->y = ((val  >> 30U) & 0x3U);
+    s->a = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== CHn_STATUS register ====================================================
+  
+  #define SNAPSHOTTER32B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER32B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER32B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER32B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER32B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter32b_chn_status {
+    /** @brief Status */
+    enum snapshotter32b_stat status : 3;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint32_t snapshotter32b_chn_status_overwrite(const struct snapshotter32b_chn_status *r, uint32_t val) {
+    val = (uint32_t)((val & ~(uint32_t)0x7U) | ((((uint32_t)r->status) & 0x7U) << ((uint32_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint32_t snapshotter32b_chn_status_pack(const struct snapshotter32b_chn_status *r) {
+    return snapshotter32b_chn_status_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER32B_CHN_STATUS_UNPACK(_VAL_) {                                                  \
+    .status = ((_VAL_) >> 0U) & 0x7U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter32b_chn_status_unpack_into(uint32_t val, struct snapshotter32b_chn_status *s) {
+    s->status = ((val  >> 0U) & 0x7U);
+  }
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  #define SNAPSHOTTER32B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+      struct snapshotter32b_basic* : snapshotter32b_basic_overwrite,  \
+      struct snapshotter32b_complicated* : snapshotter32b_complicated_overwrite,  \
+      struct snapshotter32b_chn_cnfg* : snapshotter32b_chn_cnfg_overwrite,  \
+      struct snapshotter32b_chn_status* : snapshotter32b_chn_status_overwrite  \
+    )(_struct_ptr_, _val_)
+  
+  /** @brief Convert register struct to packed register value. */
+  #define SNAPSHOTTER32B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter32b_basic* : snapshotter32b_basic_pack,  \
+      struct snapshotter32b_complicated* : snapshotter32b_complicated_pack,  \
+      struct snapshotter32b_chn_cnfg* : snapshotter32b_chn_cnfg_pack,  \
+      struct snapshotter32b_chn_status* : snapshotter32b_chn_status_pack  \
+    )(_struct_ptr_)
+  
+  /** @brief Convert packed register value to into a register struct. */
+  #define SNAPSHOTTER32B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter32b_basic* : snapshotter32b_basic_unpack_into,  \
+      struct snapshotter32b_complicated* : snapshotter32b_complicated_unpack_into,  \
+      struct snapshotter32b_chn_cnfg* : snapshotter32b_chn_cnfg_unpack_into,  \
+      struct snapshotter32b_chn_status* : snapshotter32b_chn_status_unpack_into  \
+    )(_val_,_struct_ptr_)
+  
+  
+  #endif /* C_FUNCPACK_SNAPSHOT_32B_H */
+  // clang-format on
+  '''
+# ---
+# name: test_c_funcpack_64b
+  '''
+  // clang-format off
+  /**
+   * @file c_funcpack_snapshot_64b.h
+   * @brief Snapshotter64B registers
+   * @note do not edit directly: generated using reginald from input_64b.yaml
+   *
+   * Parameters:
+   *   - Generator: c.funcpack
+   */
+  #ifndef C_FUNCPACK_SNAPSHOT_64B_H_
+  #define C_FUNCPACK_SNAPSHOT_64B_H_
+  
+  #include <stdint.h>
+  
+  // ==== Shared enums ===========================================================
+  
+  /**
+   * @brief Current status.
+   * More details.
+   */
+  enum snapshotter64b_stat {
+    /**
+     * @brief All cool.
+     * Nothing to worry about.
+     */
+    SNAPSHOTTER64B_STAT_COOL = 0x1U,
+    /**
+     * @brief All not so cool.
+     * Should be worried.
+     */
+    SNAPSHOTTER64B_STAT_NOT_COOL = 0x2U,
+    /**
+     * @brief All pretty hot.
+     * panic.
+     */
+    SNAPSHOTTER64B_STAT_HOT = 0x3U,
+  };
+  
+  
+  // ==== BASIC register =========================================================
+  
+  #define SNAPSHOTTER64B_REG_BASIC  (0x0U)  //!< BASIC register address
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter64b_basic {
+    uint64_t field0 : 55;
+    uint8_t field1 : 2;
+    uint8_t field2 : 1;
+    uint8_t field3 : 2;
+    uint8_t field4 : 2;
+    uint8_t field5 : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint64_t snapshotter64b_basic_overwrite(const struct snapshotter64b_basic *r, uint64_t val) {
+    val = (uint64_t)((val & ~(uint64_t)0xFFFFFFFFFFFFFE00U) | ((((uint64_t)r->field0) & 0x7FFFFFFFFFFFFFU) << ((uint64_t) 9U)));
+    val = (uint64_t)((val & ~(uint64_t)0xC0U) | ((((uint64_t)r->field1) & 0x3U) << ((uint64_t) 6U)));
+    val = (uint64_t)((val & ~(uint64_t)0x20U) | ((((uint64_t)r->field2) & 0x1U) << ((uint64_t) 5U)));
+    val = (uint64_t)((val & ~(uint64_t)0x18U) | ((((uint64_t)r->field3) & 0x3U) << ((uint64_t) 3U)));
+    val = (uint64_t)((val & ~(uint64_t)0x6U) | ((((uint64_t)r->field4) & 0x3U) << ((uint64_t) 1U)));
+    val = (uint64_t)((val & ~(uint64_t)0x1U) | ((((uint64_t)r->field5) & 0x1U) << ((uint64_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint64_t snapshotter64b_basic_pack(const struct snapshotter64b_basic *r) {
+    return snapshotter64b_basic_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER64B_BASIC_UNPACK(_VAL_) {                                                       \
+    .field0 = ((_VAL_) >> 9U) & 0x7FFFFFFFFFFFFFU,                                                   \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 5U) & 0x1U,                                                                \
+    .field3 = ((_VAL_) >> 3U) & 0x3U,                                                                \
+    .field4 = ((_VAL_) >> 1U) & 0x3U,                                                                \
+    .field5 = ((_VAL_) >> 0U) & 0x1U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter64b_basic_unpack_into(uint64_t val, struct snapshotter64b_basic *s) {
+    s->field0 = ((val  >> 9U) & 0x7FFFFFFFFFFFFFU);
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 5U) & 0x1U);
+    s->field3 = ((val  >> 3U) & 0x3U);
+    s->field4 = ((val  >> 1U) & 0x3U);
+    s->field5 = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== COMPLICATED register ===================================================
+  // Status.
+  // More extensive documentation.
+  
+  #define SNAPSHOTTER64B_REG_COMPLICATED                     (0xFU)         //!< COMPLICATED register address
+  #define SNAPSHOTTER64B_REG_COMPLICATED__RESET              (0xFFFFFFFFU)  //!< COMPLICATED register reset value
+  #define SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0xC30U)       //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0xC10U)       //!< COMPLICATED register always write value
+  
+  /**
+   * @brief Another cool field.
+   * Important details.
+   */
+  enum snapshotter64b_complicated_field2 {
+    /**
+     * @brief Is on.
+     * important details.
+     */
+    SNAPSHOTTER64B_COMPLICATED_FIELD2_EN = 0x3U,
+  };
+  
+  /**
+   * @brief Status.
+   * @note use pack/unpack/overwrite functions for conversion to/form packed register value
+   * More extensive documentation.
+   */
+  struct snapshotter64b_complicated {
+    enum snapshotter64b_stat field1 : 2;
+    /**
+     * @brief Another cool field.
+     * Important details.
+     */
+    enum snapshotter64b_complicated_field2 field2 : 4;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint64_t snapshotter64b_complicated_overwrite(const struct snapshotter64b_complicated *r, uint64_t val) {
+    val &= ~(uint64_t)SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER64B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val = (uint64_t)((val & ~(uint64_t)0xC0U) | ((((uint64_t)r->field1) & 0x3U) << ((uint64_t) 6U)));
+    val = (uint64_t)((val & ~(uint64_t)0xFU) | ((((uint64_t)r->field2) & 0xFU) << ((uint64_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint64_t snapshotter64b_complicated_pack(const struct snapshotter64b_complicated *r) {
+    return snapshotter64b_complicated_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER64B_COMPLICATED_UNPACK(_VAL_) {                                                 \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 0U) & 0xFU,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter64b_complicated_unpack_into(uint64_t val, struct snapshotter64b_complicated *s) {
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 0U) & 0xFU);
+  }
+  
+  // ==== CHn_CNFG register ======================================================
+  
+  #define SNAPSHOTTER64B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER64B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER64B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER64B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER64B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  
+  /** @brief Controls value A */
+  enum snapshotter64b_chn_cnfg_a {
+    SNAPSHOTTER64B_CHN_CNFG_A_ON = 0x1U,
+    SNAPSHOTTER64B_CHN_CNFG_A_OFF = 0x0U,
+  };
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter64b_chn_cnfg {
+    uint64_t y : 34;
+    /** @brief Controls value A */
+    enum snapshotter64b_chn_cnfg_a a : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint64_t snapshotter64b_chn_cnfg_overwrite(const struct snapshotter64b_chn_cnfg *r, uint64_t val) {
+    val = (uint64_t)((val & ~(uint64_t)0xFFFFFFFFC0000000U) | ((((uint64_t)r->y) & 0x3FFFFFFFFU) << ((uint64_t) 30U)));
+    val = (uint64_t)((val & ~(uint64_t)0x1U) | ((((uint64_t)r->a) & 0x1U) << ((uint64_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint64_t snapshotter64b_chn_cnfg_pack(const struct snapshotter64b_chn_cnfg *r) {
+    return snapshotter64b_chn_cnfg_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER64B_CHN_CNFG_UNPACK(_VAL_) {                                                    \
+    .y = ((_VAL_) >> 30U) & 0x3FFFFFFFFU,                                                            \
+    .a = ((_VAL_) >> 0U) & 0x1U,                                                                     \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter64b_chn_cnfg_unpack_into(uint64_t val, struct snapshotter64b_chn_cnfg *s) {
+    s->y = ((val  >> 30U) & 0x3FFFFFFFFU);
+    s->a = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== CHn_STATUS register ====================================================
+  
+  #define SNAPSHOTTER64B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER64B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER64B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER64B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER64B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter64b_chn_status {
+    /** @brief Status */
+    enum snapshotter64b_stat status : 3;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint64_t snapshotter64b_chn_status_overwrite(const struct snapshotter64b_chn_status *r, uint64_t val) {
+    val = (uint64_t)((val & ~(uint64_t)0x7U) | ((((uint64_t)r->status) & 0x7U) << ((uint64_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint64_t snapshotter64b_chn_status_pack(const struct snapshotter64b_chn_status *r) {
+    return snapshotter64b_chn_status_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER64B_CHN_STATUS_UNPACK(_VAL_) {                                                  \
+    .status = ((_VAL_) >> 0U) & 0x7U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter64b_chn_status_unpack_into(uint64_t val, struct snapshotter64b_chn_status *s) {
+    s->status = ((val  >> 0U) & 0x7U);
+  }
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  #define SNAPSHOTTER64B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+      struct snapshotter64b_basic* : snapshotter64b_basic_overwrite,  \
+      struct snapshotter64b_complicated* : snapshotter64b_complicated_overwrite,  \
+      struct snapshotter64b_chn_cnfg* : snapshotter64b_chn_cnfg_overwrite,  \
+      struct snapshotter64b_chn_status* : snapshotter64b_chn_status_overwrite  \
+    )(_struct_ptr_, _val_)
+  
+  /** @brief Convert register struct to packed register value. */
+  #define SNAPSHOTTER64B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter64b_basic* : snapshotter64b_basic_pack,  \
+      struct snapshotter64b_complicated* : snapshotter64b_complicated_pack,  \
+      struct snapshotter64b_chn_cnfg* : snapshotter64b_chn_cnfg_pack,  \
+      struct snapshotter64b_chn_status* : snapshotter64b_chn_status_pack  \
+    )(_struct_ptr_)
+  
+  /** @brief Convert packed register value to into a register struct. */
+  #define SNAPSHOTTER64B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter64b_basic* : snapshotter64b_basic_unpack_into,  \
+      struct snapshotter64b_complicated* : snapshotter64b_complicated_unpack_into,  \
+      struct snapshotter64b_chn_cnfg* : snapshotter64b_chn_cnfg_unpack_into,  \
+      struct snapshotter64b_chn_status* : snapshotter64b_chn_status_unpack_into  \
+    )(_val_,_struct_ptr_)
+  
+  
+  #endif /* C_FUNCPACK_SNAPSHOT_64B_H */
+  // clang-format on
+  '''
+# ---
+# name: test_c_funcpack_8b
+  '''
+  // clang-format off
+  /**
+   * @file c_funcpack_snapshot_8b.h
+   * @brief Snapshotter8B registers
+   * @note do not edit directly: generated using reginald from input_8b.yaml
+   *
+   * Parameters:
+   *   - Generator: c.funcpack
+   */
+  #ifndef C_FUNCPACK_SNAPSHOT_8B_H_
+  #define C_FUNCPACK_SNAPSHOT_8B_H_
+  
+  #include <stdint.h>
+  
+  // ==== Shared enums ===========================================================
+  
+  /**
+   * @brief Current status.
+   * More details.
+   */
+  enum snapshotter8b_stat {
+    /**
+     * @brief All cool.
+     * Nothing to worry about.
+     */
+    SNAPSHOTTER8B_STAT_COOL = 0x1U,
+    /**
+     * @brief All not so cool.
+     * Should be worried.
+     */
+    SNAPSHOTTER8B_STAT_NOT_COOL = 0x2U,
+    /**
+     * @brief All pretty hot.
+     * panic.
+     */
+    SNAPSHOTTER8B_STAT_HOT = 0x3U,
+  };
+  
+  
+  // ==== BASIC register =========================================================
+  
+  #define SNAPSHOTTER8B_REG_BASIC  (0x0U)  //!< BASIC register address
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter8b_basic {
+    uint8_t field1 : 2;
+    uint8_t field2 : 1;
+    uint8_t field3 : 2;
+    uint8_t field4 : 2;
+    uint8_t field5 : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint8_t snapshotter8b_basic_overwrite(const struct snapshotter8b_basic *r, uint8_t val) {
+    val = (uint8_t)((val & ~(uint8_t)0xC0U) | ((((uint8_t)r->field1) & 0x3U) << ((uint8_t) 6U)));
+    val = (uint8_t)((val & ~(uint8_t)0x20U) | ((((uint8_t)r->field2) & 0x1U) << ((uint8_t) 5U)));
+    val = (uint8_t)((val & ~(uint8_t)0x18U) | ((((uint8_t)r->field3) & 0x3U) << ((uint8_t) 3U)));
+    val = (uint8_t)((val & ~(uint8_t)0x6U) | ((((uint8_t)r->field4) & 0x3U) << ((uint8_t) 1U)));
+    val = (uint8_t)((val & ~(uint8_t)0x1U) | ((((uint8_t)r->field5) & 0x1U) << ((uint8_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint8_t snapshotter8b_basic_pack(const struct snapshotter8b_basic *r) {
+    return snapshotter8b_basic_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER8B_BASIC_UNPACK(_VAL_) {                                                        \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 5U) & 0x1U,                                                                \
+    .field3 = ((_VAL_) >> 3U) & 0x3U,                                                                \
+    .field4 = ((_VAL_) >> 1U) & 0x3U,                                                                \
+    .field5 = ((_VAL_) >> 0U) & 0x1U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter8b_basic_unpack_into(uint8_t val, struct snapshotter8b_basic *s) {
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 5U) & 0x1U);
+    s->field3 = ((val  >> 3U) & 0x3U);
+    s->field4 = ((val  >> 1U) & 0x3U);
+    s->field5 = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== COMPLICATED register ===================================================
+  // Status.
+  // More extensive documentation.
+  
+  #define SNAPSHOTTER8B_REG_COMPLICATED                     (0xFU)   //!< COMPLICATED register address
+  #define SNAPSHOTTER8B_REG_COMPLICATED__RESET              (0x0U)   //!< COMPLICATED register reset value
+  #define SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0x30U)  //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0x10U)  //!< COMPLICATED register always write value
+  
+  /**
+   * @brief Another cool field.
+   * Important details.
+   */
+  enum snapshotter8b_complicated_field2 {
+    /**
+     * @brief Is on.
+     * important details.
+     */
+    SNAPSHOTTER8B_COMPLICATED_FIELD2_EN = 0x3U,
+  };
+  
+  /**
+   * @brief Status.
+   * @note use pack/unpack/overwrite functions for conversion to/form packed register value
+   * More extensive documentation.
+   */
+  struct snapshotter8b_complicated {
+    enum snapshotter8b_stat field1 : 2;
+    /**
+     * @brief Another cool field.
+     * Important details.
+     */
+    enum snapshotter8b_complicated_field2 field2 : 4;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint8_t snapshotter8b_complicated_overwrite(const struct snapshotter8b_complicated *r, uint8_t val) {
+    val &= ~(uint8_t)SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER8B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val = (uint8_t)((val & ~(uint8_t)0xC0U) | ((((uint8_t)r->field1) & 0x3U) << ((uint8_t) 6U)));
+    val = (uint8_t)((val & ~(uint8_t)0xFU) | ((((uint8_t)r->field2) & 0xFU) << ((uint8_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint8_t snapshotter8b_complicated_pack(const struct snapshotter8b_complicated *r) {
+    return snapshotter8b_complicated_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER8B_COMPLICATED_UNPACK(_VAL_) {                                                  \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 0U) & 0xFU,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter8b_complicated_unpack_into(uint8_t val, struct snapshotter8b_complicated *s) {
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 0U) & 0xFU);
+  }
+  
+  // ==== CHn_CNFG register ======================================================
+  
+  #define SNAPSHOTTER8B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER8B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER8B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER8B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER8B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  
+  /** @brief Controls value A */
+  enum snapshotter8b_chn_cnfg_a {
+    SNAPSHOTTER8B_CHN_CNFG_A_ON = 0x1U,
+    SNAPSHOTTER8B_CHN_CNFG_A_OFF = 0x0U,
+  };
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter8b_chn_cnfg {
+    /** @brief Controls value A */
+    enum snapshotter8b_chn_cnfg_a a : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint8_t snapshotter8b_chn_cnfg_overwrite(const struct snapshotter8b_chn_cnfg *r, uint8_t val) {
+    val = (uint8_t)((val & ~(uint8_t)0x1U) | ((((uint8_t)r->a) & 0x1U) << ((uint8_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint8_t snapshotter8b_chn_cnfg_pack(const struct snapshotter8b_chn_cnfg *r) {
+    return snapshotter8b_chn_cnfg_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER8B_CHN_CNFG_UNPACK(_VAL_) {                                                     \
+    .a = ((_VAL_) >> 0U) & 0x1U,                                                                     \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter8b_chn_cnfg_unpack_into(uint8_t val, struct snapshotter8b_chn_cnfg *s) {
+    s->a = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== CHn_STATUS register ====================================================
+  
+  #define SNAPSHOTTER8B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER8B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER8B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER8B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER8B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter8b_chn_status {
+    /** @brief Status */
+    enum snapshotter8b_stat status : 3;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint8_t snapshotter8b_chn_status_overwrite(const struct snapshotter8b_chn_status *r, uint8_t val) {
+    val = (uint8_t)((val & ~(uint8_t)0x7U) | ((((uint8_t)r->status) & 0x7U) << ((uint8_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint8_t snapshotter8b_chn_status_pack(const struct snapshotter8b_chn_status *r) {
+    return snapshotter8b_chn_status_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER8B_CHN_STATUS_UNPACK(_VAL_) {                                                   \
+    .status = ((_VAL_) >> 0U) & 0x7U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter8b_chn_status_unpack_into(uint8_t val, struct snapshotter8b_chn_status *s) {
+    s->status = ((val  >> 0U) & 0x7U);
+  }
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  #define SNAPSHOTTER8B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+      struct snapshotter8b_basic* : snapshotter8b_basic_overwrite,  \
+      struct snapshotter8b_complicated* : snapshotter8b_complicated_overwrite,  \
+      struct snapshotter8b_chn_cnfg* : snapshotter8b_chn_cnfg_overwrite,  \
+      struct snapshotter8b_chn_status* : snapshotter8b_chn_status_overwrite  \
+    )(_struct_ptr_, _val_)
+  
+  /** @brief Convert register struct to packed register value. */
+  #define SNAPSHOTTER8B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter8b_basic* : snapshotter8b_basic_pack,  \
+      struct snapshotter8b_complicated* : snapshotter8b_complicated_pack,  \
+      struct snapshotter8b_chn_cnfg* : snapshotter8b_chn_cnfg_pack,  \
+      struct snapshotter8b_chn_status* : snapshotter8b_chn_status_pack  \
+    )(_struct_ptr_)
+  
+  /** @brief Convert packed register value to into a register struct. */
+  #define SNAPSHOTTER8B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter8b_basic* : snapshotter8b_basic_unpack_into,  \
+      struct snapshotter8b_complicated* : snapshotter8b_complicated_unpack_into,  \
+      struct snapshotter8b_chn_cnfg* : snapshotter8b_chn_cnfg_unpack_into,  \
+      struct snapshotter8b_chn_status* : snapshotter8b_chn_status_unpack_into  \
+    )(_val_,_struct_ptr_)
+  
+  
+  #endif /* C_FUNCPACK_SNAPSHOT_8B_H */
+  // clang-format on
+  '''
+# ---
+# name: test_c_funcpack_9b
+  '''
+  // clang-format off
+  /**
+   * @file c_funcpack_snapshot_9b.h
+   * @brief Snapshotter9B registers
+   * @note do not edit directly: generated using reginald from input_9b.yaml
+   *
+   * Parameters:
+   *   - Generator: c.funcpack
+   */
+  #ifndef C_FUNCPACK_SNAPSHOT_9B_H_
+  #define C_FUNCPACK_SNAPSHOT_9B_H_
+  
+  #include <stdint.h>
+  
+  // ==== Shared enums ===========================================================
+  
+  /**
+   * @brief Current status.
+   * More details.
+   */
+  enum snapshotter9b_stat {
+    /**
+     * @brief All cool.
+     * Nothing to worry about.
+     */
+    SNAPSHOTTER9B_STAT_COOL = 0x1U,
+    /**
+     * @brief All not so cool.
+     * Should be worried.
+     */
+    SNAPSHOTTER9B_STAT_NOT_COOL = 0x2U,
+    /**
+     * @brief All pretty hot.
+     * panic.
+     */
+    SNAPSHOTTER9B_STAT_HOT = 0x3U,
+  };
+  
+  
+  // ==== BASIC register =========================================================
+  
+  #define SNAPSHOTTER9B_REG_BASIC  (0x0U)  //!< BASIC register address
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter9b_basic {
+    uint8_t field0 : 1;
+    uint8_t field1 : 2;
+    uint8_t field2 : 1;
+    uint8_t field3 : 2;
+    uint8_t field4 : 2;
+    uint8_t field5 : 1;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint16_t snapshotter9b_basic_overwrite(const struct snapshotter9b_basic *r, uint16_t val) {
+    val = (uint16_t)((val & ~(uint16_t)0x100U) | ((((uint16_t)r->field0) & 0x1U) << ((uint16_t) 8U)));
+    val = (uint16_t)((val & ~(uint16_t)0xC0U) | ((((uint16_t)r->field1) & 0x3U) << ((uint16_t) 6U)));
+    val = (uint16_t)((val & ~(uint16_t)0x20U) | ((((uint16_t)r->field2) & 0x1U) << ((uint16_t) 5U)));
+    val = (uint16_t)((val & ~(uint16_t)0x18U) | ((((uint16_t)r->field3) & 0x3U) << ((uint16_t) 3U)));
+    val = (uint16_t)((val & ~(uint16_t)0x6U) | ((((uint16_t)r->field4) & 0x3U) << ((uint16_t) 1U)));
+    val = (uint16_t)((val & ~(uint16_t)0x1U) | ((((uint16_t)r->field5) & 0x1U) << ((uint16_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint16_t snapshotter9b_basic_pack(const struct snapshotter9b_basic *r) {
+    return snapshotter9b_basic_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER9B_BASIC_UNPACK(_VAL_) {                                                        \
+    .field0 = ((_VAL_) >> 8U) & 0x1U,                                                                \
+    .field1 = ((_VAL_) >> 6U) & 0x3U,                                                                \
+    .field2 = ((_VAL_) >> 5U) & 0x1U,                                                                \
+    .field3 = ((_VAL_) >> 3U) & 0x3U,                                                                \
+    .field4 = ((_VAL_) >> 1U) & 0x3U,                                                                \
+    .field5 = ((_VAL_) >> 0U) & 0x1U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter9b_basic_unpack_into(uint16_t val, struct snapshotter9b_basic *s) {
+    s->field0 = ((val  >> 8U) & 0x1U);
+    s->field1 = ((val  >> 6U) & 0x3U);
+    s->field2 = ((val  >> 5U) & 0x1U);
+    s->field3 = ((val  >> 3U) & 0x3U);
+    s->field4 = ((val  >> 1U) & 0x3U);
+    s->field5 = ((val  >> 0U) & 0x1U);
+  }
+  
+  // ==== COMPLICATED register ===================================================
+  // Status.
+  // More extensive documentation.
+  
+  #define SNAPSHOTTER9B_REG_COMPLICATED                     (0xFU)   //!< COMPLICATED register address
+  #define SNAPSHOTTER9B_REG_COMPLICATED__RESET              (0x0U)   //!< COMPLICATED register reset value
+  #define SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_MASK   (0x30U)  //!< COMPLICATED register always write mask
+  #define SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_VALUE  (0x10U)  //!< COMPLICATED register always write value
+  
+  /**
+   * @brief Another cool field.
+   * Important details.
+   */
+  enum snapshotter9b_complicated_field2 {
+    /**
+     * @brief Is on.
+     * important details.
+     */
+    SNAPSHOTTER9B_COMPLICATED_FIELD2_EN = 0x3U,
+  };
+  
+  /**
+   * @brief Status.
+   * @note use pack/unpack/overwrite functions for conversion to/form packed register value
+   * More extensive documentation.
+   */
+  struct snapshotter9b_complicated {
+    enum snapshotter9b_stat field1 : 3;
+    /**
+     * @brief Another cool field.
+     * Important details.
+     */
+    enum snapshotter9b_complicated_field2 field2 : 4;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint16_t snapshotter9b_complicated_overwrite(const struct snapshotter9b_complicated *r, uint16_t val) {
+    val &= ~(uint16_t)SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_MASK;
+    val |= SNAPSHOTTER9B_REG_COMPLICATED__ALWAYSWRITE_VALUE;
+    val = (uint16_t)((val & ~(uint16_t)0x1C0U) | ((((uint16_t)r->field1) & 0x7U) << ((uint16_t) 6U)));
+    val = (uint16_t)((val & ~(uint16_t)0xFU) | ((((uint16_t)r->field2) & 0xFU) << ((uint16_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint16_t snapshotter9b_complicated_pack(const struct snapshotter9b_complicated *r) {
+    return snapshotter9b_complicated_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER9B_COMPLICATED_UNPACK(_VAL_) {                                                  \
+    .field1 = ((_VAL_) >> 6U) & 0x7U,                                                                \
+    .field2 = ((_VAL_) >> 0U) & 0xFU,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter9b_complicated_unpack_into(uint16_t val, struct snapshotter9b_complicated *s) {
+    s->field1 = ((val  >> 6U) & 0x7U);
+    s->field2 = ((val  >> 0U) & 0xFU);
+  }
+  
+  // ==== CHn_CNFG register ======================================================
+  
+  #define SNAPSHOTTER9B_REG_CH1_CNFG          (0x10U)  //!< CH1_CNFG register address
+  #define SNAPSHOTTER9B_REG_CH2_CNFG          (0x20U)  //!< CH2_CNFG register address
+  #define SNAPSHOTTER9B_REG_CH3_CNFG          (0x30U)  //!< CH3_CNFG register address
+  #define SNAPSHOTTER9B_REG_CHN_CNFG__OFFSET  (0x0U)   //!< Offset of CHn_CNFG register from CHn block start
+  #define SNAPSHOTTER9B_REG_CHN_CNFG__RESET   (0x0U)   //!< CHn_CNFG register reset value
+  
+  /** @brief Controls value A */
+  enum snapshotter9b_chn_cnfg_a {
+    SNAPSHOTTER9B_CHN_CNFG_A_ON = 0x1U,
+    SNAPSHOTTER9B_CHN_CNFG_A_OFF = 0x0U,
+  };
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter9b_chn_cnfg {
+    /** @brief Controls value A */
+    enum snapshotter9b_chn_cnfg_a a : 2;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint16_t snapshotter9b_chn_cnfg_overwrite(const struct snapshotter9b_chn_cnfg *r, uint16_t val) {
+    val = (uint16_t)((val & ~(uint16_t)0x180U) | ((((uint16_t)r->a) & 0x3U) << ((uint16_t) 7U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint16_t snapshotter9b_chn_cnfg_pack(const struct snapshotter9b_chn_cnfg *r) {
+    return snapshotter9b_chn_cnfg_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER9B_CHN_CNFG_UNPACK(_VAL_) {                                                     \
+    .a = ((_VAL_) >> 7U) & 0x3U,                                                                     \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter9b_chn_cnfg_unpack_into(uint16_t val, struct snapshotter9b_chn_cnfg *s) {
+    s->a = ((val  >> 7U) & 0x3U);
+  }
+  
+  // ==== CHn_STATUS register ====================================================
+  
+  #define SNAPSHOTTER9B_REG_CH1_STATUS          (0x11U)  //!< CH1_STATUS register address
+  #define SNAPSHOTTER9B_REG_CH2_STATUS          (0x21U)  //!< CH2_STATUS register address
+  #define SNAPSHOTTER9B_REG_CH3_STATUS          (0x31U)  //!< CH3_STATUS register address
+  #define SNAPSHOTTER9B_REG_CHN_STATUS__OFFSET  (0x1U)   //!< Offset of CHn_STATUS register from CHn block start
+  #define SNAPSHOTTER9B_REG_CHN_STATUS__RESET   (0x0U)   //!< CHn_STATUS register reset value
+  
+  /** @note use pack/unpack/overwrite functions for conversion to/form packed register value */
+  struct snapshotter9b_chn_status {
+    /** @brief Status */
+    enum snapshotter9b_stat status : 3;
+  };
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  static inline uint16_t snapshotter9b_chn_status_overwrite(const struct snapshotter9b_chn_status *r, uint16_t val) {
+    val = (uint16_t)((val & ~(uint16_t)0x7U) | ((((uint16_t)r->status) & 0x7U) << ((uint16_t) 0U)));
+    return val;
+  }
+  
+  /** @brief Convert register struct to packed register value. */
+  static inline uint16_t snapshotter9b_chn_status_pack(const struct snapshotter9b_chn_status *r) {
+    return snapshotter9b_chn_status_overwrite(r, 0);
+  }
+  
+  /** @brief Convert packed register value to register struct initialization */
+  #define SNAPSHOTTER9B_CHN_STATUS_UNPACK(_VAL_) {                                                   \
+    .status = ((_VAL_) >> 0U) & 0x7U,                                                                \
+  }
+  
+  
+  /** @brief Convert packed register value to into a register struct. */
+  static inline void snapshotter9b_chn_status_unpack_into(uint16_t val, struct snapshotter9b_chn_status *s) {
+    s->status = ((val  >> 0U) & 0x7U);
+  }
+  
+  /**
+   * @brief Convert register struct to packed register value.
+   * All bits that are not part of a field or specified as 'always write' are kept as in 'val'.
+   */
+  #define SNAPSHOTTER9B_REG_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_), \
+      struct snapshotter9b_basic* : snapshotter9b_basic_overwrite,  \
+      struct snapshotter9b_complicated* : snapshotter9b_complicated_overwrite,  \
+      struct snapshotter9b_chn_cnfg* : snapshotter9b_chn_cnfg_overwrite,  \
+      struct snapshotter9b_chn_status* : snapshotter9b_chn_status_overwrite  \
+    )(_struct_ptr_, _val_)
+  
+  /** @brief Convert register struct to packed register value. */
+  #define SNAPSHOTTER9B_REG_PACK(_struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter9b_basic* : snapshotter9b_basic_pack,  \
+      struct snapshotter9b_complicated* : snapshotter9b_complicated_pack,  \
+      struct snapshotter9b_chn_cnfg* : snapshotter9b_chn_cnfg_pack,  \
+      struct snapshotter9b_chn_status* : snapshotter9b_chn_status_pack  \
+    )(_struct_ptr_)
+  
+  /** @brief Convert packed register value to into a register struct. */
+  #define SNAPSHOTTER9B_REG_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_), \
+      struct snapshotter9b_basic* : snapshotter9b_basic_unpack_into,  \
+      struct snapshotter9b_complicated* : snapshotter9b_complicated_unpack_into,  \
+      struct snapshotter9b_chn_cnfg* : snapshotter9b_chn_cnfg_unpack_into,  \
+      struct snapshotter9b_chn_status* : snapshotter9b_chn_status_unpack_into  \
+    )(_val_,_struct_ptr_)
+  
+  
+  #endif /* C_FUNCPACK_SNAPSHOT_9B_H */
+  // clang-format on
+  '''
+# ---

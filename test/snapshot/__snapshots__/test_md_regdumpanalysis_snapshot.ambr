@@ -1,0 +1,602 @@
+# serializer version: 1
+# name: test_md_regdumpanalysis_32b
+  '''
+  # Snapshotter32B Register Dump Analysis
+  
+  
+  ## 0x0 - BASIC
+    - 0xFF000100
+    - 0b11111111000000000000000100000000
+  
+  |  Bits:  |   31-9   |  8  |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:--------:|:---:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  |  FIELD0  |  ?  | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Value:  | 0x7F8000 | 0x1 |  0x0   |  0x0   |  0x0   |  0x0   |  0x0   |
+  | Decode: |    ?     |  ?  |   ?    |   ?    |   ?    |   ?    |   ?    |
+  
+  *Bitfields*:
+     - FIELD0: 0x7F8000
+     - FIELD1: 0x0
+     - FIELD2: 0x0
+     - FIELD3: 0x0
+     - FIELD4: 0x0
+     - FIELD5: 0x0
+  
+  
+  ## 0x1 - ?
+     - 0xFF000101
+     - 0b11111111000000000000000100000001
+  
+  
+  ## 0xF - COMPLICATED
+    - 0x1AB
+    - 0b110101011
+  
+  |  Bits:  |  31-8  |      7-6       |       5-4        |  3-0   |
+  |:-------:|:------:|:--------------:|:----------------:|:------:|
+  | Field:  |   ?    |     FIELD1     | Always write 0x1 | FIELD2 |
+  | Value:  |  0x1   |      0x2       |       0x2        |  0xB   |
+  | Decode: |   ?    | NOT_COOL (0x2) |      ERROR       | ERROR  |
+  
+  *Bitfields*:
+     - FIELD1: 0x2
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+     - FIELD2: 0xB
+       - Another cool field.
+       - Important details.
+  
+  
+  ## 0x10 - CH1_CNFG
+    - 0xEF
+    - 0b11101111
+  
+  |  Bits:  |  31-30  |  29-1  |    0     |
+  |:-------:|:-------:|:------:|:--------:|
+  | Field:  |    Y    |   ?    |    A     |
+  | Value:  |   0x0   |  0x77  |   0x1    |
+  | Decode: |    ?    |   ?    | ON (0x1) |
+  
+  *Bitfields*:
+     - Y: 0x0
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x11 - CH1_STATUS
+    - 0x12
+    - 0b10010
+  
+  |  Bits:  |  31-3  |      2-0       |
+  |:-------:|:------:|:--------------:|
+  | Field:  |   ?    |     STATUS     |
+  | Value:  |  0x2   |      0x2       |
+  | Decode: |   ?    | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  ## 0x20 - CH2_CNFG
+    - 0x143
+    - 0b101000011
+  
+  |  Bits:  |  31-30  |  29-1  |    0     |
+  |:-------:|:-------:|:------:|:--------:|
+  | Field:  |    Y    |   ?    |    A     |
+  | Value:  |   0x0   |  0xA1  |   0x1    |
+  | Decode: |    ?    |   ?    | ON (0x1) |
+  
+  *Bitfields*:
+     - Y: 0x0
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x21 - CH2_STATUS
+    - 0x150
+    - 0b101010000
+  
+  |  Bits:  |  31-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Value:  |  0x2A  |  0x0   |
+  | Decode: |   ?    | ERROR  |
+  
+  *Bitfields*:
+     - STATUS: 0x0
+       - Status
+  
+  
+  ## 0x30 - CH3_CNFG
+    - 0x90
+    - 0b10010000
+  
+  |  Bits:  |  31-30  |  29-1  |     0     |
+  |:-------:|:-------:|:------:|:---------:|
+  | Field:  |    Y    |   ?    |     A     |
+  | Value:  |   0x0   |  0x48  |    0x0    |
+  | Decode: |    ?    |   ?    | OFF (0x0) |
+  
+  *Bitfields*:
+     - Y: 0x0
+     - A: 0x0
+       - Controls value A
+         - *SELECTED*: OFF
+  
+  
+  ## 0x31 - CH3_STATUS
+    - 0x112
+    - 0b100010010
+  
+  |  Bits:  |  31-3  |      2-0       |
+  |:-------:|:------:|:--------------:|
+  | Field:  |   ?    |     STATUS     |
+  | Value:  |  0x22  |      0x2       |
+  | Decode: |   ?    | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  '''
+# ---
+# name: test_md_regdumpanalysis_64b
+  '''
+  # Snapshotter64B Register Dump Analysis
+  
+  
+  ## 0x0 - BASIC
+    - 0xFF00FF00FF000100
+    - 0b1111111100000000111111110000000011111111000000000000000100000000
+  
+  |  Bits:  |       63-9       |  8  |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:----------------:|:---:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  |      FIELD0      |  ?  | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Value:  | 0x7F807F807F8000 | 0x1 |  0x0   |  0x0   |  0x0   |  0x0   |  0x0   |
+  | Decode: |        ?         |  ?  |   ?    |   ?    |   ?    |   ?    |   ?    |
+  
+  *Bitfields*:
+     - FIELD0: 0x7F807F807F8000
+     - FIELD1: 0x0
+     - FIELD2: 0x0
+     - FIELD3: 0x0
+     - FIELD4: 0x0
+     - FIELD5: 0x0
+  
+  
+  ## 0x1 - ?
+     - 0xFF00FF00FF000101
+     - 0b1111111100000000111111110000000011111111000000000000000100000001
+  
+  
+  ## 0xF - COMPLICATED
+    - 0x1AB
+    - 0b110101011
+  
+  |  Bits:  |  63-8  |      7-6       |       5-4        |  3-0   |
+  |:-------:|:------:|:--------------:|:----------------:|:------:|
+  | Field:  |   ?    |     FIELD1     | Always write 0x1 | FIELD2 |
+  | Value:  |  0x1   |      0x2       |       0x2        |  0xB   |
+  | Decode: |   ?    | NOT_COOL (0x2) |      ERROR       | ERROR  |
+  
+  *Bitfields*:
+     - FIELD1: 0x2
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+     - FIELD2: 0xB
+       - Another cool field.
+       - Important details.
+  
+  
+  ## 0x10 - CH1_CNFG
+    - 0xEF
+    - 0b11101111
+  
+  |  Bits:  |  63-30  |  29-1  |    0     |
+  |:-------:|:-------:|:------:|:--------:|
+  | Field:  |    Y    |   ?    |    A     |
+  | Value:  |   0x0   |  0x77  |   0x1    |
+  | Decode: |    ?    |   ?    | ON (0x1) |
+  
+  *Bitfields*:
+     - Y: 0x0
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x11 - CH1_STATUS
+    - 0x12
+    - 0b10010
+  
+  |  Bits:  |  63-3  |      2-0       |
+  |:-------:|:------:|:--------------:|
+  | Field:  |   ?    |     STATUS     |
+  | Value:  |  0x2   |      0x2       |
+  | Decode: |   ?    | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  ## 0x20 - CH2_CNFG
+    - 0x143
+    - 0b101000011
+  
+  |  Bits:  |  63-30  |  29-1  |    0     |
+  |:-------:|:-------:|:------:|:--------:|
+  | Field:  |    Y    |   ?    |    A     |
+  | Value:  |   0x0   |  0xA1  |   0x1    |
+  | Decode: |    ?    |   ?    | ON (0x1) |
+  
+  *Bitfields*:
+     - Y: 0x0
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x21 - CH2_STATUS
+    - 0x150
+    - 0b101010000
+  
+  |  Bits:  |  63-3  |  2-0   |
+  |:-------:|:------:|:------:|
+  | Field:  |   ?    | STATUS |
+  | Value:  |  0x2A  |  0x0   |
+  | Decode: |   ?    | ERROR  |
+  
+  *Bitfields*:
+     - STATUS: 0x0
+       - Status
+  
+  
+  ## 0x30 - CH3_CNFG
+    - 0x90
+    - 0b10010000
+  
+  |  Bits:  |  63-30  |  29-1  |     0     |
+  |:-------:|:-------:|:------:|:---------:|
+  | Field:  |    Y    |   ?    |     A     |
+  | Value:  |   0x0   |  0x48  |    0x0    |
+  | Decode: |    ?    |   ?    | OFF (0x0) |
+  
+  *Bitfields*:
+     - Y: 0x0
+     - A: 0x0
+       - Controls value A
+         - *SELECTED*: OFF
+  
+  
+  ## 0x31 - CH3_STATUS
+    - 0x112
+    - 0b100010010
+  
+  |  Bits:  |  63-3  |      2-0       |
+  |:-------:|:------:|:--------------:|
+  | Field:  |   ?    |     STATUS     |
+  | Value:  |  0x22  |      0x2       |
+  | Decode: |   ?    | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  '''
+# ---
+# name: test_md_regdumpanalysis_8b
+  '''
+  # Snapshotter8B Register Dump Analysis
+  
+  
+  ## 0x0 - BASIC
+    - 0x0
+    - 0b0
+  
+  |  Bits:  |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Value:  |  0x0   |  0x0   |  0x0   |  0x0   |  0x0   |
+  | Decode: |   ?    |   ?    |   ?    |   ?    |   ?    |
+  
+  *Bitfields*:
+     - FIELD1: 0x0
+     - FIELD2: 0x0
+     - FIELD3: 0x0
+     - FIELD4: 0x0
+     - FIELD5: 0x0
+  
+  
+  ## 0x1 - ?
+     - 0x1
+     - 0b1
+  
+  
+  ## 0xF - COMPLICATED
+    - 0xAB
+    - 0b10101011
+  
+  |  Bits:  |      7-6       |       5-4        |  3-0   |
+  |:-------:|:--------------:|:----------------:|:------:|
+  | Field:  |     FIELD1     | Always write 0x1 | FIELD2 |
+  | Value:  |      0x2       |       0x2        |  0xB   |
+  | Decode: | NOT_COOL (0x2) |      ERROR       | ERROR  |
+  
+  *Bitfields*:
+     - FIELD1: 0x2
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+     - FIELD2: 0xB
+       - Another cool field.
+       - Important details.
+  
+  
+  ## 0x10 - CH1_CNFG
+    - 0xEF
+    - 0b11101111
+  
+  |  Bits:  |  7-1  |    0     |
+  |:-------:|:-----:|:--------:|
+  | Field:  |   ?   |    A     |
+  | Value:  | 0x77  |   0x1    |
+  | Decode: |   ?   | ON (0x1) |
+  
+  *Bitfields*:
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x11 - CH1_STATUS
+    - 0x12
+    - 0b10010
+  
+  |  Bits:  |  7-3  |      2-0       |
+  |:-------:|:-----:|:--------------:|
+  | Field:  |   ?   |     STATUS     |
+  | Value:  |  0x2  |      0x2       |
+  | Decode: |   ?   | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  ## 0x20 - CH2_CNFG
+    - 0x43
+    - 0b1000011
+  
+  |  Bits:  |  7-1  |    0     |
+  |:-------:|:-----:|:--------:|
+  | Field:  |   ?   |    A     |
+  | Value:  | 0x21  |   0x1    |
+  | Decode: |   ?   | ON (0x1) |
+  
+  *Bitfields*:
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x21 - CH2_STATUS
+    - 0x50
+    - 0b1010000
+  
+  |  Bits:  |  7-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Value:  |  0xA  |  0x0   |
+  | Decode: |   ?   | ERROR  |
+  
+  *Bitfields*:
+     - STATUS: 0x0
+       - Status
+  
+  
+  ## 0x30 - CH3_CNFG
+    - 0x90
+    - 0b10010000
+  
+  |  Bits:  |  7-1  |     0     |
+  |:-------:|:-----:|:---------:|
+  | Field:  |   ?   |     A     |
+  | Value:  | 0x48  |    0x0    |
+  | Decode: |   ?   | OFF (0x0) |
+  
+  *Bitfields*:
+     - A: 0x0
+       - Controls value A
+         - *SELECTED*: OFF
+  
+  
+  ## 0x31 - CH3_STATUS
+    - 0x12
+    - 0b10010
+  
+  |  Bits:  |  7-3  |      2-0       |
+  |:-------:|:-----:|:--------------:|
+  | Field:  |   ?   |     STATUS     |
+  | Value:  |  0x2  |      0x2       |
+  | Decode: |   ?   | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  '''
+# ---
+# name: test_md_regdumpanalysis_9b
+  '''
+  # Snapshotter9B Register Dump Analysis
+  
+  
+  ## 0x0 - BASIC
+    - 0x100
+    - 0b100000000
+  
+  |  Bits:  |   8    |  7-6   |   5    |  4-3   |  2-1   |   0    |
+  |:-------:|:------:|:------:|:------:|:------:|:------:|:------:|
+  | Field:  | FIELD0 | FIELD1 | FIELD2 | FIELD3 | FIELD4 | FIELD5 |
+  | Value:  |  0x1   |  0x0   |  0x0   |  0x0   |  0x0   |  0x0   |
+  | Decode: |   ?    |   ?    |   ?    |   ?    |   ?    |   ?    |
+  
+  *Bitfields*:
+     - FIELD0: 0x1
+     - FIELD1: 0x0
+     - FIELD2: 0x0
+     - FIELD3: 0x0
+     - FIELD4: 0x0
+     - FIELD5: 0x0
+  
+  
+  ## 0x1 - ?
+     - 0x101
+     - 0b100000001
+  
+  
+  ## 0xF - COMPLICATED
+    - 0x1AB
+    - 0b110101011
+  
+  |  Bits:  |  8-6   |       5-4        |  3-0   |
+  |:-------:|:------:|:----------------:|:------:|
+  | Field:  | FIELD1 | Always write 0x1 | FIELD2 |
+  | Value:  |  0x6   |       0x2        |  0xB   |
+  | Decode: | ERROR  |      ERROR       | ERROR  |
+  
+  *Bitfields*:
+     - FIELD1: 0x6
+     - FIELD2: 0xB
+       - Another cool field.
+       - Important details.
+  
+  
+  ## 0x10 - CH1_CNFG
+    - 0xEF
+    - 0b11101111
+  
+  |  Bits:  |   8-7    |  6-0  |
+  |:-------:|:--------:|:-----:|
+  | Field:  |    A     |   ?   |
+  | Value:  |   0x1    | 0x6F  |
+  | Decode: | ON (0x1) |   ?   |
+  
+  *Bitfields*:
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x11 - CH1_STATUS
+    - 0x12
+    - 0b10010
+  
+  |  Bits:  |  8-3  |      2-0       |
+  |:-------:|:-----:|:--------------:|
+  | Field:  |   ?   |     STATUS     |
+  | Value:  |  0x2  |      0x2       |
+  | Decode: |   ?   | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  ## 0x20 - CH2_CNFG
+    - 0x143
+    - 0b101000011
+  
+  |  Bits:  |  8-7  |  6-0  |
+  |:-------:|:-----:|:-----:|
+  | Field:  |   A   |   ?   |
+  | Value:  |  0x2  | 0x43  |
+  | Decode: | ERROR |   ?   |
+  
+  *Bitfields*:
+     - A: 0x2
+       - Controls value A
+  
+  
+  ## 0x21 - CH2_STATUS
+    - 0x150
+    - 0b101010000
+  
+  |  Bits:  |  8-3  |  2-0   |
+  |:-------:|:-----:|:------:|
+  | Field:  |   ?   | STATUS |
+  | Value:  | 0x2A  |  0x0   |
+  | Decode: |   ?   | ERROR  |
+  
+  *Bitfields*:
+     - STATUS: 0x0
+       - Status
+  
+  
+  ## 0x30 - CH3_CNFG
+    - 0x90
+    - 0b10010000
+  
+  |  Bits:  |   8-7    |  6-0  |
+  |:-------:|:--------:|:-----:|
+  | Field:  |    A     |   ?   |
+  | Value:  |   0x1    | 0x10  |
+  | Decode: | ON (0x1) |   ?   |
+  
+  *Bitfields*:
+     - A: 0x1
+       - Controls value A
+         - *SELECTED*: ON
+  
+  
+  ## 0x31 - CH3_STATUS
+    - 0x112
+    - 0b100010010
+  
+  |  Bits:  |  8-3  |      2-0       |
+  |:-------:|:-----:|:--------------:|
+  | Field:  |   ?   |     STATUS     |
+  | Value:  | 0x22  |      0x2       |
+  | Decode: |   ?   | NOT_COOL (0x2) |
+  
+  *Bitfields*:
+     - STATUS: 0x2
+       - Status
+         - *SELECTED*: NOT_COOL
+           - All not so cool.
+           - Should be worried.
+  
+  
+  '''
+# ---

@@ -20,3 +20,9 @@ build:
 
 publish:
     {{PYENV}} -m twine upload  dist/*
+
+test +ARGS="-v":
+    {{PYENV}} -m pytest {{ARGS}}
+
+update_test_snapshots +ARGS="-v":
+    {{PYENV}} -m pytest --snapshot-update {{ARGS}}
