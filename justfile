@@ -5,7 +5,7 @@ _default:
     just --list
 
 format:
-    {{PYENV}} -m autopep8 --in-place --recursive src/reginald/
+    {{PYENV}} -m autopep8 --in-place --recursive src/reginald/ test/snapshot
 
 lint:
     {{PYENV}} -m flake8 src/reginald/

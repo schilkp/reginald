@@ -36,6 +36,7 @@ def test_c_funcpack_32b(snapshot):
     output = "\n".join(generate(cli, generator))
     assert output == snapshot
 
+
 def test_c_funcpack_64b(snapshot):
     generator = builtin_c_funcpack.Generator()
     cli = CLI(input_file=os.path.join(SNAPSHOT_DIR, "input_64b.yaml"),
@@ -44,4 +45,3 @@ def test_c_funcpack_64b(snapshot):
               verify=False)
     output = "\n".join(generate(cli, generator))
     assert output == snapshot
-
