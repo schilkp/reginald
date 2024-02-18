@@ -1,8 +1,6 @@
 import argparse
-import dataclasses
-from dataclasses import dataclass
 from os import path
-from typing import Any, Dict, List
+from typing import List
 
 from tabulate import tabulate
 
@@ -11,59 +9,6 @@ from reginald.datamodel import (Docs, Field, RegEnum, Register, RegisterBlock,
 from reginald.generator import OutputGenerator
 from reginald.utils import (c_fitting_unsigned_type, c_sanitize,
                             str_pad_to_length)
-
-
-@dataclass
-class GenArg():
-    flag: str
-    action: str | type[argparse.Action]
-    help: str
-    default: Any
-    kwargs: Dict = dataclasses.field(default_factory=dict)
-
-
-ARGS = {
-    'field_enum_prefix':
-    GenArg(flag='--field-enum-prefix',
-           action=argparse.BooleanOptionalAction,
-           help="prefix a field enum with the register name",
-           default=True),
-    'registers_as_bitfields':
-    GenArg(flag='--registers-as-bitfields',
-           action=argparse.BooleanOptionalAction,
-           help="generate register structs as bitfields to save space",
-           default=True),
-    'clang_format_guard':
-    GenArg(flag='--clang-format-guard',
-           action=argparse.BooleanOptionalAction,
-           help="include a clang-format guard covering the complete file",
-           default=True),
-    'enums':
-    GenArg(flag='--enums',
-           action=argparse.BooleanOptionalAction,
-           help="include all shared and register enums",
-           default=True),
-    'registers':
-    GenArg(flag='--registers',
-           action=argparse.BooleanOptionalAction,
-           help="include all register structs and property defines",
-           default=True),
-    'register_functions':
-    GenArg(flag='--register-functions',
-           action=argparse.BooleanOptionalAction,
-           help="include all register packing/unpacking functions",
-           default=True),
-    'generic_macros':
-    GenArg(flag='--generic-macros',
-           action=argparse.BooleanOptionalAction,
-           help="include '_Generic' packing/unpacking macros",
-           default=True),
-    'add_include':
-    GenArg(flag='--add-include',
-           action="store",
-           help="include header file in generated header",
-           default=[], kwargs={"nargs": "+"}),
-}
 
 
 class Generator(OutputGenerator):
@@ -92,9 +37,8 @@ class Generator(OutputGenerator):
         self.emit(f" *")
         self.emit(f" * Parameters:")
         self.emit(f" *   - Generator: c.funcpack")
-        for key, val in opts.__dict__.items():
-            if val != ARGS[key].default:
-                self.emit(f" *   - {key}={val}")
+        if len(''.join(args).strip()) != 0:
+            self.emit(f" *   - Flags: {' '.join(args)}")
         self.emit(f" */")
         self.emit(f"#ifndef {c_macro(output_file_base)}_")
         self.emit(f"#define {c_macro(output_file_base)}_")
@@ -320,8 +264,38 @@ def parse_args(args: List[str]):
         prog="c.funcpack",
         description="C Output generator, using functions for register management.")
 
-    for arg in ARGS.values():
-        parser.add_argument(arg.flag, action=arg.action, help=arg.help, default=arg.default, **arg.kwargs)
+    parser.add_argument('--field-enum-prefix',
+                        action=argparse.BooleanOptionalAction,
+                        help="prefix a field enum with the register name",
+                        default=True)
+    parser.add_argument('--registers-as-bitfields',
+                        action=argparse.BooleanOptionalAction,
+                        help="generate register structs as bitfields to save space",
+                        default=True)
+    parser.add_argument('--clang-format-guard',
+                        action=argparse.BooleanOptionalAction,
+                        help="include a clang-format guard covering the complete file",
+                        default=True)
+    parser.add_argument('--enums',
+                        action=argparse.BooleanOptionalAction,
+                        help="include all shared and register enums",
+                        default=True)
+    parser.add_argument('--registers',
+                        action=argparse.BooleanOptionalAction,
+                        help="include all register structs and property defines",
+                        default=True)
+    parser.add_argument('--register-functions',
+                        action=argparse.BooleanOptionalAction,
+                        help="include all register packing/unpacking functions",
+                        default=True)
+    parser.add_argument('--generic-macros',
+                        action=argparse.BooleanOptionalAction,
+                        help="include '_Generic' packing/unpacking macros",
+                        default=True)
+    parser.add_argument('--add-include',
+                        action="store",
+                        help="include header file in generated header",
+                        default=[], nargs="+")
 
     return parser.parse_args(args)
 
