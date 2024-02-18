@@ -1,5 +1,5 @@
-PY := "python"
-PYENV := "env/bin/python"
+PY := env_var_or_default("PY", "python")
+PYENV := "env" / "bin" / "python"
 
 _default:
     just --list
