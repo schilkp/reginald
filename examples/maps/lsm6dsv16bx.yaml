@@ -3,7 +3,7 @@ map_name: LSM6DSV16BX
 default_register_bitwidth: 8
 
 registers:
-  FUNC_CFG_ACCESS:
+  FUNC_CFG_ACCESS: !Register
     adr: 0x1
     reset_val: 0x0
     always_write:
@@ -11,16 +11,16 @@ registers:
       val: 0x0
     fields:
       SW_POR:
-        bits: 2
+        bits: [2]
         access: [R, W]
       FSM_WR_CTRL_EN:
-        bits: 3
+        bits: [3]
         access: [R, W]
       EMB_FUNC_REG_ACCESS:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  PIN_CTRL:
+  PIN_CTRL: !Register
     adr: 0x2
     reset_val: 0x23
     always_write:
@@ -28,16 +28,16 @@ registers:
       val: 0x3
     fields:
       IBHR_POR_EN:
-        bits: 5
+        bits: [5]
         access: [R, W]
       SDO_PU_EN:
-        bits: 6
+        bits: [6]
         access: [R, W]
       TDM_WCLK_PU_DIS:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  IF_CFG:
+  IF_CFG: !Register
     adr: 0x3
     reset_val: 0x0
     always_write:
@@ -45,13 +45,13 @@ registers:
       val: 0
     fields:
       I2C_I3C_DISABLE:
-        bits: 0
+        bits: [0]
         access: [R, W]
       SIM:
-        bits: 2
+        bits: [2]
         access: [R, W]
         brief: SPI serial interface mode selection.
-        enum:
+        enum: !Local
           4WIRE:
             val: 0x0
             brief: 4-wire interface.
@@ -59,10 +59,10 @@ registers:
             val: 0x1
             brief: 3-wire interface.
       PP_OD:
-        bits: 3
+        bits: [3]
         access: [R, W]
         brief: Push-pull/open-drain selection on INT1 and INT2 pins.
-        enum:
+        enum: !Local
           PUSH_PULL:
             val: 0x0
             brief: Push-pull mode.
@@ -70,10 +70,10 @@ registers:
             val: 0x1
             brief: Open-drain mode.
       H_LACTIVE:
-        bits: 4
+        bits: [4]
         access: [R, W]
         brief: INT1/INT2 active level.
-        enum:
+        enum: !Local
           HIGH:
             val: 0x0
             brief: Interrupt output pins active high.
@@ -81,24 +81,24 @@ registers:
             val: 0x1
             brief: Interrupt output pins active low.
       ASF_CTRL:
-        bits: 5
+        bits: [5]
         access: [R, W]
       TDM_OUT_PU_EN:
-        bits: 6
+        bits: [6]
         access: [R, W]
       SDA_PU_EN:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  FIFO_CTRL1:
+  FIFO_CTRL1: !Register
     adr: 0x7
     reset_val: 0x0
     fields:
       WTM:
-        bits: 7-0
+        bits: [7-0]
         access: [R, W]
 
-  FIFO_CTRL2:
+  FIFO_CTRL2: !Register
     adr: 0x8
     reset_val: 0x0
     always_write:
@@ -106,36 +106,35 @@ registers:
       val: 0x0
     fields:
       XL_DUALC_BATCH_FROM_FSM:
-        bits: 0
+        bits: [0]
         access: [R, W]
       UNCOMPR_RATE:
-        bits: 2-1
+        bits: [2-1]
         access: [R, W]
       ODR_CHG_EN:
-        bits: 4
+        bits: [4]
         access: [R, W]
       FIFO_COMPR_RT_EN:
-        bits: 6
+        bits: [6]
         access: [R, W]
       STOP_ON_WTM:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  FIFO_CTRL3:
+  FIFO_CTRL3: !Register
     adr: 0x9
     reset_val: 0x0
     fields:
       BDR_XL:
-        bits: 3-0
+        bits: [3-0]
         access: [R, W]
-        enum: BDR_GY_XL
-
+        enum: !Shared BDR_GY_XL
       BDR_GY:
-        bits: 7-4
+        bits: [7-4]
         access: [R, W]
-        enum: BDR_GY_XL
+        enum: !Shared BDR_GY_XL
 
-  FIFO_CTRL4:
+  FIFO_CTRL4: !Register
     adr: 0x0A
     reset_val: 0x0
     always_write:
@@ -143,10 +142,10 @@ registers:
       val: 0x0
     fields:
       FIFO_MODE:
-        bits: 2-0
+        bits: [2-0]
         access: [R, W]
         brief: FIFO Operating mode.
-        enum:
+        enum: !Local
           BYPASS:
             val: 0x0
             brief: Disabled and flushed.
@@ -157,14 +156,14 @@ registers:
             val: 0x6
             brief: FIFO enabled. If the FIFO is full, new samples overwrite the older ones.
       ODR_T_BATCH:
-        bits: 5-4
+        bits: [5-4]
         access: [R, W]
       DEC_TS_BATCH:
-        bits: 7-6
+        bits: [7-6]
         access: [R, W]
         brief: Selects decimation for timestamp batching in FIFO.
         doc: Write rate is the maximum rate between the accelerometer and gyroscope BDR divided by decimation decoder.
-        enum:
+        enum: !Local
           "OFF":
             val: 0x0
             brief: Timestamp not batched in FIFO
@@ -178,7 +177,7 @@ registers:
             val: 0x3
             brief: Decimation 32. Timestamp freq = max(BDR_XL[Hz],BDR_GY[Hz])/32 [Hz])
 
-  COUNTER_BDR_REG1:
+  COUNTER_BDR_REG1: !Register
     adr: 0x0B
     reset_val: 0x0
     always_write:
@@ -186,24 +185,24 @@ registers:
       val: 0x0
     fields:
       CNT_BDR_TH:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
       AH_QVAR_BATCH_EN:
-        bits: 2
+        bits: [2]
         access: [R, W]
       TRIG_COUNTER_BDR:
-        bits: 6-5
+        bits: [6-5]
         access: [R, W]
 
-  COUNTER_BDR_REG2:
+  COUNTER_BDR_REG2: !Register
     adr: 0x0C
     reset_val: 0x0
     fields:
       CNT_BDR_TH:
-        bits: 7-0
+        bits: [7-0]
         access: [R, W]
 
-  INT1_CTRL:
+  INT1_CTRL: !Register
     adr: 0x0D
     reset_val: 0x0
     always_write:
@@ -211,25 +210,25 @@ registers:
       val: 0x0
     fields:
       INT1_DRDY_XL:
-        bits: 0
+        bits: [0]
         access: [R, W]
       INT1_DRDY_G:
-        bits: 1
+        bits: [1]
         access: [R, W]
       INT1_FIFO_TH:
-        bits: 3
+        bits: [3]
         access: [R, W]
       INT1_FIFO_OVR:
-        bits: 4
+        bits: [4]
         access: [R, W]
       INT1_FIFO_FULL:
-        bits: 5
+        bits: [5]
         access: [R, W]
       INT1_CNT_BDR:
-        bits: 6
+        bits: [6]
         access: [R, W]
 
-  INT2_CTRL:
+  INT2_CTRL: !Register
     adr: 0x0E
     reset_val: 0x0
     always_write:
@@ -237,36 +236,36 @@ registers:
       val: 0x0
     fields:
       INT2_DRDY_XL:
-        bits: 0
+        bits: [0]
         access: [R, W]
       INT2_DRDY_G:
-        bits: 1
+        bits: [1]
         access: [R, W]
       INT2_FIFO_TH:
-        bits: 3
+        bits: [3]
         access: [R, W]
       INT2_FIFO_OVR:
-        bits: 4
+        bits: [4]
         access: [R, W]
       INT2_FIFO_FULL:
-        bits: 5
+        bits: [5]
         access: [R, W]
       INT2_CNT_BDR:
-        bits: 6
+        bits: [6]
         access: [R, W]
       INT2_EMB_FUNC_ENDOP:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  WHO_AM_I:
+  WHO_AM_I: !Register
     adr: 0x0F
     reset_val: 0x71
     fields:
       ID:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  CTRL1:
+  CTRL1: !Register
     adr: 0x10
     reset_val: 0x0
     always_write:
@@ -274,9 +273,9 @@ registers:
       val: 0x0
     fields:
       ODR_XL:
-        bits: 3-0
+        bits: [3-0]
         access: [R, W]
-        enum:
+        enum: !Local
           POWER_DOWN:
             val: 0x0
             brief: Power-down
@@ -316,11 +315,10 @@ registers:
           7680HZ:
             val: 0xC
             brief: 7.68 kHz (Available in high-performance mode)
-
       OP_MODE_XL:
-        bits: 6-4
+        bits: [6-4]
         access: [R, W]
-        enum:
+        enum: !Local
           HIGH_PERF:
             val: 0x0
             brief: High-performance mode.
@@ -337,7 +335,7 @@ registers:
             val: 0x6
             brief: Low-power mode with 8-mean averaging.
 
-  CTRL2:
+  CTRL2: !Register
     adr: 0x11
     reset_val: 0x0
     always_write:
@@ -345,9 +343,9 @@ registers:
       val: 0x0
     fields:
       ODR_G:
-        bits: 3-0
+        bits: [3-0]
         access: [R, W]
-        enum:
+        enum: !Local
           POWER_DOWN:
             val: 0x0
             brief: Power-down
@@ -384,11 +382,10 @@ registers:
           7680HZ:
             val: 0xC
             brief: 7.68 kHz (Available in high-performance mode)
-
       OP_MODE_G:
-        bits: 6-4
+        bits: [6-4]
         access: [R, W]
-        enum:
+        enum: !Local
           HIGH_PERF:
             val: 0x0
             brief: High-performance mode.
@@ -399,7 +396,7 @@ registers:
             val: 0x4
             brief: Sleep mode.
 
-  CTRL3:
+  CTRL3: !Register
     adr: 0x12
     reset_val: 0x44
     always_write:
@@ -407,19 +404,19 @@ registers:
       val: 0x0
     fields:
       SW_RESET:
-        bits: 0
+        bits: [0]
         access: [R, W]
       IF_INC:
-        bits: 2
+        bits: [2]
         access: [R, W]
       BDU:
-        bits: 6
+        bits: [6]
         access: [R, W]
       BOOT:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  CTRL4:
+  CTRL4: !Register
     adr: 0x13
     reset_val: 0x0
     always_write:
@@ -427,9 +424,9 @@ registers:
       val: 0x0
     fields:
       DRDY_PULSED:
-        bits: 1
+        bits: [1]
         access: [R, W]
-        enum:
+        enum: !Local
           PULSED:
             val: 0x1
             brief: DRDY pulse 75us long
@@ -437,16 +434,16 @@ registers:
             val: 0x0
             brief: DRDY high until output register MSB read.
       INT2_DRDY_TEMP:
-        bits: 2
+        bits: [2]
         access: [R, W]
       DRDY_MASK:
-        bits: 3
+        bits: [3]
         access: [R, W]
       INT2_ON_INT1:
-        bits: 4
+        bits: [4]
         access: [R, W]
 
-  CTRL5:
+  CTRL5: !Register
     adr: 0x14
     reset_val: 0x0
     always_write:
@@ -454,13 +451,13 @@ registers:
       val: 0x0
     fields:
       INT_EN_I3C:
-        bits: 0
+        bits: [0]
         access: [R, W]
       BUS_ACT_SEL:
-        bits: 2-1
+        bits: [2-1]
         access: [R, W]
 
-  CTRL6:
+  CTRL6: !Register
     adr: 0x15
     reset_val: 0x0
     always_write:
@@ -468,10 +465,10 @@ registers:
       val: 0x0
     fields:
       FS_G:
-        bits: 3-0
+        bits: [3-0]
         access: [R, W]
         brief: Gyroscope full-scale range.
-        enum:
+        enum: !Local
           125DPS:
             val: 0x0
             brief: ±125 dps
@@ -490,9 +487,8 @@ registers:
           4000DPS:
             val: 0xC
             brief: ±4000 dps
-
       LPF1_G_BW:
-        bits: 6-4
+        bits: [6-4]
         access: [R, W]
         brief: Gyroscope LFP1 Bandwidth selection
         doc: |
@@ -507,7 +503,7 @@ registers:
           | 5             | N.A.         | 43            | 53            | 57            | 58            | 58                | 58                | 58                |
           | 6             | 18.0         | 24.2          | 27.3          | 28.4          | 28.7          | 28.8              | N.A.              | N.A.              |
           | 7             | 12.1         | 13.7          | 14.2          | 14.3          | 14.4          | 14.4              | N.A.              | N.A.              |
-        enum:
+        enum: !Local
           "0":
             val: 0
             brief: LPF1 setting 0
@@ -533,7 +529,7 @@ registers:
             val: 7
             brief: LPF1 setting 7
 
-  CTRL7:
+  CTRL7: !Register
     adr: 0x16
     reset_val: 0x0
     always_write:
@@ -541,19 +537,19 @@ registers:
       val: 0x0
     fields:
       LPF1_G_EN:
-        bits: 0
+        bits: [0]
         access: [R, W]
       AH_QVAR2_EN:
-        bits: 2
+        bits: [2]
         access: [R, W]
       AH_QVAR1_EN:
-        bits: 3
+        bits: [3]
         access: [R, W]
       AH_QVAR_C_ZIN:
-        bits: 5-4
+        bits: [5-4]
         access: [R, W]
         brief: QVAR Input Impedance
-        enum:
+        enum: !Local
           2400M:
             val: 0x0
             brief: 2.4GΩ
@@ -567,13 +563,13 @@ registers:
             val: 0x3
             brief: 235MΩ
       INT2_DRDY_AH_QVAR:
-        bits: 6
+        bits: [6]
         access: [R, W]
       AH_QVAR_EN:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  CTRL8:
+  CTRL8: !Register
     adr: 0x17
     reset_val: 0x0
     always_write:
@@ -581,10 +577,10 @@ registers:
       val: 0x0
     fields:
       FS_XL:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
         brief: Accelerometer full-scale range.
-        enum:
+        enum: !Local
           2G:
             brief: ±2 g
             val: 0x0
@@ -597,18 +593,17 @@ registers:
           16G:
             brief: ±16 g
             val: 0x3
-
       XL_DUALC_EN:
-        bits: 3
+        bits: [3]
         access: [R, W]
       AH_QVAR_HPF:
-        bits: 4
+        bits: [4]
         access: [R, W]
       HP_LPF2_XL_BW:
-        bits: 7-5
+        bits: [7-5]
         access: [R, W]
 
-  CTRL9:
+  CTRL9: !Register
     adr: 0x18
     reset_val: 0x0
     always_write:
@@ -616,13 +611,13 @@ registers:
       val: 0x0
     fields:
       USR_OFF_ON_OUT:
-        bits: 0
+        bits: [0]
         access: [R, W]
       USR_OFF_W:
-        bits: 1
+        bits: [1]
         access: [R, W]
         brief: Weight with which the user offset is applied.
-        enum:
+        enum: !Local
           2_neg10:
             val: 0x0
             brief: Offset has a weight of 2^-10g/LSB
@@ -630,22 +625,22 @@ registers:
             val: 0x1
             brief: Offset has a weight of 2^-6g/LSB
       LPF2_XL_EN:
-        bits: 3
+        bits: [3]
         access: [R, W]
       HP_SLOPE_XL_EN:
-        bits: 4
+        bits: [4]
         access: [R, W]
       XL_FASTSETTL_MODE:
-        bits: 5
+        bits: [5]
         access: [R, W]
       HP_REF_MODE_XL:
-        bits: 6
+        bits: [6]
         access: [R, W]
       AH_QVAR_LPF:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  CTRL10:
+  CTRL10: !Register
     adr: 0x19
     reset_val: 0x0
     always_write:
@@ -653,450 +648,450 @@ registers:
       val: 0x0
     fields:
       ST_XL:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
       ST_G:
-        bits: 3-2
+        bits: [3-2]
         access: [R, W]
       XL_ST_OFFSET:
-        bits: 4
+        bits: [4]
         access: [R, W]
       AH_QVAR_SW:
-        bits: 5
+        bits: [5]
         access: [R, W]
       EMB_FUNC_DEBUG:
-        bits: 6
+        bits: [6]
         access: [R, W]
 
-  CTRL_STATUS:
+  CTRL_STATUS: !Register
     adr: 0x1A
     always_write:
       mask: 0xFB
       val: 0x0
     fields:
       FSM_WR_CTRL_STATUS:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
 
-  FIFO_STATUS1:
+  FIFO_STATUS1: !Register
     adr: 0x1B
     fields:
       DIFF_FIFO:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FIFO_STATUS2:
+  FIFO_STATUS2: !Register
     adr: 0x1C
     always_write:
       mask: 0x6
       val: 0x0
     fields:
       DIFF_FIFO:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       FIFO_OVR_LATCHED:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       COUNTER_BDR_IA:
-        bits: 4
-        access: R
+        bits: [4]
+        access: [R]
       FIFO_FULL_IA:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       FIFO_OVR_IA:
-        bits: 6
-        access: R
+        bits: [6]
+        access: [R]
       FIFO_WTM_IA:
-        bits: 7
-        access: R
+        bits: [7]
+        access: [R]
 
-  ALL_INT_SRC:
+  ALL_INT_SRC: !Register
     adr: 0x1D
     always_write:
       mask: 0x48
       val: 0x0
     fields:
       FF_IA:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       WU_IA:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       TAP_IA:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       D6D_IA:
-        bits: 4
-        access: R
+        bits: [4]
+        access: [R]
       SLEEP_CHANGE_IA:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       EMB_FUNC_IA:
-        bits: 7
-        access: R
+        bits: [7]
+        access: [R]
 
-  STATUS_REG:
+  STATUS_REG: !Register
     adr: 0x1E
     always_write:
       mask: 0x70
       val: 0x0
     fields:
       XLDA:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       GDA:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       TDA:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       AH_QVARDA:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       TIMESTAMP_ENDCOUNT:
-        bits: 7
-        access: R
+        bits: [7]
+        access: [R]
 
-  OUT_TEMP_L:
+  OUT_TEMP_L: !Register
     adr: 0x20
     fields:
       TEMP:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUT_TEMP_H:
+  OUT_TEMP_H: !Register
     adr: 0x21
     fields:
       TEMP:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTX_L_G:
+  OUTX_L_G: !Register
     adr: 0x22
     fields:
       OUTX_G:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTX_H_G:
+  OUTX_H_G: !Register
     adr: 0x23
     fields:
       OUTX_G:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTY_L_G:
+  OUTY_L_G: !Register
     adr: 0x24
     fields:
       OUTY_G:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTY_H_G:
+  OUTY_H_G: !Register
     adr: 0x25
     fields:
       OUTY_G:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTZ_L_G:
+  OUTZ_L_G: !Register
     adr: 0x26
     fields:
       OUTZ_G:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTZ_H_G:
+  OUTZ_H_G: !Register
     adr: 0x27
     fields:
       OUTZ_G:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTZ_L_A:
+  OUTZ_L_A: !Register
     adr: 0x28
     fields:
       OUTZ_A:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTZ_H_A:
+  OUTZ_H_A: !Register
     adr: 0x29
     fields:
       OUTZ_A:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTY_L_A:
+  OUTY_L_A: !Register
     adr: 0x2A
     fields:
       OUTY_A:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTY_H_A:
+  OUTY_H_A: !Register
     adr: 0x2B
     fields:
       OUTY_A:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTX_L_A:
+  OUTX_L_A: !Register
     adr: 0x2C
     fields:
       OUTX_A:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  OUTX_H_A:
+  OUTX_H_A: !Register
     adr: 0x2D
     fields:
       OUTX_A:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  UI_OUTZ_L_A_OIS_DUALC:
+  UI_OUTZ_L_A_OIS_DUALC: !Register
     adr: 0x34
     fields:
       UI_OUTZ_A_OIS_DUALC:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  UI_OUTZ_H_A_OIS_DUALC:
+  UI_OUTZ_H_A_OIS_DUALC: !Register
     adr: 0x35
     fields:
       UI_OUTZ_A_OIS_DUALC:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  UI_OUTY_L_A_OIS_DUALC:
+  UI_OUTY_L_A_OIS_DUALC: !Register
     adr: 0x36
     fields:
       UI_OUTY_A_OIS_DUALC:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  UI_OUTY_H_A_OIS_DUALC:
+  UI_OUTY_H_A_OIS_DUALC: !Register
     adr: 0x37
     fields:
       UI_OUTY_A_OIS_DUALC:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  UI_OUTX_L_A_OIS_DUALC:
+  UI_OUTX_L_A_OIS_DUALC: !Register
     adr: 0x38
     fields:
       UI_OUTX_A_OIS_DUALC:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  UI_OUTX_H_A_OIS_DUALC:
+  UI_OUTX_H_A_OIS_DUALC: !Register
     adr: 0x39
     fields:
       UI_OUTX_A_OIS_DUALC:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  AH_QVAR_OUT_L:
+  AH_QVAR_OUT_L: !Register
     adr: 0x3A
     fields:
       AH_QVAR:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  AH_QVAR_OUT_H:
+  AH_QVAR_OUT_H: !Register
     adr: 0x3B
     fields:
       AH_QVAR:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  TIMESTAMP0:
+  TIMESTAMP0: !Register
     adr: 0x40
     fields:
       TIMESTAMP:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  TIMESTAMP1:
+  TIMESTAMP1: !Register
     adr: 0x41
     fields:
       TIMESTAMP:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  TIMESTAMP2:
+  TIMESTAMP2: !Register
     adr: 0x42
     fields:
       TIMESTAMP:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  TIMESTAMP3:
+  TIMESTAMP3: !Register
     adr: 0x43
     fields:
       TIMESTAMP:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  WAKE_UP_SRC:
+  WAKE_UP_SRC: !Register
     adr: 0x45
     always_write:
       mask: 0x80
       val: 0x0
     fields:
       X_WU:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       Y_WU:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       Z_WU:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       WU_IA:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       SLEEP_STATE:
-        bits: 4
-        access: R
+        bits: [4]
+        access: [R]
       FF_IA:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       SLEEP_CHANGE_IA:
-        bits: 6
-        access: R
+        bits: [6]
+        access: [R]
 
-  TAP_SRC:
+  TAP_SRC: !Register
     adr: 0x46
     always_write:
       mask: 0x10
       val: 0x0
     fields:
       X_TAP:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       Y_TAP:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       Z_TAP:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       TAP_SIGN:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       DOUBLE_TAP:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       SINGLE_TAP:
-        bits: 6
-        access: R
+        bits: [6]
+        access: [R]
       TAP_IA:
-        bits: 7
-        access: R
+        bits: [7]
+        access: [R]
 
-  D6D_SRC:
+  D6D_SRC: !Register
     adr: 0x47
     always_write:
       mask: 0x80
       val: 0x0
     fields:
       ZL:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       ZH:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       YL:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       YH:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       XL:
-        bits: 4
-        access: R
+        bits: [4]
+        access: [R]
       XH:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       D6D_IA:
-        bits: 6
-        access: R
+        bits: [6]
+        access: [R]
 
-  EMB_FUNC_STATUS_MAINPAGE:
+  EMB_FUNC_STATUS_MAINPAGE: !Register
     adr: 0x49
     always_write:
       mask: 0x47
       val: 0x0
     fields:
       IS_STEP_DET:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       IS_TILT:
-        bits: 4
-        access: R
+        bits: [4]
+        access: [R]
       IS_SIGMOT:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       IS_FSM_LC:
-        bits: 7
-        access: R
+        bits: [7]
+        access: [R]
 
-  FSM_STATUS_MAINPAGE:
+  FSM_STATUS_MAINPAGE: !Register
     adr: 0x4A
     fields:
       IS_FSM1:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       IS_FSM2:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       IS_FSM3:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       IS_FSM4:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
       IS_FSM5:
-        bits: 4
-        access: R
+        bits: [4]
+        access: [R]
       IS_FSM6:
-        bits: 5
-        access: R
+        bits: [5]
+        access: [R]
       IS_FSM7:
-        bits: 6
-        access: R
+        bits: [6]
+        access: [R]
       IS_FSM8:
-        bits: 7
-        access: R
+        bits: [7]
+        access: [R]
 
-  MLC_STATUS_MAINPAGE:
+  MLC_STATUS_MAINPAGE: !Register
     adr: 0x4B
     always_write:
       mask: 0xF0
       val: 0x0
     fields:
       IS_MLC1:
-        bits: 0
-        access: R
+        bits: [0]
+        access: [R]
       IS_MLC2:
-        bits: 1
-        access: R
+        bits: [1]
+        access: [R]
       IS_MLC3:
-        bits: 2
-        access: R
+        bits: [2]
+        access: [R]
       IS_MLC4:
-        bits: 3
-        access: R
+        bits: [3]
+        access: [R]
 
-  INTERNAL_FREQ_FINE:
+  INTERNAL_FREQ_FINE: !Register
     adr: 0x4F
     fields:
       FREQ_FINE:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FUNC_EN:
+  FUNC_EN: !Register
     adr: 0x50
     reset_val: 0x0
     always_write:
@@ -1104,36 +1099,36 @@ registers:
       val: 0x0
     fields:
       INACT_EN:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
       DIS_RST_LIR_ALL_INT:
-        bits: 3
+        bits: [3]
         access: [R, W]
       TIMESTAMP_EN:
-        bits: 6
+        bits: [6]
         access: [R, W]
       INTERRUPTS_ENABLE:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  INACTIVITY_DUR:
+  INACTIVITY_DUR: !Register
     adr: 0x54
     reset_val: 0x4
     fields:
       INACT_DUR:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
       XL_INACT_ODR:
-        bits: 3-2
+        bits: [3-2]
         access: [R, W]
       WU_INACT_THS_W:
-        bits: 6-4
+        bits: [6-4]
         access: [R, W]
       SLEEP_STATUS_ON_INT:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  INACTIVITY_THS:
+  INACTIVITY_THS: !Register
     adr: 0x55
     reset_val: 0x0
     always_write:
@@ -1141,10 +1136,10 @@ registers:
       val: 0x0
     fields:
       INACT_THS:
-        bits: 5-0
+        bits: [5-0]
         access: [R, W]
 
-  TAP_CFG0:
+  TAP_CFG0: !Register
     adr: 0x56
     reset_val: 0x0
     always_write:
@@ -1152,39 +1147,39 @@ registers:
       val: 0x0
     fields:
       LIR:
-        bits: 0
+        bits: [0]
         access: [R, W]
       TAP_X_EN:
-        bits: 1
+        bits: [1]
         access: [R, W]
       TAP_Y_EN:
-        bits: 2
+        bits: [2]
         access: [R, W]
       TAP_Z_EN:
-        bits: 3
+        bits: [3]
         access: [R, W]
       SLOPE_FDS:
-        bits: 4
+        bits: [4]
         access: [R, W]
       HW_FUNC_MASK_XL_SETTL:
-        bits: 5
+        bits: [5]
         access: [R, W]
       LOW_PASS_ON_6D:
-        bits: 6
+        bits: [6]
         access: [R, W]
 
-  TAP_CFG1:
+  TAP_CFG1: !Register
     adr: 0x57
     reset_val: 0x0
     fields:
       TAP_THS_Z:
-        bits: 4-0
+        bits: [4-0]
         access: [R, W]
       TAP_PRIORITY:
-        bits: 7-5
+        bits: [7-5]
         access: [R, W]
 
-  TAP_CFG2:
+  TAP_CFG2: !Register
     adr: 0x58
     reset_val: 0x0
     always_write:
@@ -1192,10 +1187,10 @@ registers:
       val: 0x0
     fields:
       TAP_THS_Y:
-        bits: 4-0
+        bits: [4-0]
         access: [R, W]
 
-  TAP_THS_6D:
+  TAP_THS_6D: !Register
     adr: 0x59
     reset_val: 0x0
     always_write:
@@ -1203,41 +1198,41 @@ registers:
       val: 0x0
     fields:
       TAP_THS_X:
-        bits: 4-0
+        bits: [4-0]
         access: [R, W]
       SIXD_THS:
-        bits: 6-5
+        bits: [6-5]
         access: [R, W]
 
-  TAP_DUR:
+  TAP_DUR: !Register
     adr: 0x5A
     reset_val: 0x0
     fields:
       SHOCK:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
       QUIET:
-        bits: 3-2
+        bits: [3-2]
         access: [R, W]
       DUR:
-        bits: 7-4
+        bits: [7-4]
         access: [R, W]
 
-  WAKE_UP_THS:
+  WAKE_UP_THS: !Register
     adr: 0x5B
     reset_val: 0x0
     fields:
       WK_THS:
-        bits: 5-0
+        bits: [5-0]
         access: [R, W]
       USR_OFF_ON_WU:
-        bits: 6
+        bits: [6]
         access: [R, W]
       SINGLE_DOUBLE_TAP:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  WAKE_UP_DUR:
+  WAKE_UP_DUR: !Register
     adr: 0x5C
     reset_val: 0x0
     always_write:
@@ -1245,27 +1240,27 @@ registers:
       val: 0x0
     fields:
       SLEEP_DUR:
-        bits: 3-0
+        bits: [3-0]
         access: [R, W]
       WAKE_DUR:
-        bits: 6-5
+        bits: [6-5]
         access: [R, W]
       FF_DUR:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  FREE_FALL:
+  FREE_FALL: !Register
     adr: 0x5D
     reset_val: 0x0
     fields:
       FF_THS:
-        bits: 2-0
+        bits: [2-0]
         access: [R, W]
       FF_DUR:
-        bits: 7-3
+        bits: [7-3]
         access: [R, W]
 
-  MD1_CFG:
+  MD1_CFG: !Register
     adr: 0x5E
     reset_val: 0x0
     always_write:
@@ -1273,57 +1268,57 @@ registers:
       val: 0x0
     fields:
       INT1_EMB_FUNC:
-        bits: 1
+        bits: [1]
         access: [R, W]
       INT1_6D:
-        bits: 2
+        bits: [2]
         access: [R, W]
       INT1_DOUBLE_TAP:
-        bits: 3
+        bits: [3]
         access: [R, W]
       INT1_FF:
-        bits: 4
+        bits: [4]
         access: [R, W]
       INT1_WU:
-        bits: 5
+        bits: [5]
         access: [R, W]
       INT1_SINGLE_TAP:
-        bits: 6
+        bits: [6]
         access: [R, W]
       INT1_SLEEP_CHANGE:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  MD2_CFG:
+  MD2_CFG: !Register
     adr: 0x5F
     reset_val: 0x0
     fields:
       INT2_TIMESTAMP:
-        bits: 0
+        bits: [0]
         access: [R, W]
       INT2_EMB_FUNC:
-        bits: 1
+        bits: [1]
         access: [R, W]
       INT2_6D:
-        bits: 2
+        bits: [2]
         access: [R, W]
       INT2_DOUBLE_TAP:
-        bits: 3
+        bits: [3]
         access: [R, W]
       INT2_FF:
-        bits: 4
+        bits: [4]
         access: [R, W]
       INT2_WU:
-        bits: 5
+        bits: [5]
         access: [R, W]
       INT2_SINGLE_TAP:
-        bits: 6
+        bits: [6]
         access: [R, W]
       INT2_SLEEP_CHANGE:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  EMB_FUNC_CFG:
+  EMB_FUNC_CFG: !Register
     adr: 0x63
     reset_val: 0x0
     always_write:
@@ -1331,16 +1326,16 @@ registers:
       val: 0x0
     fields:
       EMB_FUNC_DISABLE:
-        bits: 3
+        bits: [3]
         access: [R, W]
       EMB_FUNC_IRQ_MASK_XL_SETTL:
-        bits: 4
+        bits: [4]
         access: [R, W]
       EMB_FUNC_IRQ_MASK_G_SETTL:
-        bits: 5
+        bits: [5]
         access: [R, W]
 
-  TDM_CFG0:
+  TDM_CFG0: !Register
     adr: 0x6C
     reset_val: 0x80
     always_write:
@@ -1348,16 +1343,16 @@ registers:
       val: 0x80
     fields:
       TDM_WCLK_BCLK_SEL:
-        bits: 0
+        bits: [0]
         access: [R, W]
       TDM_WCLK:
-        bits: 2-1
+        bits: [2-1]
         access: [R, W]
       TDM_SLOT_SEL:
-        bits: 4
+        bits: [4]
         access: [R, W]
         brief: Selection of TDM slot for transmission.
-        enum:
+        enum: !Local
           SLOT123:
             val: 0x0
             brief: Transmission during slot 1, 2, and 3.
@@ -1365,10 +1360,10 @@ registers:
             val: 0x1
             brief: Transmission during slot 4, 5, and 6.
       TDM_BCLK_EDGE_SEL:
-        bits: 5
+        bits: [5]
         access: [R, W]
         brief: TDM BCLK sampling edge selection.
-        enum:
+        enum: !Local
           RISING:
             val: 0x0
             brief: Sampling of BCLK falling edge.
@@ -1376,10 +1371,10 @@ registers:
             val: 0x1
             brief: Sampling of BCLK rising edge.
       TDM_DELAYED_CFG:
-        bits: 6
+        bits: [6]
         access: [R, W]
 
-  TDM_CFG1:
+  TDM_CFG1: !Register
     adr: 0x6D
     reset_val: 0xE0
     always_write:
@@ -1387,10 +1382,10 @@ registers:
       val: 0x0
     fields:
       TDM_AXES_ORD_SEL:
-        bits: 4-3
+        bits: [4-3]
         access: [R, W]
         brief: Selects the order of transmission of the TDM axes.
-        enum:
+        enum: !Local
           ZYX:
             val: 0x0
             brief: Axes transmitted in Z-Y-X order.
@@ -1401,16 +1396,16 @@ registers:
             val: 0x2
             brief: Axes transmitted in X-Y-Z order.
       TDM_XL_Z_EN:
-        bits: 5
+        bits: [5]
         access: [R, W]
       TDM_XL_Y_EN:
-        bits: 6
+        bits: [6]
         access: [R, W]
       TDM_XL_X_EN:
-        bits: 7
+        bits: [7]
         access: [R, W]
 
-  TDM_CFG2:
+  TDM_CFG2: !Register
     adr: 0x6E
     reset_val: 0x1
     always_write:
@@ -1418,10 +1413,10 @@ registers:
       val: 0x0
     fields:
       TDM_FS_XL:
-        bits: 1-0
+        bits: [1-0]
         access: [R, W]
         brief: TDM channel accelerometer full-scale selection
-        enum:
+        enum: !Local
           2G:
             val: 0x0
             brief: ±2 g
@@ -1432,46 +1427,46 @@ registers:
             val: 0x2
             brief: ±8 g
       TDM_DATA_MASK:
-        bits: 3
+        bits: [3]
         access: [R, W]
 
-  Z_OFS_USR:
+  Z_OFS_USR: !Register
     adr: 0x73
     reset_val: 0x0
     fields:
       Z_OFS_USR:
-        bits: 7-0
+        bits: [7-0]
         access: [R, W]
 
-  Y_OFS_USR:
+  Y_OFS_USR: !Register
     adr: 0x74
     reset_val: 0x0
     fields:
       Y_OFS_USR:
-        bits: 7-0
+        bits: [7-0]
         access: [R, W]
 
-  X_OFS_USR:
+  X_OFS_USR: !Register
     adr: 0x75
     reset_val: 0x0
     fields:
       X_OFS_USR:
-        bits: 7-0
+        bits: [7-0]
         access: [R, W]
 
-  FIFO_DATA_OUT_TAG:
+  FIFO_DATA_OUT_TAG: !Register
     adr: 0x78
     always_write:
       mask: 0x01
       val: 0x0
     fields:
       TAG_CNT:
-        bits: 2-1
-        access: R
+        bits: [2-1]
+        access: [R]
       TAG_SENSOR:
-        bits: 7-3
-        access: R
-        enum:
+        bits: [7-3]
+        access: [R]
+        enum: !Local
           FIFO_EMPTY:
             val: 0x0
           GY_NC:
@@ -1519,47 +1514,47 @@ registers:
           AH_QVAR:
             val: 0x1F
 
-  FIFO_DATA_OUT_BYTE_0:
+  FIFO_DATA_OUT_BYTE_0: !Register
     adr: 0x79
     fields:
       FIFO_DATA_OUT:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FIFO_DATA_OUT_BYTE_1:
+  FIFO_DATA_OUT_BYTE_1: !Register
     adr: 0x7A
     fields:
       FIFO_DATA_OUT:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FIFO_DATA_OUT_BYTE_2:
+  FIFO_DATA_OUT_BYTE_2: !Register
     adr: 0x7B
     fields:
       FIFO_DATA_OUT:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FIFO_DATA_OUT_BYTE_3:
+  FIFO_DATA_OUT_BYTE_3: !Register
     adr: 0x7C
     fields:
       FIFO_DATA_OUT:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FIFO_DATA_OUT_BYTE_4:
+  FIFO_DATA_OUT_BYTE_4: !Register
     adr: 0x7D
     fields:
       FIFO_DATA_OUT:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
-  FIFO_DATA_OUT_BYTE_5:
+  FIFO_DATA_OUT_BYTE_5: !Register
     adr: 0x7E
     fields:
       FIFO_DATA_OUT:
-        bits: 7-0
-        access: R
+        bits: [7-0]
+        access: [R]
 
 enums:
   BDR_GY_XL:

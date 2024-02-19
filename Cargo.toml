@@ -1,0 +1,9 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+    "reginald",
+    "reginald_derive",
+    "reginald_codegen",
+]

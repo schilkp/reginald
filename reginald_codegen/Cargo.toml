@@ -1,0 +1,30 @@
+[package]
+name        = "reginald_codegen"
+version     = "0.0.3"
+edition     = "2021"
+authors     = ["Philipp Schilk"]
+description = "Register management code generator"
+
+[[bin]]
+name              = "reginald"
+path              = "src/main.rs"
+required-features = ["cli"]
+
+[features]
+default = ["cli"]
+cli     = ["dep:clap", "dep:clap_complete", "dep:similar", "dep:console"]
+
+[dependencies]
+regex         = "1.10.3"
+lazy_static   = "1.4.0"
+thiserror     = "1.0.57"
+serde         = { version = "1.0.197", features = ["derive"] }
+serde_yaml    = "0.9.32"
+deser-hjson   = "2.2.4"
+clap          = { version = "4.5.1",   features = ["derive"], optional = true}
+clap_complete = { version = "4.5.1",   features = [],         optional = true}
+similar       = { version = "2.4.0",   features = ["inline"], optional = true}
+console       = { version = "0.15.8",  features = [],         optional = true}
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

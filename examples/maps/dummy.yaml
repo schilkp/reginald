@@ -1,14 +1,23 @@
 ---
 map_name: DummyChip
 default_register_bitwidth: 8
+author: "Philipp Schilk"
+note: |
+  +------------------+
+  | copyright notice |
+  +------------------+
+          \   ^__^
+           \  (oo)\_______
+              (__)\       )\/\
+                  ||----w |
+                  ||     ||
 
 registers:
-  STATUS:
+  STATUS: !Register
     adr: 0x00
     reset_val: 0x00
     brief: Status.
     doc: More extensive documentation.
-    access: r
     bitwidth: 8
     always_write:
       mask: 0b00110000
@@ -16,20 +25,21 @@ registers:
     fields:
       FIELD1:
         bits: [7,6]
-        access: r
-        enum: STAT
+        access: [R]
+        enum: !Shared
+          STAT
       FIELD2:
-        bits: "3-0"
-        access: r
+        bits: ["3-0"]
+        access: [R]
         brief: Another cool field.
         doc: Important details.
-        enum:
+        enum: !Local
           EN:
             val: 0x3
             brief: Is on.
             doc: important details.
 
-  CHn:
+  CHn: !Block
     instances: {"CH1": 0x10, "CH2": 0x20, "CH3": 0x30}
     brief: Channel control.
     doc: One for every channel.
@@ -41,7 +51,7 @@ registers:
           A:
             bits: [0]
             brief: Controls value A
-            enum:
+            enum: !Local
               "ON":
                 val: 0x1
               "OFF":
@@ -51,9 +61,9 @@ registers:
         reset_val: 0x00
         fields:
           STATUS:
-            bits: "0-2"
+            bits: ["0-2"]
             brief: Status
-            enum: STAT
+            enum: !Shared STAT
 
 enums:
   STAT:

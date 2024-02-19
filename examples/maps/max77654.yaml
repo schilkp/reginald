@@ -3,53 +3,53 @@ map_name: MAX77654
 default_register_bitwidth: 8
 
 registers:
-  INT_GLBL0:
+  INT_GLBL0: !Register
     adr: 0x00
     reset_val: 0x00
     brief: Global Interrupt flag register 0.
     fields:
       DOD0_R:
         bits: [7]
-        access: r
+        access: [R]
         brief: LDO Dropout Detector Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       DOD1_R:
         bits: [6]
-        access: r
+        access: [R]
         brief: LDO Dropout Detector Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       TJAL2_R:
         bits: [5]
-        access: r
+        access: [R]
         brief: Thermal Alarm 2 Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       TJAL1_R:
         bits: [4]
-        access: r
+        access: [R]
         brief: Thermal Alarm 1 Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       nEN_R:
         bits: [3]
-        access: r
+        access: [R]
         brief: nEN Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       nEN_F:
         bits: [2]
-        access: r
+        access: [R]
         brief: nEN Falling Interrupt
-        enum: EN
+        enum: !Shared EN
       GPI0_R:
         bits: [1]
-        access: r
+        access: [R]
         brief: GPI0 Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       GPI0_F:
         bits: [0]
-        access: r
+        access: [R]
         brief: GPI0 Falling Interrupt
-        enum: EN
+        enum: !Shared EN
 
-  INT_GLBL1:
+  INT_GLBL1: !Register
     adr: 0x04
     reset_val: 0x00
     brief: Global Interrupt flag register 1.
@@ -59,123 +59,122 @@ registers:
     fields:
       LDO1_F:
         bits: [6]
-        access: r
+        access: [R]
         brief: LDO1 Fault Interrupt
-        enum: EN
+        enum: !Shared EN
       LDO0_F:
         bits: [5]
         brief: LDO0 Fault Interrupt
-        access: r
-        enum: EN
+        access: [R]
+        enum: !Shared EN
       SBB_TO:
         bits: [4]
-        access: r
+        access: [R]
         brief: SBB Timeout
       GPI2_R:
-        enum: EN
         bits: [3]
-        access: r
+        access: [R]
         brief: GPI Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       GPI2_F:
         bits: [2]
-        access: r
+        access: [R]
         brief: GPI Falling Interrupt
-        enum: EN
+        enum: !Shared EN
       GPI1_R:
         bits: [1]
-        access: r
+        access: [R]
         brief: GPI Rising Interrupt
-        enum: EN
+        enum: !Shared EN
       GPI1_F:
         bits: [0]
-        access: r
+        access: [R]
         brief: GPI Falling Interrupt
-        enum: EN
+        enum: !Shared EN
 
-  ERC_FLAG:
+  ERC_FLAG: !Register
     adr: 0x05
     reset_val: 0x00
     brief: Fault Status Register
     fields:
       WDT_RST:
         bits: [7]
-        access: r
+        access: [R]
         brief: Watchdog Timer Reset Flag
         doc: >
           This bit sets when the watchdog timer expires and causes
           a power-reset (WDT_MODE = 1).
       WDT_OFF:
         bits: [6]
-        access: r
+        access: [R]
         brief: Watchdog Timer OFF Flag
         doc: >
           This bit sets when the watchdog timer expires and causes
           a power-off (WDT_MODE = 0).
       SFT_CRST_F:
         bits: [5]
-        access: r
+        access: [R]
         brief: Software Cold Reset Flag
       SFT_OFF_F:
         bits: [4]
-        access: r
+        access: [R]
         brief: Software OFF Flag
       MRST:
         bits: [3]
-        access: r
+        access: [R]
         brief: Manual Reset Timer
       SYSUVLO:
         bits: [2]
-        access: r
+        access: [R]
         brief: SYS Domain Undervoltage Lockout
       SYSOVLO:
         bits: [1]
-        access: r
+        access: [R]
         brief: SYS Domain Overvoltage Lockout
       TOVLD:
         bits: [0]
-        access: r
+        access: [R]
         brief: Thermal Overload
 
-  STAT_GLBL:
+  STAT_GLBL: !Register
     adr: 0x06
     reset_val: 0x00
     brief: Global Status
     fields:
       DIDM:
         bits: [7]
-        access: r
+        access: [R]
         brief: Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)
       BOK:
         bits: [6]
-        access: r
+        access: [R]
         brief: Main Bias OK
       DOD0_S:
         bits: [5]
-        access: r
+        access: [R]
         brief: LDO0 in dropout
       DOD1_S:
         bits: [4]
-        access: r
+        access: [R]
         brief: LDO1 in dropout
       TJAL2_S:
         bits: [3]
-        access: r
+        access: [R]
         brief: Thermal Alarm 2 active
       TJAL1_S:
         bits: [2]
-        access: r
+        access: [R]
         brief: Thermal Alarm 1 active
       STAT_EN:
         bits: [1]
-        access: r
+        access: [R]
         brief: Debounced Status for the nEN Input
       STAT_IRQ:
         bits: [0]
-        access: r
+        access: [R]
         brief: nIRQ active
 
-  INTM_GLBL1:
+  INTM_GLBL1: !Register
     adr: 0x08
     reset_val: 0x7F
     brief: Interrupt Masking 1
@@ -185,87 +184,87 @@ registers:
     fields:
       LDO1_M:
         bits: [6]
-        access: [r, w]
+        access: [R, W]
         brief: LDO1 Fault Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       LDO0_M:
         bits: [5]
-        access: [r, w]
+        access: [R, W]
         brief: LDO0 Fault Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       SBB_TO_M:
         bits: [4]
-        access: [r, w]
+        access: [R, W]
         brief: SBB Timeout Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       GPI2_RM:
         bits: [3]
-        access: [r, w]
+        access: [R, W]
         brief: GPI Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       GPI2_FM:
         bits: [2]
-        access: [r, w]
+        access: [R, W]
         brief: GPI Falling Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       GPI1_RM:
         bits: [1]
-        access: [r, w]
+        access: [R, W]
         brief: GPI Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       GPI1_FM:
         bits: [0]
-        access: [r, w]
+        access: [R, W]
         brief: GPI Falling Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
 
-  INTM_GLBL0:
+  INTM_GLBL0: !Register
     adr: 0x09
     reset_val: 0xFF
     brief: Interrupt Masking 0
     fields:
       DOD0_RM:
         bits: [7]
-        access: [r, w]
+        access: [R, W]
         brief: LDO Dropout Detector Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       DOD1_RM:
         bits: [6]
-        access: [r, w]
+        access: [R, W]
         brief: LDO Dropout Detector Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       TJAL2_RM:
         bits: [5]
-        access: [r, w]
+        access: [R, W]
         brief: Thermal Alarm 2 Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       TJAL1_RM:
         bits: [4]
-        access: [r, w]
+        access: [R, W]
         brief: Thermal Alarm 1 Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       nEN_RM:
         bits: [3]
-        access: [r, w]
+        access: [R, W]
         brief: nEN Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       nEN_FM:
         bits: [2]
-        access: [r, w]
+        access: [R, W]
         brief: nEN Falling Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       GPI0_RM:
         bits: [1]
-        access: [r, w]
+        access: [R, W]
         brief: GPI Rising Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       GPI0_FM:
         bits: [0]
-        access: [r, w]
+        access: [R, W]
         brief: GPI Falling Interrupt Mask/Disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
 
-  CNFG_GLBL:
+  CNFG_GLBL: !Register
     adr: 0x10
     reset_val: 0x00
     brief: Global Configuration
@@ -273,8 +272,8 @@ registers:
       PU_DIS:
         bits: [7]
         brief: nEN Internal Pullup Resistor
-        access: [r, w]
-        enum:
+        access: [R, W]
+        enum: !Local
           200K:
             val: 0
             brief: "200kOhm"
@@ -284,8 +283,8 @@ registers:
       T_MRST:
         bits: [6]
         brief: Sets the Manual Reset Time (tMRST)
-        access: [r, w]
-        enum:
+        access: [R, W]
+        enum: !Local
           8s:
             val: 0
             brief: 8 seconds
@@ -294,18 +293,18 @@ registers:
             brief: 16 seconds
       SBIA_LPM:
         bits: [5]
-        access: [r, w]
+        access: [R, W]
         brief: Main Bias Low-Power Mode Software Request
       SBIA_EN:
         bits: [4]
-        access: [r, w]
+        access: [R, W]
         brief: Main Bias Force Enable Software Request
-        enum: EN
+        enum: !Shared EN
       nEN_MODE:
         bits: [3]
-        access: [r, w]
+        access: [R, W]
         brief: nEN Input (ON-KEY) Default Configuration
-        enum:
+        enum: !Local
           PUSHBTN:
             val: 0
             brief: "Push-button"
@@ -314,9 +313,9 @@ registers:
             brief: "Slide-switch"
       DBEN_nEN:
         bits: [2]
-        access: [r, w]
+        access: [R, W]
         brief: Debounce Timer Enable for the nEN Pin
-        enum:
+        enum: !Local
           500us:
             val: 0
             brief: 500 microseconds
@@ -325,22 +324,16 @@ registers:
             brief: 30 milliseconds
       SFT_CTRL:
         bits: [1, 0]
-        access: [r, w]
+        access: [R, W]
         brief: Software Reset Function
-        doc: >
-          Note that the SFT_CRST and SFT_OFF
-          commands initiate the power-down sequence
-          flow as described in the data sheet. This
-          power-down sequence flow has delay
-          elements that add up to 205.24ms (60ms
-          delay + 10.24ms nRST assert delay +
-          4x2.56ms power-down slot delays + 125ms
-          output discharge delay). If issuing the
-          SFT_CRST and/or SFT_OFF functions in
-          software, wait for more than 300ms before
-          trying to issue any additional commands
-          through I2C.
-        enum:
+        doc: |
+          Note that the SFT_CRST and SFT_OFF commands initiate the power-down sequence
+          flow as described in the data sheet. This power-down sequence flow has delay
+          elements that add up to 205.24ms (60ms delay + 10.24ms nRST assert delay +
+          4x2.56ms power-down slot delays + 125ms output discharge delay). If issuing the
+          SFT_CRST and/or SFT_OFF functions in software, wait for more than 300ms before
+          trying to issue any additional commands through I2C.
+        enum: !Local
           NO_ACTION:
             val: 0x0
             brief: No Action
@@ -359,14 +352,12 @@ registers:
           FSM:
             val: 0x3
             brief: Factory-ship mode enter (FSM).
-            doc: >
-              The IC powers down, configuration
-              registers reset, and the internal BATT to SYS
-              switch opens. The device remains
-              this way until a factory-ship mode exit event
+            doc: |
+              The IC powers down, configuration registers reset, and the internal BATT to SYS
+              switch opens. The device remains this way until a factory-ship mode exit event
               occurs.
 
-  CNFG_GPIOn:
+  CNFG_GPIOn: !Block
     instances: {CNFG_GPIO0: 0x11, CNFG_GPIO1: 0x12, CNFG_GPIO2: 0x13}
     registers:
       "":
@@ -379,23 +370,23 @@ registers:
         fields:
           ALT:
             bits: [5]
-            access: [r, w]
+            access: [R, W]
             brief: Alternate Mode Enable for GPIO0
-            enum: EN
+            enum: !Shared EN
           DBEN_GPI:
             bits: [4]
-            access: [r, w]
+            access: [R, W]
             brief: General Purpose Input Debounce Timer enable (30ms)
-            enum: EN
+            enum: !Shared EN
           DOUT:
             bits: [3]
-            access: [r, w]
+            access: [R, W]
             brief: General Purpose Output Data Output
           DRV:
             bits: [2]
-            access: [r, w]
+            access: [R, W]
             brief: General Purpose Output Driver Type
-            enum:
+            enum: !Local
               OD:
                 val: 0
                 brief: "Open-drain"
@@ -404,13 +395,13 @@ registers:
                 brief: "Push-Pull"
           DI:
             bits: [1]
-            access: r
+            access: [R]
             brief: GPIO Digital Input val.
           DIR:
             bits: [0]
-            access: [r, w]
+            access: [R, W]
             brief: GPIO Direction
-            enum:
+            enum: !Local
               OUTPUT:
                 val: 0
                 brief: "Output"
@@ -418,7 +409,7 @@ registers:
                 val: 1
                 brief: "Input"
 
-  CID:
+  CID: !Register
     adr: 0x14
     reset_val: 0x00
     brief: Chip Identification Register
@@ -427,10 +418,10 @@ registers:
         bits: [7]
         brief: Bit 4 of the chip identification code.
       CID_LSB:
-        bits: 0-3
+        bits: [0-3]
         brief: Bits 0 to 3 of the chip identification code.
 
-  CNFG_WDT:
+  CNFG_WDT: !Register
     adr: 0x17
     reset_val: 0x30
     brief: Watchdog timer configurtion.
@@ -441,7 +432,7 @@ registers:
       WDT_PER:
         bits: [5, 4]
         brief: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.
-        enum:
+        enum: !Local
           16s:
             val: 0x0
             brief: 16 seconds
@@ -457,7 +448,7 @@ registers:
       WDT_MODE:
         bits: [3]
         brief: Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.
-        enum:
+        enum: !Local
           PWR_OFF:
             val: 0x0
             brief: Expiration causes power-off.
@@ -470,13 +461,13 @@ registers:
       WDT_EN:
         bits: [1]
         brief: Watchdog Timer Enable. Write protected.
-        enum: EN
+        enum: !Shared EN
       WDT_LOCK:
         bits: [0]
         brief: Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.
-        enum: EN
+        enum: !Shared EN
 
-  INT_CHG:
+  INT_CHG: !Register
     adr: 0x01
     reset_val: 0x00
     brief: Charger Interrupt flag register
@@ -510,7 +501,7 @@ registers:
         bits: [0]
         brief: Thermistor Related Interrupt (THM_DTLS has changed).
 
-  STAT_CHG_A:
+  STAT_CHG_A: !Register
     adr: 0x02
     reset_val: 0x00
     brief: Charger status register A.
@@ -533,8 +524,8 @@ registers:
       THM_DTLS:
         bits: [2, 1, 0]
         brief: Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.
-        access: r
-        enum:
+        access: [R]
+        enum: !Local
           THM_OFF:
             val: 0x0
             brief: Thermistor is disabled (THM_EN = 0).
@@ -556,15 +547,15 @@ registers:
             val: 0x5
             brief: Battery is in the normal temperature region.
 
-  STAT_CHG_B:
+  STAT_CHG_B: !Register
     adr: 0x03
     reset_val: 0x00
     brief: Charger status register B.
     fields:
       CHG_DTLS:
-        bits: 4-7
+        bits: [4-7]
         brief: Charger Status details
-        enum:
+        enum: !Local
           "OFF":
             val: 0x0
             brief: "Off"
@@ -607,7 +598,7 @@ registers:
       CHGIN_DTLS:
         bits: [3, 2]
         brief: CHGIN Status details
-        enum:
+        enum: !Local
           UVLO:
             val: 0x0
             brief: The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO).
@@ -627,7 +618,7 @@ registers:
         bits: [0]
         brief: Timer Suspend Indicator
 
-  INTM_CHG:
+  INTM_CHG: !Register
     adr: 0x07
     reset_val: 0x00
     brief: Charger Interrupt masking
@@ -638,33 +629,33 @@ registers:
       SYS_CNFG_I:
         bits: [6]
         brief: System Voltage Configuration Error Interrupt Mask/disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       SYS_CTRL_I:
         bits: [5]
         brief: Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       CHGIN_CTRL_I:
         bits: [4]
         brief: CHGIN Control-Loop Related Interrupt Mask/disabled.
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       TJ_REG_I:
         bits: [3]
         brief: Die Junction Temperature Regulation Interrupt Mask/disabled.
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       CHGIN_I:
         bits: [2]
         brief: CHGIN Related Interrupt Mask/disabled.
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       CHG_I:
         bits: [1]
         brief: Charger Related Interrupt Mask/disabled.
-        enum: INT_MASK
+        enum: !Shared INT_MASK
       THM_I:
         bits: [0]
         brief: Thermistor Related Interrupt Mask/disabled.
-        enum: INT_MASK
+        enum: !Shared INT_MASK
 
-  CNFG_CHG_A:
+  CNFG_CHG_A: !Register
     adr: 0x20
     reset_val: 0x0F
     brief: Charger Config register A.
@@ -672,7 +663,7 @@ registers:
       THM_HOT:
         bits: [7, 6]
         brief: Sets the VHOT JEITA Temperature Threshold
-        enum:
+        enum: !Local
           0V411:
             val: 0x0
             brief: VHOT = 0.411V (45degC for beta = 3380K)
@@ -688,7 +679,7 @@ registers:
       THM_WARM:
         bits: [5, 4]
         brief: Sets the VWARM JEITA Temperature Threshold
-        enum:
+        enum: !Local
           0V511:
             val: 0x0
             brief: VWARM = 0.511V (35degC for beta = 3380K)
@@ -704,7 +695,7 @@ registers:
       THM_COOL:
         bits: [3, 2]
         brief: Sets the VCOOL JEITA Temperature Threshold
-        enum:
+        enum: !Local
           0V923:
             val: 0x0
             brief: VCOOL = 0.923V (0degC for beta = 3380K)
@@ -720,7 +711,7 @@ registers:
       THM_COLD:
         bits: [1, 0]
         brief: Sets the VCOLD JEITA Temperature Threshold
-        enum:
+        enum: !Local
           1V024:
             val: 0x0
             brief: VCOLD = 1.024V (-10degC for beta = 3380K)
@@ -734,7 +725,7 @@ registers:
             val: 0x3
             brief: VCOLD = 0.867V (5degC for beta = 3380K)
 
-  CNFG_CHG_B:
+  CNFG_CHG_B: !Register
     adr: 0x21
     reset_val: 0x0
     brief: Charger Config register B.
@@ -742,7 +733,7 @@ registers:
       VCHGIN_MIN:
         bits: [7, 6, 5]
         brief: Minimum CHGIN Regulation Voltage (VCHGIN-MIN)
-        enum:
+        enum: !Local
           4V0:
             val: 0x0
             brief: 4.0V
@@ -770,7 +761,7 @@ registers:
       ICHGIN_LIM:
         bits: [4, 3, 2]
         brief: CHGIN Input Current Limit (ICHGIN-LIM)
-        enum:
+        enum: !Local
           95mA:
             val: 0x0
             brief: 95mA
@@ -789,7 +780,7 @@ registers:
       I_PQ:
         bits: [1]
         brief: Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.
-        enum:
+        enum: !Local
           10PERC:
             val: 0
             brief: 10% of IFAST-CHG
@@ -799,9 +790,9 @@ registers:
       CHG_EN:
         bits: [0]
         brief: Charger Enable
-        enum: EN
+        enum: !Shared EN
 
-  CNFG_CHG_C:
+  CNFG_CHG_C: !Register
     adr: 0x22
     reset_val: 0xF8
     brief: Charger Config register C.
@@ -809,7 +800,7 @@ registers:
       CHG_PQ:
         bits: [7, 6, 5]
         brief: Battery Prequalification Voltage Threshold (VPQ)
-        enum:
+        enum: !Local
           2V3:
             val: 0x0
             brief: 2.3V
@@ -837,7 +828,7 @@ registers:
       I_TERM:
         bits: [4, 3]
         brief: Charger Termination Current (ITERM)
-        enum:
+        enum: !Local
           5PERC:
             val: 0x0
             brief: 5% of IFAST-CHG
@@ -853,7 +844,7 @@ registers:
       T_TOPOFF:
         bits: [2, 1, 0]
         brief: Top-Off Timer val (t_TO)
-        enum:
+        enum: !Local
           0MIN:
             val: 0x0
             brief: 0 minutes
@@ -879,7 +870,7 @@ registers:
             val: 0x7
             brief: 35 minute
 
-  CNFG_CHG_D:
+  CNFG_CHG_D: !Register
     adr: 0x23
     reset_val: 0x10
     brief: Charger Config register D.
@@ -887,7 +878,7 @@ registers:
       TJ_REG:
         bits: [7, 6, 5]
         brief: Sets the die junction temperature regulation point, TJ-REG.
-        enum:
+        enum: !Local
           60degC:
             val: 0x0
             brief: 60degC
@@ -904,13 +895,13 @@ registers:
             val: 0x4
             brief: 100degC
       VSYS_REG:
-        bits: 0-4
+        bits: [0-4]
         brief: System Voltage Regulation (VSYS-REG)
-        doc: >
+        doc: |
           This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
-          with 25mV increments. Program VSYS_REG to at least 200mV above
-          the higher of VFAST-CHG and VFAST-CHG-JEITA.
-        enum:
+          with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and
+          VFAST-CHG-JEITA.
+        enum: !Local
           4V1:
             val: 0x00
             brief: 4.100V
@@ -999,13 +990,13 @@ registers:
             val: 0x1C
             brief: 4.800V
 
-  CNFG_CHG_E:
+  CNFG_CHG_E: !Register
     adr: 0x24
     reset_val: 0x05
     brief: Charger Config register E.
     fields:
       CHG_CC:
-        bits: 2-7
+        bits: [2-7]
         brief: Sets the fast-charge constant current val, IFAST-CHG.
         doc: >
           This 6-bit configuration is a linear transfer function
@@ -1013,7 +1004,7 @@ registers:
       T_FAST_CHG:
         bits: [1, 0]
         brief: Sets the fast-charge safety timer, t_FC.
-        enum:
+        enum: !Local
           "OFF":
             val: 0x0
             brief: Timer disabled
@@ -1027,28 +1018,25 @@ registers:
             val: 0x3
             brief: 7 hours
 
-  CNFG_CHG_F:
+  CNFG_CHG_F: !Register
     adr: 0x25
     reset_val: 0x04
     brief: Charger Config register F.
     fields:
       CHG_CC_JEITA:
-        bits: 2-7
+        bits: [2-7]
         brief: Sets IFAST-CHG-JEITA for when the battery is either cool or warm
-        doc: >
-          Cool or warm are as defined by the VCOOL
-          and VWARM temperature thresholds. This
-          register is a don't care if the battery
-          temperature is normal.
-          This 6-bit configuration is a linear transfer
-          function that starts at 7.5mA and ends at
-          300mA, with 7.5mA increments.
+        doc: |
+          Cool or warm are as defined by the VCOOL and VWARM temperature thresholds.
+          This register is a don't care if the battery temperature is normal. This
+          6-bit configuration is a linear transfer function that starts at 7.5mA and
+          ends at 300mA, with 7.5mA increments.
       THM_EN:
         bits: [1]
         brief: Thermistor Enable
-        enum: EN
+        enum: !Shared EN
 
-  CNFG_CHG_G:
+  CNFG_CHG_G: !Register
     adr: 0x26
     reset_val: 0x00
     brief: Charger Config register G.
@@ -1057,18 +1045,17 @@ registers:
       val: 0x0
     fields:
       CHG_CV:
-        bits: 2-7
+        bits: [2-7]
         brief: Sets fast-charge battery regulation voltage, VFAST-CHG.
-        doc: >
-          This 6-bit configuration is a linear transfer function that
-          starts at 3.6V and ends at 4.6V, with 25mV increments. Program
-          VSYS_REG to at least 200mV above the higher of VFAST-CHG and
-          VFAST-CHG- JEITA.
+        doc: |
+          This 6-bit configuration is a linear transfer function that starts at
+          3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at
+          least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
       USBS:
         bits: [1]
         brief: Setting this bit places CHGIN in USB
 
-  CNFG_CHG_H:
+  CNFG_CHG_H: !Register
     adr: 0x27
     reset_val: 0x00
     brief: Charger Config register H.
@@ -1077,29 +1064,24 @@ registers:
       val: 0x0
     fields:
       CHG_CV_JEITA:
-        bits: 2-7
+        bits: [2-7]
         brief: Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.
-        doc: >
-          Cool or warm as defined
-          by the VCOOL and VWARM temperature
-          thresholds. This register is a don't care if the
-          battery temperature is normal.
-          This 6-bit configuration is a linear transfer
-          function that starts at 3.6V and ends at 4.6V,
-          with 25mV increments.
-          Program VSYS_REG to at least 200mV above
-          the higher of VFAST-CHG and VFAST-CHG-
-          JEITA.
+        doc: |
+          Cool or warm as defined by the VCOOL and VWARM temperature thresholds.
+          This register is a don't care if the battery temperature is normal.
+          This 6-bit configuration is a linear transfer function that starts at
+          3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least
+          200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
 
-  CNFG_CHG_I:
+  CNFG_CHG_I: !Register
     adr: 0x28
     reset_val: 0xF0
     brief: Charger Config register I.
     fields:
       IMON_DISCHG_SCALE:
-        bits: 4-7
+        bits: [4-7]
         brief: Selects the battery discharge current full-scale current val.
-        enum:
+        enum: !Local
           8mA2:
             val: 0x0
             brief: 8.2mA
@@ -1134,9 +1116,9 @@ registers:
             val: 0xA
             brief: 300.0mA
       MUX_SEL:
-        bits: 0-3
+        bits: [0-3]
         brief: Selects the analog channel to connect to AMUX.
-        enum:
+        enum: !Local
           DISABLED:
             val: 0x0
             brief: DISABLED
@@ -1171,7 +1153,7 @@ registers:
             val: 0xA
             brief: SYS voltage monitor
 
-  CNFG_SBBn:
+  CNFG_SBBn: !Block
     instances: {CNFG_SBB0: 0x29, CNFG_SBB1: 0x2B, CNFG_SBB3: 0x2D}
     registers:
       _A:
@@ -1180,7 +1162,7 @@ registers:
         brief: SBBn Config A.
         fields:
           TV_SBB:
-            bits: 0-6
+            bits: [0-6]
             brief: SIMO Buck-Boost Channel Target Output Voltage
             doc:
               This 7-bit configuration is a linear transfer
@@ -1197,7 +1179,7 @@ registers:
           SBB_OP_MODE:
             bits: [6]
             brief: Operation Mode of SBBn
-            enum:
+            enum: !Local
               BUCK_BOOST:
                 val: 0
                 brief: Buck-boost mode.
@@ -1207,7 +1189,7 @@ registers:
           IP_SBB:
             bits: [5, 4]
             brief: SIMO Buck-Boost Channel Peak Current Limit
-            enum:
+            enum: !Local
               1A:
                 val: 0x0
                 brief: 1.000A
@@ -1223,29 +1205,29 @@ registers:
           ADE_SBB:
             bits: [3]
             brief: SIMO Buck-Boost Channel Active-Discharge Enable
-            enum: EN
+            enum: !Shared EN
           EN_SBB:
             bits: [2, 1, 0]
             brief: Enable control for SIMO buck-boost channel.
             doc: >
               Selects either an FPS slot the channel powers-up and powers-down in or
               whether the channel is forced on or off.
-            enum: REG_EN
+            enum: !Shared REG_EN
 
-  CNFG_SBB_TOP:
+  CNFG_SBB_TOP: !Register
     adr: 0x2F
     reset_val: 0x00
     brief: SBB Top Config.
     fields:
       ICHGIN_LIM_DEF:
         bits: [7]
-        access: r
+        access: [R]
         brief: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
       DRV_SBB:
         bits: [1, 0]
-        access: [r, w]
+        access: [R, W]
         brief: SIMO Buck-Boost (all channels) Drive Strength Trim.
-        enum:
+        enum: !Local
           FASTEST:
             val: 0x0
             brief: Fastest transition time
@@ -1259,7 +1241,7 @@ registers:
             val: 0x3
             brief: A little slower than SLOWEST
 
-  CNFG_LDOn:
+  CNFG_LDOn: !Block
     instances: {CNFG_LDO0: 0x38, CNFG_LDO1: 0x3A}
     registers:
       _A:
@@ -1271,13 +1253,12 @@ registers:
           val: 0x00
         fields:
           TV_LDO:
-            bits: 0-6
+            bits: [0-6]
             brief: LDO Target Output Voltage
             doc: >
               This 7-bit configuration is a linear transfer
               function that starts at 0.8V and ends at
               3.975V, with 25mV increments.
-
       _B:
         adr: 0x01
         reset_val: 0x00
@@ -1286,7 +1267,7 @@ registers:
           LDO_OP_MODE:
             bits: [4]
             brief: Operation Mode of LDO0
-            enum:
+            enum: !Local
               LDO:
                 val: 0
                 brief: LDO regulator
@@ -1296,14 +1277,14 @@ registers:
           ADE_LDO:
             bits: [3]
             brief: LDO Channel Active-Discharge Enable
-            enum: EN
+            enum: !Shared EN
           EN_LDO:
             bits: [2, 1, 0]
             brief: Enable control for LDO
             doc: >
               Selects either an FPS slot the channel powers-up and powers-down in or
               whether the channel is forced on or off.
-            enum: REG_EN
+            enum: !Shared REG_EN
 
 enums:
   REG_EN:
