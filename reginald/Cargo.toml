@@ -1,0 +1,17 @@
+[package]
+name = "reginald"
+version = "0.0.3"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+deser-hjson = "2.2.4"
+regex = "1.10.3"
+serde = { version = "1.0.197", features = ["derive"] }
+serde_yaml = "0.9.32"
+thiserror = "1.0.57"
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
+lazy_static = "1.4.0"
