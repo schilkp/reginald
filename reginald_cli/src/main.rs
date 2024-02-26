@@ -24,6 +24,7 @@ fn main() {
             generate_registers: true,
             generate_register_functions: true,
             generate_generic_macros: true,
+            generate_validation_functions: true,
             add_include: vec![],
         },
     )

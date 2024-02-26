@@ -70,10 +70,7 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
         if !fits_into_bitwidth(*reset_val, template.bitwidth) {
             return Err(ListingError::ConversionError {
                 bt: bt.to_owned() + ".reset_val",
-                msg: format!(
-                    "Reset value 0x{:x} does not fit into a {}-bit register!",
-                    reset_val, template.bitwidth
-                ),
+                msg: format!("Reset value 0x{:x} does not fit into a {}-bit register!", reset_val, template.bitwidth),
             });
         }
     }

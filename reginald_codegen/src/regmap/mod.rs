@@ -125,7 +125,8 @@ pub struct RegisterMap {
 impl RegisterMap {
     pub fn from_yaml<R>(inp: R) -> Result<Self, ListingError>
     where
-        R: io::Read, {
+        R: io::Read,
+    {
         let listing = listing::RegisterMap::from_yaml(inp)?;
         convert_map(&listing, &None)
     }
@@ -144,6 +145,17 @@ impl RegisterMap {
 
     pub fn from_hjson_str(inp: &str) -> Result<Self, ListingError> {
         Self::from_hjson(inp.as_bytes())
+    }
+
+    pub fn max_register_width(&self) -> TypeBitwidth {
+        let mut max_width = 0;
+        for block in self.register_blocks.values() {
+            for template in block.register_templates.values() {
+                max_width = TypeBitwidth::max(max_width, template.bitwidth);
+            }
+        }
+
+        max_width
     }
 }
 

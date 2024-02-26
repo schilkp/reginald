@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
 deser-hjson = "2.2.4"
+insta = "1.35.1"
 regex = "1.10.3"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_yaml = "0.9.32"

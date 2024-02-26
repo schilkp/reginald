@@ -7,14 +7,11 @@ use crate::{error::ListingError, regmap::validate::validate_docs, regmap::Access
 use super::{
     listing::{self},
     validate::{validate_bitpos, validate_register_template},
-    Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldEnum, Instance, Register, RegisterBlock,
-    RegisterMap, TypeAdr, TypeBitwidth, TypeValue,
+    Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldEnum, Instance, Register, RegisterBlock, RegisterMap,
+    TypeAdr, TypeBitwidth, TypeValue,
 };
 
-pub fn convert_map(
-    m: &listing::RegisterMap,
-    input_file: &Option<PathBuf>,
-) -> Result<RegisterMap, ListingError> {
+pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Result<RegisterMap, ListingError> {
     let bt = &m.map_name;
 
     let map_name = m.map_name.clone();
@@ -130,10 +127,7 @@ fn convert_docs(brief: &Option<String>, doc: &Option<String>, bt: &str) -> Resul
     validate_docs(docs, bt)
 }
 
-fn convert_shared_enums(
-    m: &listing::RegisterMap,
-    bt: &str,
-) -> Result<BTreeMap<String, Rc<Enum>>, ListingError> {
+fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<String, Rc<Enum>>, ListingError> {
     let mut result = BTreeMap::new();
 
     let bt = bt.to_owned() + ".enums";
@@ -154,10 +148,7 @@ fn convert_shared_enums(
     Ok(result)
 }
 
-fn convert_enum_entries(
-    entries: &listing::EnumEntries,
-    bt: &str,
-) -> Result<BTreeMap<String, EnumEntry>, ListingError> {
+fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<BTreeMap<String, EnumEntry>, ListingError> {
     let mut result: BTreeMap<String, EnumEntry> = BTreeMap::new();
 
     for (entry_name, entry) in entries {
@@ -423,14 +414,10 @@ mod tests {
 
         assert_eq!(convert_bits(&vec![listing::BitRange::Bit(8)], "").unwrap(), 0b1 << 8,);
 
-        assert_eq!(
-            convert_bits(&vec![listing::BitRange::Bit(0), listing::BitRange::Bit(1)], "").unwrap(),
-            0b11,
-        );
+        assert_eq!(convert_bits(&vec![listing::BitRange::Bit(0), listing::BitRange::Bit(1)], "").unwrap(), 0b11,);
 
         assert_eq!(
-            convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(0)], "")
-                .unwrap(),
+            convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(0)], "").unwrap(),
             0b11001,
         );
     }
@@ -442,8 +429,7 @@ mod tests {
 
     #[test]
     fn test_catch_overlapping_bits() {
-        convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(3)], "")
-            .unwrap_err();
+        convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(3)], "").unwrap_err();
 
         convert_bits(&vec![listing::BitRange::Range("3".into()), listing::BitRange::Bit(3)], "").unwrap_err();
     }
