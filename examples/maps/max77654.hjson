@@ -1316,7 +1316,12 @@
           VSYS_REG: {
             bits: ["0-4"],
             brief: "System Voltage Regulation (VSYS-REG)",
-            doc: "This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V, with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and VFAST-CHG-JEITA.",
+            doc: 
+              '''
+              This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
+              with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and 
+              VFAST-CHG-JEITA.
+              '''
             enum: {
               Enum: {
                 4V1: {

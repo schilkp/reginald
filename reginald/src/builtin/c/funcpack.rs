@@ -1,0 +1,589 @@
+use std::{
+    fmt::Write,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
+
+use crate::{
+    generator_cli::GeneratorCLI,
+    regmap::{
+        bits::{lsb_pos, mask_width, unpositioned_mask},
+        Docs, Enum, Field, FieldEnum, Register, RegisterBlock, RegisterMap,
+    },
+    utils::{c_fitting_unsigned_type, c_sanitize, str_pad_to_length, str_pad_to_table},
+};
+
+pub struct FuncpackGenerator {}
+
+impl GeneratorCLI for FuncpackGenerator {
+    fn generate(
+        &self,
+        _map: crate::regmap::RegisterMap,
+        _output_file_name: std::path::PathBuf,
+        _args: Vec<String>,
+    ) -> Result<Vec<String>, crate::error::Error> {
+        todo!()
+    }
+
+    fn description(&self) -> String {
+        "C header with register structs and conversion functions.".into()
+    }
+
+    fn help(&self, _args: Vec<String>) {
+        todo!()
+    }
+}
+
+// ====== Generator ============================================================
+
+pub struct GeneratorOpts {
+    pub field_enum_prefix: bool,
+    pub registers_as_bitfields: bool,
+    pub clang_format_guard: bool,
+    pub generate_enums: bool,
+    pub generate_registers: bool,
+    pub generate_register_functions: bool,
+    pub generate_generic_macros: bool,
+    pub add_include: Vec<String>,
+}
+
+pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &PathBuf, opts: &GeneratorOpts) {
+    generate_header(out, map, output_file, opts);
+
+    if opts.generate_enums && !map.shared_enums.is_empty() {
+        generate_shared_enums(out, map);
+    }
+
+    for block in &map.register_blocks {
+        // TODO: Generate block defines
+
+        for template in &block.register_templates {
+            if !template_has_content_to_generate(template, opts) {
+                continue;
+            }
+
+            let generic_template_name = block.name.to_owned() + &template.name;
+
+            // Register section header:
+            writeln!(out).unwrap();
+            writeln!(out, "{}", str_pad_to_length(&format!("// ==== {} ", generic_template_name), '=', 80))
+                .unwrap();
+            if !template.docs.is_empty() {
+                write!(out, "{}", template.docs.as_multiline("// ")).unwrap();
+            }
+
+            if opts.generate_registers {
+                generate_register_defines(out, map, block, template);
+            }
+
+            if opts.generate_enums {
+                generate_register_enums(out, map, block, template, opts);
+            }
+
+            if !template.fields.is_empty() {
+                if opts.generate_registers {
+                    generate_register_struct(out, map, block, template, opts);
+                }
+
+                if opts.generate_register_functions {
+                    generate_register_functions(out, map, block, template, opts);
+                }
+            }
+        }
+    }
+
+    if opts.generate_generic_macros {
+        generate_generic_macros(out, map);
+    }
+
+    generate_footer(out, output_file, opts);
+}
+
+fn generate_header(out: &mut dyn Write, map: &RegisterMap, output_file: &PathBuf, opts: &GeneratorOpts) {
+    if opts.clang_format_guard {
+        writeln!(out, "// clang-format off").unwrap();
+    }
+
+    writeln!(out, "/**").unwrap();
+    writeln!(out, " * @file {}", filename(output_file)).unwrap();
+    writeln!(out, " * @brief {}", map.map_name).unwrap();
+    if let Some(input_file) = &map.from_file {
+        writeln!(
+            out,
+            " * @note do not edit directly: generated using reginald from {}.",
+            filename(input_file)
+        )
+        .unwrap();
+    } else {
+        writeln!(out, " * @note do not edit directly: generated using reginald.",).unwrap();
+    }
+    writeln!(out, " *").unwrap();
+    writeln!(out, " * Generator: c.funcpack").unwrap();
+    writeln!(out, " */").unwrap();
+    writeln!(out, "#ifndef REGINALD_{}", c_macro(&filename(output_file))).unwrap();
+    writeln!(out, "#define REGINALD_{}", c_macro(&filename(output_file))).unwrap();
+    writeln!(out).unwrap();
+    writeln!(out, "#include <stdint.h>").unwrap();
+    for include in &opts.add_include {
+        writeln!(out, "#include \"{include}\"").unwrap();
+    }
+}
+
+fn generate_footer(out: &mut dyn Write, output_file: &PathBuf, opts: &GeneratorOpts) {
+    writeln!(out).unwrap();
+    writeln!(out, "#endif /* REGINALD_{} */", c_macro(&filename(output_file))).unwrap();
+
+    if opts.clang_format_guard {
+        writeln!(out, "// clang-format on").unwrap();
+    }
+}
+
+fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap) {
+    writeln!(out).unwrap();
+    writeln!(out, "{}", str_pad_to_length("// ==== Shared Enums ", '=', 80)).unwrap();
+
+    for shared_enum in map.shared_enums.values() {
+        writeln!(out).unwrap();
+        doxy_comment(out, &shared_enum.docs, "", None);
+        writeln!(out, "enum {} {{", name_shared_enum(map, shared_enum)).unwrap();
+        for entry in &shared_enum.entries {
+            doxy_comment(out, &entry.docs, "  ", None);
+            writeln!(
+                out,
+                "  {}_{} = 0x{:X}U,",
+                name_shared_enum(map, shared_enum),
+                c_code(&entry.name),
+                entry.value
+            )
+            .unwrap();
+        }
+        writeln!(out, "}};").unwrap();
+    }
+}
+
+fn generate_register_defines(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    template: &Register,
+) {
+    let mut defines: Vec<Vec<String>> = vec![];
+
+    let macro_reg_template = c_macro(&(block.name.to_owned() + &template.name));
+    let macro_prefix = c_macro(&map.map_name);
+    let generic_template_name = block.name.to_owned() + &template.name;
+
+    if let Some(template_offset) = template.adr {
+        for instance in &block.instances {
+            let instance_name = instance.name.to_owned() + &template.name;
+            if let Some(instance_adr) = &instance.adr {
+                defines.push(vec![
+                    format!("#define {}_{}", macro_prefix, c_macro(&instance_name)),
+                    format!("(0x{:X}U)", template_offset + instance_adr),
+                    format!("//!< {} register address", instance_name),
+                ])
+            }
+        }
+
+        if block.instances.len() > 1 && block.register_templates.len() > 1 {
+            defines.push(vec![
+                format!("#define {}_{}__OFFSET", macro_prefix, c_macro(&generic_template_name)),
+                format!("(0x{:X}U)", template_offset),
+                format!("//!< Offset of {} register from {} block start", generic_template_name, block.name),
+            ])
+        }
+    }
+
+    if let Some(reset_val) = &template.reset_val {
+        defines.push(vec![
+            format!("#define {}_{}__RESET", macro_prefix, macro_reg_template),
+            format!("(0x{:X}U)", reset_val),
+            format!("//!< {} register reset value", generic_template_name),
+        ])
+    }
+
+    if let Some(always_write) = &template.always_write {
+        defines.push(vec![
+            format!("#define {}_{}__ALWAYSWRITE_MASK", macro_prefix, macro_reg_template),
+            format!("(0x{:X}U)", always_write.mask),
+            format!("//!< {} register always write mask", generic_template_name),
+        ]);
+        defines.push(vec![
+            format!("#define {}_{}__ALWAYSWRITE_VALUE", macro_prefix, macro_reg_template),
+            format!("(0x{:X}U)", always_write.value),
+            format!("//!< {} register always write value", generic_template_name),
+        ]);
+    }
+
+    write!(out, "{}", str_pad_to_table(&defines, "", " ")).unwrap();
+}
+
+fn generate_register_enums(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    template: &Register,
+    opts: &GeneratorOpts,
+) {
+    for field in &template.fields {
+        if let Some(FieldEnum::Local(local_enum)) = &field.field_enum {
+            let enum_name = name_register_enum(map, block, template, local_enum, opts);
+            writeln!(out).unwrap();
+            doxy_comment(out, &local_enum.docs, "", None);
+            writeln!(out, "enum {enum_name} {{").unwrap();
+            for entry in &local_enum.entries {
+                doxy_comment(out, &entry.docs, "  ", None);
+                writeln!(out, "  {}_{} = 0x{:X}U,", c_macro(&enum_name), c_macro(&entry.name), entry.value)
+                    .unwrap();
+            }
+            writeln!(out, "}};").unwrap();
+        }
+    }
+}
+
+fn generate_register_struct(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    template: &Register,
+    opts: &GeneratorOpts,
+) {
+    let struct_name = name_register_struct(map, block, template);
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &template.docs,
+        "",
+        Some("use pack/unpack/overwrite functions for conversion to/from packed register value"),
+    );
+    writeln!(out, "struct {struct_name} {{").unwrap();
+    for field in &template.fields {
+        let field_type = register_struct_member_type(map, block, template, field, opts);
+        let field_name = c_code(&field.name);
+        doxy_comment(out, &field.docs, "  ", None);
+        if opts.registers_as_bitfields {
+            writeln!(out, "  {field_type} {field_name} : {};", mask_width(field.mask)).unwrap();
+        } else {
+            writeln!(out, "  {field_type} {field_name};",).unwrap();
+        }
+    }
+    writeln!(out, "}};",).unwrap();
+}
+
+fn generate_register_functions(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    template: &Register,
+    opts: &GeneratorOpts,
+) {
+    let struct_name = name_register_struct(map, block, template);
+    let packed_type = c_fitting_unsigned_type(template.bitwidth);
+    let macro_reg_template = c_macro(&(block.name.to_owned() + &template.name));
+    let macro_prefix = c_macro(&map.map_name);
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert register struct to packed register value".to_string()),
+            doc: Some(
+                "All bits that are not part of a field or specified as 'always write' are kept as in 'val'."
+                    .to_string(),
+            ),
+        },
+        "",
+        None,
+    );
+    writeln!(out, "static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{").unwrap();
+    if template.always_write.is_some() {
+        writeln!(out, "  val &= ~({packed_type}){macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK;")
+            .unwrap();
+        writeln!(out, "  val |= {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE;").unwrap();
+    }
+    for field in &template.fields {
+        let field_name = c_code(&field.name);
+        let mask = field.mask;
+        let unpos_mask = unpositioned_mask(mask);
+        let shift = lsb_pos(mask);
+        write!(out, "  val = ({packed_type})((val & ~({packed_type})0x{mask:X}U) | ").unwrap();
+        write!(out, "(((({packed_type})r->{field_name}) & 0x{unpos_mask:X}U) ").unwrap();
+        writeln!(out, "<< (({packed_type}) {shift}U)));").unwrap();
+    }
+    writeln!(out, "  return val;",).unwrap();
+    writeln!(out, "}}",).unwrap();
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert register struct to packed register value".to_string()),
+            doc: None,
+        },
+        "",
+        None,
+    );
+    writeln!(out, "static inline {packed_type} {struct_name}_pack(const struct {struct_name} *r) {{")
+        .unwrap();
+    writeln!(out, "  return {struct_name}_overwrite(r, 0);").unwrap();
+    writeln!(out, "}}",).unwrap();
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert packed register value to register struct initialization".to_string()),
+            doc: None,
+        },
+        "",
+        None,
+    );
+
+    let mut macro_lines: Vec<String> = vec![];
+    macro_lines.push(format!("#define {}_UNPACK(_VAL_) {{", c_macro(&struct_name)));
+    for field in &template.fields {
+        let mask = unpositioned_mask(field.mask);
+        let shift = lsb_pos(field.mask);
+        let field_name = c_code(&field.name);
+        macro_lines.push(format!("  .{field_name} = ((_VAL_) >> {shift}U) & 0x{mask:X}U,"));
+    }
+    for line in macro_lines {
+        writeln!(out, "{}\\", str_pad_to_length(&line, ' ', 99)).unwrap();
+    }
+    writeln!(out, "}}").unwrap();
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert packed register value into a register struct.".to_string()),
+            doc: None,
+        },
+        "",
+        None,
+    );
+    writeln!(
+        out,
+        "static inline void {struct_name}_unpack_into({packed_type} val,  struct {struct_name} *r) {{"
+    )
+    .unwrap();
+    for field in &template.fields {
+        let field_name = c_code(&field.name);
+        let mask = field.mask;
+        let unpos_mask = unpositioned_mask(mask);
+        let shift = lsb_pos(mask);
+        let field_type = register_struct_member_type(map, block, template, field, opts);
+        if field.field_enum.is_some() {
+            writeln!(out, "  r->{field_name} = ({field_type})((val >> {shift}U) & 0x{unpos_mask:X}U);")
+                .unwrap();
+        } else {
+            writeln!(out, "  r->{field_name} = (val >> {shift}U) & 0x{unpos_mask:X}U;").unwrap();
+        }
+    }
+    writeln!(out, "}}",).unwrap();
+}
+
+fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) {
+    let macro_prefix = c_macro(&map.map_name);
+
+    let mut entry_count = 0;
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert register struct to packed register value".to_string()),
+            doc: Some(
+                "All bits that are not part of a field or specified as 'always write' are kept as in 'val'."
+                    .to_string(),
+            ),
+        },
+        "",
+        None,
+    );
+    let mut macro_lines: Vec<String> = vec![];
+    macro_lines.push(format!("#define {macro_prefix}_OVERWRITE(_struct_ptr, _val_) _Generic((_struct_ptr),"));
+    for block in &map.register_blocks {
+        for template in &block.register_templates {
+            let struct_name = name_register_struct(map, block, template);
+            if template.fields.is_empty() {
+                continue;
+            }
+            entry_count += 1;
+            macro_lines.push(format!("    struct {struct_name}* : {struct_name}_overwrite,"));
+        }
+    }
+    if entry_count == 0 {
+        return;
+    }
+    let last_line = macro_lines.pop().unwrap().replace(',', "");
+    macro_lines.push(last_line);
+    for line in macro_lines {
+        writeln!(out, "{}\\", str_pad_to_length(&line, ' ', 99)).unwrap();
+    }
+    writeln!(out, "  )(_struct_ptr_, _val_)").unwrap();
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert register struct to packed register value".to_string()),
+            doc: None,
+        },
+        "",
+        None,
+    );
+    let mut macro_lines: Vec<String> = vec![];
+    macro_lines.push(format!("#define {macro_prefix}_PACK(_struct_ptr) _Generic((_struct_ptr),"));
+    for block in &map.register_blocks {
+        for template in &block.register_templates {
+            let struct_name = name_register_struct(map, block, template);
+            if template.fields.is_empty() {
+                continue;
+            }
+            macro_lines.push(format!("    struct {struct_name}* : {struct_name}_pack,"));
+        }
+    }
+    let last_line = macro_lines.pop().unwrap().replace(',', "");
+    macro_lines.push(last_line);
+    for line in macro_lines {
+        writeln!(out, "{}\\", str_pad_to_length(&line, ' ', 99)).unwrap();
+    }
+    writeln!(out, "  )(_struct_ptr_)").unwrap();
+
+    writeln!(out).unwrap();
+    doxy_comment(
+        out,
+        &Docs {
+            brief: Some("Convert packed register value into a register struct.".to_string()),
+            doc: None,
+        },
+        "",
+        None,
+    );
+    let mut macro_lines: Vec<String> = vec![];
+    macro_lines.push(format!("#define {macro_prefix}_PACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
+    for block in &map.register_blocks {
+        for template in &block.register_templates {
+            let struct_name = name_register_struct(map, block, template);
+            if template.fields.is_empty() {
+                continue;
+            }
+            macro_lines.push(format!("    struct {struct_name}* : {struct_name}_unpack_into,"));
+        }
+    }
+    let last_line = macro_lines.pop().unwrap().replace(',', "");
+    macro_lines.push(last_line);
+    for line in macro_lines {
+        writeln!(out, "{}\\", str_pad_to_length(&line, ' ', 99)).unwrap();
+    }
+    writeln!(out, "  )(_val_, _struct_ptr_)").unwrap();
+}
+
+// ====== Generator Utils ======================================================
+
+fn doxy_comment(out: &mut dyn Write, docs: &Docs, prefix: &str, note: Option<&str>) {
+    match (&docs.brief, note, &docs.doc) {
+        (None, None, None) => (),
+        (Some(brief), None, None) => {
+            writeln!(out, "{prefix}/** @brief {brief} */").unwrap();
+        }
+        (None, Some(note), None) => {
+            writeln!(out, "{prefix}/** @note {note} */").unwrap();
+        }
+        (brief, note, doc) => {
+            writeln!(out, "{prefix}/**").unwrap();
+            if let Some(brief) = brief {
+                writeln!(out, "{prefix} * @brief {brief}").unwrap();
+            }
+            if let Some(note) = note {
+                writeln!(out, "{prefix} * @note {note}").unwrap();
+            }
+            if let Some(doc) = doc {
+                for line in doc.lines() {
+                    writeln!(out, "{prefix} * {line}").unwrap();
+                }
+            }
+            writeln!(out, "{prefix} */").unwrap();
+        }
+    }
+}
+
+fn c_macro(s: &str) -> String {
+    c_sanitize(&s.to_uppercase())
+}
+
+fn c_code(s: &str) -> String {
+    c_sanitize(&s.to_lowercase())
+}
+
+fn filename(s: &Path) -> String {
+    s.file_name()
+        .unwrap_or(s.as_os_str())
+        .to_string_lossy()
+        .to_string()
+}
+
+fn name_shared_enum(map: &RegisterMap, shared_enum: &Rc<Enum>) -> String {
+    format!("{}_{}", c_code(&map.map_name), c_code(&shared_enum.name))
+}
+
+fn name_register_enum(
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    template: &Register,
+    field_enum: &Enum,
+    opts: &GeneratorOpts,
+) -> String {
+    let mapname = c_code(&map.map_name);
+    let regname = c_code(&(block.name.to_owned() + &template.name));
+    let enumname = c_code(&field_enum.name);
+    if opts.field_enum_prefix {
+        format!("{mapname}_{regname}_{enumname}")
+    } else {
+        format!("{mapname}_{enumname}")
+    }
+}
+
+fn name_register_struct(map: &RegisterMap, block: &RegisterBlock, template: &Register) -> String {
+    let mapname = c_code(&map.map_name);
+    let regname = c_code(&(block.name.to_owned() + &template.name));
+    format!("{mapname}_{regname}")
+}
+
+fn register_struct_member_type(
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    template: &Register,
+    field: &Field,
+    opts: &GeneratorOpts,
+) -> String {
+    match &field.field_enum {
+        Some(FieldEnum::Local(local_enum)) => name_register_enum(map, block, template, local_enum, opts),
+        Some(FieldEnum::Shared(shared_enum)) => name_shared_enum(map, shared_enum),
+        None => c_fitting_unsigned_type(mask_width(field.mask)),
+    }
+}
+
+fn template_has_content_to_generate(template: &Register, opts: &GeneratorOpts) -> bool {
+    if opts.generate_registers {
+        // Generate section for every register if 'generate_registers' is set.
+        return true;
+    }
+
+    if opts.generate_enums {
+        for field in &template.fields {
+            if matches!(field.field_enum, Some(FieldEnum::Local(_))) {
+                return true;
+            }
+        }
+    }
+
+    if opts.generate_register_functions && !template.fields.is_empty() {
+        // Register requires functions
+        return true;
+    }
+
+    false
+}

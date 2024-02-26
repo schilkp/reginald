@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io, rc::Rc};
+use std::{collections::BTreeMap, io, path::PathBuf, rc::Rc};
 
 use self::convert::convert_map;
 use crate::error::Error;
@@ -8,10 +8,10 @@ mod convert;
 mod listing;
 mod validate;
 
-type TypeValue = u64;
-type TypeBitwidth = u32;
-const MAX_BITWIDTH: TypeBitwidth = 64;
-type TypeAdr = u64;
+pub type TypeValue = u64;
+pub type TypeBitwidth = u32;
+pub const MAX_BITWIDTH: TypeBitwidth = 64;
+pub type TypeAdr = u64;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AccessMode {
@@ -25,6 +25,30 @@ pub type Access = Vec<AccessMode>;
 pub struct Docs {
     pub brief: Option<String>,
     pub doc: Option<String>,
+}
+
+impl Docs {
+    pub fn is_empty(&self) -> bool {
+        self.brief.is_none() && self.doc.is_none()
+    }
+
+    pub fn as_multiline(&self, prefix: &str) -> String {
+        let mut out = String::new();
+        if let Some(brief) = &self.brief {
+            out.push_str(prefix);
+            out.push_str(brief);
+            out.push('\n');
+        }
+        if let Some(doc) = &self.doc {
+            for line in doc.lines() {
+                out.push_str(prefix);
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+
+        out
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -77,8 +101,8 @@ pub struct Register {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Instance {
-    name: String,
-    adr: Option<TypeAdr>,
+    pub name: String,
+    pub adr: Option<TypeAdr>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -91,10 +115,11 @@ pub struct RegisterBlock {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegisterMap {
+    pub from_file: Option<PathBuf>,
     pub map_name: String,
     pub docs: Docs,
     pub register_blocks: Vec<RegisterBlock>,
-    pub shared_enums: HashMap<String, Rc<Enum>>,
+    pub shared_enums: BTreeMap<String, Rc<Enum>>,
 }
 
 impl RegisterMap {
@@ -103,7 +128,7 @@ impl RegisterMap {
         R: io::Read,
     {
         let listing = listing::RegisterMap::from_yaml(inp)?;
-        convert_map(&listing)
+        convert_map(&listing, &None)
     }
 
     pub fn from_yaml_str(inp: &str) -> Result<Self, Error> {
@@ -115,7 +140,7 @@ impl RegisterMap {
         R: io::Read,
     {
         let listing = listing::RegisterMap::from_hjson(inp)?;
-        convert_map(&listing)
+        convert_map(&listing, &None)
     }
 
     pub fn from_hjson_str(inp: &str) -> Result<Self, Error> {

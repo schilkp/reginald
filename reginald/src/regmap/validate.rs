@@ -15,9 +15,7 @@ pub fn validate_bitwidth(bitwidth: TypeBitwidth, bt: &str) -> Result<(), Error> 
     if bitwidth > MAX_BITWIDTH {
         Err(Error::ConversionError {
             bt: bt.to_owned(),
-            msg: format!(
-                "Bitwidth of {bitwidth} is greater than the maximal bitwidth {MAX_BITWIDTH}!"
-            ),
+            msg: format!("Bitwidth of {bitwidth} is greater than the maximal bitwidth {MAX_BITWIDTH}!"),
         })
     } else {
         Ok(())

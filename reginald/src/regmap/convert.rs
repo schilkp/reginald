@@ -1,4 +1,8 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    path::PathBuf,
+    rc::Rc,
+};
 
 use regex::Regex;
 
@@ -7,11 +11,11 @@ use crate::{error::Error, regmap::validate::validate_docs, regmap::AccessMode};
 use super::{
     listing::{self},
     validate::{validate_bitpos, validate_register_template},
-    Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldEnum, Instance, Register,
-    RegisterBlock, RegisterMap, TypeAdr, TypeBitwidth, TypeValue,
+    Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldEnum, Instance, Register, RegisterBlock,
+    RegisterMap, TypeAdr, TypeBitwidth, TypeValue,
 };
 
-pub fn convert_map(m: &listing::RegisterMap) -> Result<RegisterMap, Error> {
+pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Result<RegisterMap, Error> {
     let bt = &m.map_name;
 
     let map_name = m.map_name.clone();
@@ -21,6 +25,7 @@ pub fn convert_map(m: &listing::RegisterMap) -> Result<RegisterMap, Error> {
     let register_blocks = convert_registers(m, default_bitwidth, &shared_enums, bt)?;
 
     Ok(RegisterMap {
+        from_file: input_file.clone(),
         map_name,
         docs,
         register_blocks,
@@ -28,10 +33,7 @@ pub fn convert_map(m: &listing::RegisterMap) -> Result<RegisterMap, Error> {
     })
 }
 
-fn convert_always_write(
-    always_write: &Option<listing::AlwaysWrite>,
-    _bt: &str,
-) -> Option<AlwaysWrite> {
+fn convert_always_write(always_write: &Option<listing::AlwaysWrite>, _bt: &str) -> Option<AlwaysWrite> {
     always_write.as_ref().map(|always_write| AlwaysWrite {
         mask: always_write.mask,
         value: always_write.val,
@@ -129,11 +131,8 @@ fn convert_docs(brief: &Option<String>, doc: &Option<String>, bt: &str) -> Resul
     validate_docs(docs, bt)
 }
 
-fn convert_shared_enums(
-    m: &listing::RegisterMap,
-    bt: &str,
-) -> Result<HashMap<String, Rc<Enum>>, Error> {
-    let mut result = HashMap::new();
+fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<String, Rc<Enum>>, Error> {
+    let mut result = BTreeMap::new();
 
     let bt = bt.to_owned() + ".enums";
 
@@ -186,7 +185,7 @@ fn convert_local_field_enum(
 
 fn convert_shared_field_enum(
     name: &str,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<Option<FieldEnum>, Error> {
     let shared_enum = shared_enums.get(name).ok_or(Error::ConversionError {
@@ -199,23 +198,21 @@ fn convert_shared_field_enum(
 fn convert_field_enum(
     field: &listing::Field,
     field_name: &str,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<Option<FieldEnum>, Error> {
     let bt = bt.to_owned() + ".enum";
 
     match &field.field_enum {
         Some(listing::FieldEnum::Enum(e)) => convert_local_field_enum(field, field_name, e, &bt),
-        Some(listing::FieldEnum::SharedEnum(name)) => {
-            convert_shared_field_enum(name, shared_enums, &bt)
-        }
+        Some(listing::FieldEnum::SharedEnum(name)) => convert_shared_field_enum(name, shared_enums, &bt),
         None => Ok(None),
     }
 }
 
 fn convert_fields(
     reg: &listing::Register,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<Vec<Field>, Error> {
     let mut result = vec![];
@@ -233,7 +230,7 @@ fn convert_fields(
 fn convert_field(
     field_name: &str,
     field: &listing::Field,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<Field, Error> {
     let bt = bt.to_owned() + "." + field_name;
@@ -250,7 +247,7 @@ fn convert_field(
 fn convert_registers(
     map: &listing::RegisterMap,
     default_bitwidth: TypeBitwidth,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<Vec<RegisterBlock>, Error> {
     let bt = bt.to_owned() + ".registers";
@@ -276,7 +273,7 @@ fn convert_register(
     reg_name: &str,
     reg: &listing::Register,
     default_bitwidth: TypeBitwidth,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<RegisterBlock, Error> {
     let bt = bt.to_owned() + reg_name;
@@ -315,7 +312,7 @@ fn convert_register(
 fn convert_register_block_templates(
     block: &listing::RegisterBlock,
     default_bitwidth: TypeBitwidth,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<Vec<Register>, Error> {
     let mut result = vec![];
@@ -356,7 +353,7 @@ fn convert_register_block(
     block_name: &str,
     block: &listing::RegisterBlock,
     default_bitwidth: TypeBitwidth,
-    shared_enums: &HashMap<String, Rc<Enum>>,
+    shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<RegisterBlock, Error> {
     let bt = bt.to_owned() + block_name;
@@ -364,12 +361,7 @@ fn convert_register_block(
         name: block_name.to_string(),
         instances: convert_instances(&block.instances),
         docs: convert_docs(&block.brief, &block.doc, &bt)?,
-        register_templates: convert_register_block_templates(
-            block,
-            default_bitwidth,
-            shared_enums,
-            &bt,
-        )?,
+        register_templates: convert_register_block_templates(block, default_bitwidth, shared_enums, &bt)?,
     })
 }
 
@@ -420,34 +412,18 @@ mod tests {
 
     #[test]
     fn test_convert_bits() {
-        assert_eq!(
-            convert_bits(&vec![listing::BitRange::Bit(0)], "").unwrap(),
-            0b1 << 0,
-        );
+        assert_eq!(convert_bits(&vec![listing::BitRange::Bit(0)], "").unwrap(), 0b1 << 0,);
+
+        assert_eq!(convert_bits(&vec![listing::BitRange::Bit(8)], "").unwrap(), 0b1 << 8,);
 
         assert_eq!(
-            convert_bits(&vec![listing::BitRange::Bit(8)], "").unwrap(),
-            0b1 << 8,
-        );
-
-        assert_eq!(
-            convert_bits(
-                &vec![listing::BitRange::Bit(0), listing::BitRange::Bit(1)],
-                ""
-            )
-            .unwrap(),
+            convert_bits(&vec![listing::BitRange::Bit(0), listing::BitRange::Bit(1)], "").unwrap(),
             0b11,
         );
 
         assert_eq!(
-            convert_bits(
-                &vec![
-                    listing::BitRange::Range("3-4".into()),
-                    listing::BitRange::Bit(0)
-                ],
-                ""
-            )
-            .unwrap(),
+            convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(0)], "")
+                .unwrap(),
             0b11001,
         );
     }
@@ -459,23 +435,10 @@ mod tests {
 
     #[test]
     fn test_catch_overlapping_bits() {
-        convert_bits(
-            &vec![
-                listing::BitRange::Range("3-4".into()),
-                listing::BitRange::Bit(3),
-            ],
-            "",
-        )
-        .unwrap_err();
+        convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(3)], "")
+            .unwrap_err();
 
-        convert_bits(
-            &vec![
-                listing::BitRange::Range("3".into()),
-                listing::BitRange::Bit(3),
-            ],
-            "",
-        )
-        .unwrap_err();
+        convert_bits(&vec![listing::BitRange::Range("3".into()), listing::BitRange::Bit(3)], "").unwrap_err();
     }
 
     #[test]

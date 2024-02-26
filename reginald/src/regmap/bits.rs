@@ -51,6 +51,10 @@ pub fn unpositioned_mask(mask: TypeValue) -> TypeValue {
     mask >> lsb_pos(mask)
 }
 
+pub fn mask_width(mask: TypeValue) -> TypeBitwidth {
+    msb_pos(mask) - lsb_pos(mask) + 1
+}
+
 pub fn fits_into_bitwidth(val: TypeValue, bitwidth: TypeBitwidth) -> bool {
     (!bit_mask(bitwidth)) & val == 0
 }
