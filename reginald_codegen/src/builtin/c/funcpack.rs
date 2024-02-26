@@ -54,10 +54,10 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &PathBuf, o
         generate_shared_enums(out, map);
     }
 
-    for block in &map.register_blocks {
+    for block in map.register_blocks.values() {
         // TODO: Generate block defines
 
-        for template in &block.register_templates {
+        for template in block.register_templates.values() {
             if !template_has_content_to_generate(template, opts) {
                 continue;
             }
@@ -146,13 +146,13 @@ fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap) {
         writeln!(out).unwrap();
         doxy_comment(out, &shared_enum.docs, "", None);
         writeln!(out, "enum {} {{", name_shared_enum(map, shared_enum)).unwrap();
-        for entry in &shared_enum.entries {
+        for entry in shared_enum.entries.values() {
             doxy_comment(out, &entry.docs, "  ", None);
             writeln!(
                 out,
                 "  {}_{} = 0x{:X}U,",
-                name_shared_enum(map, shared_enum),
-                c_code(&entry.name),
+                c_macro(&name_shared_enum(map, shared_enum)),
+                c_macro(&entry.name),
                 entry.value
             )
             .unwrap();
@@ -174,7 +174,7 @@ fn generate_register_defines(
     let generic_template_name = block.name.to_owned() + &template.name;
 
     if let Some(template_offset) = template.adr {
-        for instance in &block.instances {
+        for instance in block.instances.values() {
             let instance_name = instance.name.to_owned() + &template.name;
             if let Some(instance_adr) = &instance.adr {
                 defines.push(vec![
@@ -225,13 +225,13 @@ fn generate_register_enums(
     template: &Register,
     opts: &GeneratorOpts,
 ) {
-    for field in &template.fields {
+    for field in template.fields.values() {
         if let Some(FieldEnum::Local(local_enum)) = &field.field_enum {
             let enum_name = name_register_enum(map, block, template, local_enum, opts);
             writeln!(out).unwrap();
             doxy_comment(out, &local_enum.docs, "", None);
             writeln!(out, "enum {enum_name} {{").unwrap();
-            for entry in &local_enum.entries {
+            for entry in local_enum.entries.values() {
                 doxy_comment(out, &entry.docs, "  ", None);
                 writeln!(out, "  {}_{} = 0x{:X}U,", c_macro(&enum_name), c_macro(&entry.name), entry.value)
                     .unwrap();
@@ -258,7 +258,7 @@ fn generate_register_struct(
         Some("use pack/unpack/overwrite functions for conversion to/from packed register value"),
     );
     writeln!(out, "struct {struct_name} {{").unwrap();
-    for field in &template.fields {
+    for field in template.fields.values() {
         let field_type = register_struct_member_type(map, block, template, field, opts);
         let field_name = c_code(&field.name);
         doxy_comment(out, &field.docs, "  ", None);
@@ -302,7 +302,7 @@ fn generate_register_functions(
             .unwrap();
         writeln!(out, "  val |= {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE;").unwrap();
     }
-    for field in &template.fields {
+    for field in template.fields.values() {
         let field_name = c_code(&field.name);
         let mask = field.mask;
         let unpos_mask = unpositioned_mask(mask);
@@ -342,7 +342,7 @@ fn generate_register_functions(
 
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {}_UNPACK(_VAL_) {{", c_macro(&struct_name)));
-    for field in &template.fields {
+    for field in template.fields.values() {
         let mask = unpositioned_mask(field.mask);
         let shift = lsb_pos(field.mask);
         let field_name = c_code(&field.name);
@@ -368,7 +368,7 @@ fn generate_register_functions(
         "static inline void {struct_name}_unpack_into({packed_type} val,  struct {struct_name} *r) {{"
     )
     .unwrap();
-    for field in &template.fields {
+    for field in template.fields.values() {
         let field_name = c_code(&field.name);
         let mask = field.mask;
         let unpos_mask = unpositioned_mask(mask);
@@ -404,8 +404,8 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) {
     );
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_OVERWRITE(_struct_ptr, _val_) _Generic((_struct_ptr),"));
-    for block in &map.register_blocks {
-        for template in &block.register_templates {
+    for block in map.register_blocks.values() {
+        for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
             if template.fields.is_empty() {
                 continue;
@@ -436,8 +436,8 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) {
     );
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_PACK(_struct_ptr) _Generic((_struct_ptr),"));
-    for block in &map.register_blocks {
-        for template in &block.register_templates {
+    for block in map.register_blocks.values() {
+        for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
             if template.fields.is_empty() {
                 continue;
@@ -464,8 +464,8 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) {
     );
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_PACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
-    for block in &map.register_blocks {
-        for template in &block.register_templates {
+    for block in map.register_blocks.values() {
+        for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
             if template.fields.is_empty() {
                 continue;
@@ -573,7 +573,7 @@ fn template_has_content_to_generate(template: &Register, opts: &GeneratorOpts) -
     }
 
     if opts.generate_enums {
-        for field in &template.fields {
+        for field in template.fields.values() {
             if matches!(field.field_enum, Some(FieldEnum::Local(_))) {
                 return true;
             }

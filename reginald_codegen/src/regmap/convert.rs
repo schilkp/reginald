@@ -1,8 +1,4 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    path::PathBuf,
-    rc::Rc,
-};
+use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
 
 use regex::Regex;
 
@@ -152,19 +148,23 @@ fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<S
     Ok(result)
 }
 
-fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<Vec<EnumEntry>, Error> {
-    let mut result: Vec<EnumEntry> = vec![];
+fn convert_enum_entries(
+    entries: &listing::EnumEntries,
+    bt: &str,
+) -> Result<BTreeMap<String, EnumEntry>, Error> {
+    let mut result: BTreeMap<String, EnumEntry> = BTreeMap::new();
 
     for (entry_name, entry) in entries {
         let bt = bt.to_owned() + "." + entry_name;
-        result.push(EnumEntry {
-            name: entry_name.to_owned(),
-            value: entry.val,
-            docs: convert_docs(&entry.brief, &entry.doc, &bt)?,
-        });
+        result.insert(
+            entry_name.clone(),
+            EnumEntry {
+                name: entry_name.to_owned(),
+                value: entry.val,
+                docs: convert_docs(&entry.brief, &entry.doc, &bt)?,
+            },
+        );
     }
-
-    result.sort_by_key(|x| x.name.clone());
 
     Ok(result)
 }
@@ -214,15 +214,13 @@ fn convert_fields(
     reg: &listing::Register,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Vec<Field>, Error> {
-    let mut result = vec![];
+) -> Result<BTreeMap<String, Field>, Error> {
+    let mut result = BTreeMap::new();
     let bt = bt.to_owned() + ".fields";
 
     for (field_name, field) in &reg.fields {
-        result.push(convert_field(field_name, field, shared_enums, &bt)?);
+        result.insert(field_name.clone(), convert_field(field_name, field, shared_enums, &bt)?);
     }
-
-    result.sort_by_key(|x| x.name.clone());
 
     Ok(result)
 }
@@ -249,9 +247,9 @@ fn convert_registers(
     default_bitwidth: TypeBitwidth,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Vec<RegisterBlock>, Error> {
+) -> Result<BTreeMap<String, RegisterBlock>, Error> {
     let bt = bt.to_owned() + ".registers";
-    let mut result: Vec<RegisterBlock> = vec![];
+    let mut result: BTreeMap<String, RegisterBlock> = BTreeMap::new();
 
     for (physreg_name, physreg) in &map.registers {
         let block = match physreg {
@@ -262,10 +260,9 @@ fn convert_registers(
                 convert_register_block(physreg_name, regblock, default_bitwidth, shared_enums, &bt)?
             }
         };
-        result.push(block);
+        result.insert(physreg_name.clone(), block);
     }
 
-    result.sort_by_key(|x| x.name.clone());
     Ok(result)
 }
 
@@ -298,12 +295,15 @@ fn convert_register(
 
     let block = RegisterBlock {
         name: reg_name.to_owned(),
-        instances: vec![Instance {
-            name: reg_name.to_owned(),
-            adr: reg.adr,
-        }],
+        instances: BTreeMap::from([(
+            reg_name.to_owned(),
+            Instance {
+                name: reg_name.to_owned(),
+                adr: reg.adr,
+            },
+        )]),
         docs,
-        register_templates: vec![template],
+        register_templates: BTreeMap::from([(String::new(), template)]),
     };
 
     Ok(block)
@@ -314,8 +314,8 @@ fn convert_register_block_templates(
     default_bitwidth: TypeBitwidth,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Vec<Register>, Error> {
-    let mut result = vec![];
+) -> Result<BTreeMap<String, Register>, Error> {
+    let mut result = BTreeMap::new();
 
     for (template_name, template) in &block.registers {
         let bt = bt.to_owned() + "." + template_name;
@@ -329,24 +329,25 @@ fn convert_register_block_templates(
             fields: convert_fields(template, shared_enums, &bt)?,
             docs: convert_docs(&template.brief, &template.doc, &bt)?,
         };
-        result.push(validate_register_template(template, &bt)?);
+        result.insert(template_name.clone(), validate_register_template(template, &bt)?);
     }
-
-    result.sort_by_key(|x| x.name.clone());
 
     Ok(result)
 }
 
-fn convert_instances(instances: &HashMap<String, Option<TypeAdr>>) -> Vec<Instance> {
-    let mut result: Vec<Instance> = instances
+fn convert_instances(instances: &BTreeMap<String, Option<TypeAdr>>) -> BTreeMap<String, Instance> {
+    instances
         .iter()
-        .map(|(name, adr)| Instance {
-            name: name.clone(),
-            adr: *adr,
+        .map(|(name, adr)| {
+            (
+                name.to_owned(),
+                Instance {
+                    name: name.clone(),
+                    adr: *adr,
+                },
+            )
         })
-        .collect();
-    result.sort_by_key(|x| x.name.clone());
-    result
+        .collect()
 }
 
 fn convert_register_block(

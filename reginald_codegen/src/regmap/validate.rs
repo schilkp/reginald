@@ -80,7 +80,7 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
 
     let mut occupied_mask: TypeValue = 0;
 
-    for field in &template.fields {
+    for field in template.fields.values() {
         let bt = bt.to_owned() + ".fields" + &field.name;
 
         // Validate that no fields overlap:
@@ -110,8 +110,8 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
         if let Some(e) = &field.field_enum {
             // Validate that the enum fits into the field:
             let enum_entries = match e {
-                super::FieldEnum::Local(field_enum) => field_enum.entries.iter(),
-                super::FieldEnum::Shared(shared_enun) => shared_enun.entries.iter(),
+                super::FieldEnum::Local(field_enum) => field_enum.entries.values(),
+                super::FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
             };
 
             for entry in enum_entries {

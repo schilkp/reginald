@@ -63,7 +63,7 @@ pub struct Enum {
     pub name: String,
     pub is_shared: bool,
     pub docs: Docs,
-    pub entries: Vec<EnumEntry>,
+    pub entries: BTreeMap<String, EnumEntry>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -90,7 +90,7 @@ pub struct Field {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Register {
     pub name: String,
-    pub fields: Vec<Field>,
+    pub fields: BTreeMap<String, Field>,
     pub bitwidth: TypeBitwidth,
     pub is_block_template: bool,
     pub adr: Option<TypeAdr>,
@@ -108,9 +108,9 @@ pub struct Instance {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegisterBlock {
     pub name: String,
-    pub instances: Vec<Instance>,
+    pub instances: BTreeMap<String, Instance>,
     pub docs: Docs,
-    pub register_templates: Vec<Register>,
+    pub register_templates: BTreeMap<String, Register>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -118,15 +118,14 @@ pub struct RegisterMap {
     pub from_file: Option<PathBuf>,
     pub map_name: String,
     pub docs: Docs,
-    pub register_blocks: Vec<RegisterBlock>,
+    pub register_blocks: BTreeMap<String, RegisterBlock>,
     pub shared_enums: BTreeMap<String, Rc<Enum>>,
 }
 
 impl RegisterMap {
     pub fn from_yaml<R>(inp: R) -> Result<Self, Error>
     where
-        R: io::Read,
-    {
+        R: io::Read, {
         let listing = listing::RegisterMap::from_yaml(inp)?;
         convert_map(&listing, &None)
     }

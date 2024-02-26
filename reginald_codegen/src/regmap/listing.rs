@@ -3,7 +3,7 @@ use crate::{
     regmap::{TypeAdr, TypeBitwidth, TypeValue},
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, io};
+use std::{collections::BTreeMap, io};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged, deny_unknown_fields)]
@@ -30,7 +30,7 @@ pub struct EnumEntry {
     pub brief: Option<String>,
 }
 
-pub type EnumEntries = HashMap<String, EnumEntry>;
+pub type EnumEntries = BTreeMap<String, EnumEntry>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -61,8 +61,8 @@ pub struct AlwaysWrite {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Register {
-    #[serde(default = "HashMap::new")]
-    pub fields: HashMap<String, Field>,
+    #[serde(default = "BTreeMap::new")]
+    pub fields: BTreeMap<String, Field>,
     pub adr: Option<TypeAdr>,
     pub bitwidth: Option<TypeBitwidth>,
     pub reset_val: Option<TypeValue>,
@@ -74,10 +74,10 @@ pub struct Register {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct RegisterBlock {
-    pub instances: HashMap<String, Option<TypeAdr>>,
+    pub instances: BTreeMap<String, Option<TypeAdr>>,
     pub doc: Option<String>,
     pub brief: Option<String>,
-    pub registers: HashMap<String, Register>,
+    pub registers: BTreeMap<String, Register>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -103,10 +103,10 @@ pub struct RegisterMap {
     pub default_register_bitwidth: TypeBitwidth,
     pub doc: Option<String>,
     pub brief: Option<String>,
-    #[serde(default = "HashMap::new")]
-    pub registers: HashMap<String, PhysicalRegister>,
-    #[serde(default = "HashMap::new")]
-    pub enums: HashMap<String, SharedEnum>,
+    #[serde(default = "BTreeMap::new")]
+    pub registers: BTreeMap<String, PhysicalRegister>,
+    #[serde(default = "BTreeMap::new")]
+    pub enums: BTreeMap<String, SharedEnum>,
 }
 
 impl RegisterMap {
@@ -222,8 +222,8 @@ mod tests {
             default_register_bitwidth: 8,
             doc: None,
             brief: None,
-            registers: HashMap::new(),
-            enums: HashMap::new(),
+            registers: BTreeMap::new(),
+            enums: BTreeMap::new(),
         };
         assert_eq!(is, expect);
     }
@@ -240,8 +240,8 @@ mod tests {
             default_register_bitwidth: 8,
             doc: None,
             brief: None,
-            registers: HashMap::new(),
-            enums: HashMap::new(),
+            registers: BTreeMap::new(),
+            enums: BTreeMap::new(),
         };
         assert_eq!(is, expect);
         // todo!(); // Make list..
@@ -253,13 +253,13 @@ mod tests {
             default_register_bitwidth: 8,
             doc: None,
             brief: None,
-            registers: HashMap::new(),
-            enums: HashMap::from([(
+            registers: BTreeMap::new(),
+            enums: BTreeMap::from([(
                 "MyEnum".into(),
                 SharedEnum {
                     doc: Some("Testdoc".into()),
                     brief: Some("very brief brief".into()),
-                    entries: HashMap::from([(
+                    entries: BTreeMap::from([(
                         "OFF".into(),
                         EnumEntry {
                             val: 0x0,
@@ -321,7 +321,7 @@ mod tests {
             default_register_bitwidth: 8,
             doc: None,
             brief: None,
-            registers: HashMap::from([(
+            registers: BTreeMap::from([(
                 "FIFOCTRL4".into(),
                 PhysicalRegister::Register(Register {
                     adr: None,
@@ -330,7 +330,7 @@ mod tests {
                     always_write: None,
                     doc: Some("Testdoc".into()),
                     brief: Some("very brief brief".into()),
-                    fields: HashMap::from([
+                    fields: BTreeMap::from([
                         (
                             "F7".into(),
                             Field {
@@ -354,7 +354,7 @@ mod tests {
                     ]),
                 }),
             )]),
-            enums: HashMap::new(),
+            enums: BTreeMap::new(),
         };
     }
 
@@ -409,7 +409,7 @@ mod tests {
             access: vec![],
             doc: None,
             brief: None,
-            field_enum: Some(FieldEnum::Enum(HashMap::from([
+            field_enum: Some(FieldEnum::Enum(BTreeMap::from([
                 (
                     "A".into(),
                     EnumEntry {

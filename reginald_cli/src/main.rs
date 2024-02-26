@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use reginald::{
+use reginald_codegen::{
     builtin::c::funcpack::{generate, GeneratorOpts},
     regmap::RegisterMap,
 };
