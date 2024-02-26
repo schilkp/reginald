@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{error::Error, regmap::RegisterMap};
+use crate::{error::GeneratorError, regmap::RegisterMap};
 
 pub trait GeneratorCLI {
     fn generate(
@@ -8,7 +8,7 @@ pub trait GeneratorCLI {
         map: RegisterMap,
         output_file_name: PathBuf,
         args: Vec<String>,
-    ) -> Result<Vec<String>, Error>;
+    ) -> Result<Vec<String>, GeneratorError>;
 
     fn help(&self, args: Vec<String>);
 

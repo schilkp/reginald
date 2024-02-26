@@ -26,7 +26,8 @@ fn main() {
             generate_generic_macros: true,
             add_include: vec![],
         },
-    );
+    )
+    .unwrap();
 
     print!("{}", out);
 }

@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, io, path::PathBuf, rc::Rc};
 
 use self::convert::convert_map;
-use crate::error::Error;
+use crate::error::ListingError;
 
 pub mod bits;
 mod convert;
@@ -123,18 +123,18 @@ pub struct RegisterMap {
 }
 
 impl RegisterMap {
-    pub fn from_yaml<R>(inp: R) -> Result<Self, Error>
+    pub fn from_yaml<R>(inp: R) -> Result<Self, ListingError>
     where
         R: io::Read, {
         let listing = listing::RegisterMap::from_yaml(inp)?;
         convert_map(&listing, &None)
     }
 
-    pub fn from_yaml_str(inp: &str) -> Result<Self, Error> {
+    pub fn from_yaml_str(inp: &str) -> Result<Self, ListingError> {
         Self::from_yaml(inp.as_bytes())
     }
 
-    pub fn from_hjson<R>(inp: R) -> Result<Self, Error>
+    pub fn from_hjson<R>(inp: R) -> Result<Self, ListingError>
     where
         R: io::Read,
     {
@@ -142,7 +142,7 @@ impl RegisterMap {
         convert_map(&listing, &None)
     }
 
-    pub fn from_hjson_str(inp: &str) -> Result<Self, Error> {
+    pub fn from_hjson_str(inp: &str) -> Result<Self, ListingError> {
         Self::from_hjson(inp.as_bytes())
     }
 }

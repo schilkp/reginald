@@ -1,5 +1,5 @@
 use crate::{
-    error::Error,
+    error::ListingError,
     regmap::{TypeAdr, TypeBitwidth, TypeValue},
 };
 use serde::{Deserialize, Serialize};
@@ -110,14 +110,14 @@ pub struct RegisterMap {
 }
 
 impl RegisterMap {
-    pub fn from_yaml<R>(inp: R) -> Result<Self, Error>
+    pub fn from_yaml<R>(inp: R) -> Result<Self, ListingError>
     where
         R: io::Read,
     {
         Ok(serde_yaml::from_reader(inp)?)
     }
 
-    pub fn from_hjson<R>(inp: R) -> Result<Self, Error>
+    pub fn from_hjson<R>(inp: R) -> Result<Self, ListingError>
     where
         R: io::Read,
     {
