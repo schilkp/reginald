@@ -61,21 +61,14 @@ pub fn generate(
     }
 
     for block in map.register_blocks.values() {
-        // TODO: Generate block defines
+        generate_register_block_defines(out, &map, &block)?;
 
         for template in block.register_templates.values() {
             if !template_has_content_to_generate(template, opts) {
                 continue;
             }
 
-            let generic_template_name = block.name.to_owned() + &template.name;
-
-            // Register section header:
-            writeln!(out)?;
-            writeln!(out, "{}", str_pad_to_length(&format!("// ==== {} ", generic_template_name), '=', 80))?;
-            if !template.docs.is_empty() {
-                write!(out, "{}", template.docs.as_multiline("// "))?;
-            }
+            generate_register_header(out, &block, &template)?;
 
             if opts.generate_registers {
                 generate_register_defines(out, map, block, template)?;
@@ -181,6 +174,70 @@ fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap) -> Result<(), G
     Ok(())
 }
 
+fn generate_register_block_defines(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    block: &RegisterBlock,
+) -> Result<(), GeneratorError> {
+    let mut defines = vec![];
+
+    if block.instances.len() > 1 && block.register_templates.len() > 1 {
+        let macro_prefix = c_macro(&map.map_name);
+        let macro_block_name = c_macro(&block.name.to_owned());
+
+        for instance in block.instances.values() {
+            if let Some(adr) = &instance.adr {
+                let macro_instance_name = c_macro(&instance.name);
+                defines.push(vec![
+                    format!("#define {}_{}_INSTANCE_{}", macro_prefix, macro_block_name, macro_instance_name),
+                    format!("(0x{:X}U)", adr),
+                    format!("//!< Start of {} instance {}", block.name, instance.name),
+                ]);
+            }
+        }
+
+        for template in block.register_templates.values() {
+            if let Some(template_offset) = template.adr {
+                let template_name = block.name.to_owned() + &template.name;
+                let macro_template_name = c_macro(&template_name);
+                defines.push(vec![
+                    format!("#define {}_{}_OFFSET", macro_prefix, macro_template_name),
+                    format!("(0x{:X}U)", template_offset),
+                    format!("//!< Offset of {} register from {} block start", template_name, block.name),
+                ])
+            }
+        }
+    }
+
+    if !defines.is_empty() {
+        writeln!(out,)?;
+        writeln!(out, "{}", str_pad_to_length(&format!("// ==== {} Register Block ", block.name), '=', 80))?;
+        if !block.docs.is_empty() {
+            write!(out, "{}", block.docs.as_multiline("// "))?;
+        }
+        write!(out, "{}", str_pad_to_table(&defines, "", " "))?;
+    }
+
+    Ok(())
+}
+
+fn generate_register_header(
+    out: &mut dyn Write,
+    block: &RegisterBlock,
+    template: &Register,
+) -> Result<(), GeneratorError> {
+    let generic_template_name = block.name.to_owned() + &template.name;
+
+    // Register section header:
+    writeln!(out)?;
+    writeln!(out, "{}", str_pad_to_length(&format!("// ==== {} Register ", generic_template_name), '=', 80))?;
+    if !template.docs.is_empty() {
+        write!(out, "{}", template.docs.as_multiline("// "))?;
+    }
+
+    Ok(())
+}
+
 fn generate_register_defines(
     out: &mut dyn Write,
     map: &RegisterMap,
@@ -204,19 +261,11 @@ fn generate_register_defines(
                 ])
             }
         }
-
-        if block.instances.len() > 1 && block.register_templates.len() > 1 {
-            defines.push(vec![
-                format!("#define {}_{}__OFFSET", macro_prefix, c_macro(&generic_template_name)),
-                format!("(0x{:X}U)", template_offset),
-                format!("//!< Offset of {} register from {} block start", generic_template_name, block.name),
-            ])
-        }
     }
 
     if let Some(reset_val) = &template.reset_val {
         defines.push(vec![
-            format!("#define {}_{}__RESET", macro_prefix, macro_reg_template),
+            format!("#define {}_{}_RESET", macro_prefix, macro_reg_template),
             format!("(0x{:X}U)", reset_val),
             format!("//!< {} register reset value", generic_template_name),
         ])
@@ -224,12 +273,12 @@ fn generate_register_defines(
 
     if let Some(always_write) = &template.always_write {
         defines.push(vec![
-            format!("#define {}_{}__ALWAYSWRITE_MASK", macro_prefix, macro_reg_template),
+            format!("#define {}_{}_ALWAYSWRITE_MASK", macro_prefix, macro_reg_template),
             format!("(0x{:X}U)", always_write.mask),
             format!("//!< {} register always write mask", generic_template_name),
         ]);
         defines.push(vec![
-            format!("#define {}_{}__ALWAYSWRITE_VALUE", macro_prefix, macro_reg_template),
+            format!("#define {}_{}_ALWAYSWRITE_VALUE", macro_prefix, macro_reg_template),
             format!("(0x{:X}U)", always_write.value),
             format!("//!< {} register always write value", generic_template_name),
         ]);
@@ -318,17 +367,19 @@ fn generate_register_functions(
     doxy_comment(out, &docs, "", None)?;
     writeln!(out, "static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{")?;
     if template.always_write.is_some() {
-        writeln!(out, "  val &= ~({packed_type}){macro_prefix}_{macro_reg_template}__ALWAYSWRITE_MASK;")?;
-        writeln!(out, "  val |= {macro_prefix}_{macro_reg_template}__ALWAYSWRITE_VALUE;")?;
+        writeln!(out, "  val &= ~({packed_type}){macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK;")?;
+        writeln!(out, "  val |= {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE;")?;
     }
     for field in template.fields.values() {
         let field_name = c_code(&field.name);
         let mask = field.mask;
         let unpos_mask = unpositioned_mask(mask);
         let shift = lsb_pos(mask);
-        write!(out, "  val = ({packed_type})((val & ~({packed_type})0x{mask:X}U) | ")?;
-        write!(out, "(((({packed_type})r->{field_name}) & 0x{unpos_mask:X}U) ")?;
-        writeln!(out, "<< (({packed_type}) {shift}U)));")?;
+        writeln!(out, "  val &= ~({packed_type})0x{mask:X}U;")?;
+        writeln!(
+            out,
+            "  val |= ((({packed_type})r->{field_name}) & 0x{unpos_mask:X}U) << ({packed_type}){shift}U;"
+        )?;
     }
     writeln!(out, "  return val;",)?;
     writeln!(out, "}}",)?;
