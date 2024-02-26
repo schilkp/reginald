@@ -11,8 +11,8 @@ deser-hjson = "2.2.4"
 regex = "1.10.3"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_yaml = "0.9.32"
+lazy_static = "1.4.0"
 thiserror = "1.0.57"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
-lazy_static = "1.4.0"

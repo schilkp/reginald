@@ -1,8 +1,7 @@
-use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
-
-use regex::Regex;
-
 use crate::{error::ListingError, regmap::validate::validate_docs, regmap::AccessMode};
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
 
 use super::{
     listing::{self},
@@ -71,10 +70,13 @@ fn convert_bitpos(bitpos: TypeBitwidth, bt: &str) -> Result<TypeValue, ListingEr
     Ok(1 << bitpos)
 }
 
-fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, ListingError> {
-    let re = Regex::new(r"^[0-9]+-[0-9]+$").unwrap();
+lazy_static! {
+    static ref BITRANGE_RE: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
+}
 
-    if !re.is_match(bitrange) {
+fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, ListingError> {
+
+    if !BITRANGE_RE.is_match(bitrange) {
         return Err(ListingError::ConversionError {
             bt: bt.to_string(),
             msg: format!("Malformed bit range '{}'", bitrange),

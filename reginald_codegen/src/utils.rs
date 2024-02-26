@@ -2,14 +2,18 @@ use std::fmt::Write;
 use std::ops::RangeInclusive;
 use std::usize;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::error::GeneratorError;
 use crate::regmap::{TypeBitwidth, TypeValue};
 
+lazy_static!{
+    static ref C_SANITIZE_SCHEMATIC: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
+}
+
 pub fn c_sanitize(s: &str) -> String {
-    let re = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
-    re.replace_all(s, "_").into()
+    C_SANITIZE_SCHEMATIC.replace_all(s, "_").into()
 }
 
 pub fn c_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, GeneratorError> {
