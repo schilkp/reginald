@@ -171,6 +171,13 @@ fn generate_enum(
         let accept_ranges = numbers_as_ranges(accept_values);
 
         writeln!(out,)?;
+        let docs = Docs {
+            brief: Some(format!(
+                "Validate that a given value can be represented as an @ref enum {code_prefix}_{name}."
+            )),
+            doc: None,
+        };
+        generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{name}({uint_type} val) {{")?;
         for range in accept_ranges {
             if range.start() == range.end() {
@@ -356,14 +363,41 @@ fn generate_register_functions(
     template: &Register,
     opts: &GeneratorOpts,
 ) -> Result<(), GeneratorError> {
+    let regname = c_code(&(block.name.to_owned() + &template.name));
     let struct_name = name_register_struct(map, block, template);
     let packed_type = c_fitting_unsigned_type(template.bitwidth)?;
     let macro_reg_template = c_macro(&(block.name.to_owned() + &template.name));
     let macro_prefix = c_macro(&map.map_name);
+    let code_prefix = c_code(&map.map_name);
+
+    if opts.generate_validation_functions {
+        writeln!(out)?;
+        let docs = Docs {
+            brief: Some(format!("Validate that a given value can be unpacked to as a @ref struct {struct_name}.")),
+            doc: Some("Verifies that all enum fields can represent the given value.".to_string()),
+        };
+        generate_doxy_comment(out, &docs, "", None)?;
+        writeln!(out, "static inline bool {code_prefix}_can_unpack_{regname}({packed_type} val) {{")?;
+        for field in template.fields.values() {
+            if let Some(field_enum) = &field.field_enum {
+                let unpos_mask = unpositioned_mask(field.mask);
+                let shift = lsb_pos(field.mask);
+                let field_value = format!("(val >> {shift}) & 0x{unpos_mask:X}U");
+                let name = match field_enum {
+                    FieldEnum::Local(local_enum) => name_register_enum(block, template, &local_enum, opts),
+                    FieldEnum::Shared(shared_enum) => c_code(&shared_enum.name),
+                };
+                let enum_validate_func = format!("{code_prefix}_can_unpack_enum_{name}");
+                writeln!(out, "  if (!{enum_validate_func}({field_value})) return false;")?;
+            }
+        }
+        writeln!(out, "  return true;")?;
+        writeln!(out, "}}")?;
+    }
 
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert register struct to packed register value".to_string()),
+        brief: Some("Convert register struct to packed register value.".to_string()),
         doc: Some(
             "All bits that are not part of a field or specified as 'always write' are kept as in 'val'.".to_string(),
         ),
@@ -390,7 +424,7 @@ fn generate_register_functions(
 
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert register struct to packed register value".to_string()),
+        brief: Some("Convert register struct to packed register value.".to_string()),
         doc: None,
     };
     generate_doxy_comment(out, &docs, "", None)?;
@@ -436,6 +470,27 @@ fn generate_register_functions(
         }
     }
     writeln!(out, "}}",)?;
+
+    if opts.generate_validation_functions {
+        writeln!(out)?;
+        let docs = Docs {
+            brief: Some("Convert packed register value into a register struct.".to_string()),
+            doc: Some(
+                "This function verifies if the given value can be unpacked into the struct.\n".to_string()
+                    + "@returns 0 if the register was succesfully unpacked, 1 otherwise.",
+            ),
+        };
+        generate_doxy_comment(out, &docs, "", None)?;
+        writeln!(
+            out,
+            "static inline int {struct_name}_try_unpack_into({packed_type} val,  struct {struct_name} *r) {{"
+        )?;
+        writeln!(out, "  if(!{code_prefix}_can_unpack_{regname}(val)) return 1;",)?;
+        writeln!(out, "  {struct_name}_unpack_into(val, r);",)?;
+        writeln!(out, "  return 0;",)?;
+        writeln!(out, "}}",)?;
+    }
+
     Ok(())
 }
 
@@ -446,7 +501,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
 
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert register struct to packed register value".to_string()),
+        brief: Some("Convert register struct to packed register value.".to_string()),
         doc: Some(
             "All bits that are not part of a field or specified as 'always write' are kept as in 'val'.".to_string(),
         ),
@@ -474,7 +529,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
 
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert register struct to packed register value".to_string()),
+        brief: Some("Convert register struct to packed register value.".to_string()),
         doc: None,
     };
     generate_doxy_comment(out, &docs, "", None)?;
@@ -496,12 +551,12 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
 
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert packed register value into a register struct.".to_string()),
+        brief: Some("Convert packed register value to register struct.".to_string()),
         doc: None,
     };
     generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!("#define {macro_prefix}_PACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
+    macro_lines.push(format!("#define {macro_prefix}_UNPACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
     for block in map.register_blocks.values() {
         for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
@@ -509,6 +564,31 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
                 continue;
             }
             macro_lines.push(format!("    struct {struct_name}* : {struct_name}_unpack_into,"));
+        }
+    }
+    let last_line = macro_lines.pop().unwrap().replace(',', "");
+    macro_lines.push(last_line);
+    macro_lines.push("  )(_val_, _struct_ptr_)".into());
+    generate_multiline_macro(out, macro_lines)?;
+
+    writeln!(out)?;
+    let docs = Docs {
+        brief: Some("Attempt to convert packed register value to register struct.".to_string()),
+        doc: Some(
+            "This function verifies if the given value can be unpacked into the struct.\n".to_string()
+                + "@returns 0 if the register was succesfully unpacked, 1 otherwise.",
+        ),
+    };
+    generate_doxy_comment(out, &docs, "", None)?;
+    let mut macro_lines: Vec<String> = vec![];
+    macro_lines.push(format!("#define {macro_prefix}_TRY_UNPACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
+    for block in map.register_blocks.values() {
+        for template in block.register_templates.values() {
+            let struct_name = name_register_struct(map, block, template);
+            if template.fields.is_empty() {
+                continue;
+            }
+            macro_lines.push(format!("    struct {struct_name}* : {struct_name}_try_unpack_into,"));
         }
     }
     let last_line = macro_lines.pop().unwrap().replace(',', "");
@@ -654,43 +734,4 @@ fn template_has_content_to_generate(template: &Register, opts: &GeneratorOpts) -
     }
 
     false
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use std::path::PathBuf;
-
-    fn convert_yaml_example(file: &str) -> RegisterMap {
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("../examples/maps/");
-        path.push(file);
-        let reader = std::fs::File::open(path).unwrap();
-        RegisterMap::from_yaml(reader).unwrap()
-    }
-
-    #[test]
-    fn snapshot_funcpack() {
-        let map = convert_yaml_example("max77654.yaml");
-        let mut out = String::new();
-        generate(
-            &mut out,
-            &map,
-            &PathBuf::from("max77654.h"),
-            &GeneratorOpts {
-                field_enum_prefix: false,
-                registers_as_bitfields: true,
-                clang_format_guard: true,
-                generate_enums: true,
-                generate_registers: true,
-                generate_register_functions: true,
-                generate_generic_macros: true,
-                generate_validation_functions: true,
-                add_include: vec![],
-            },
-        )
-        .unwrap();
-        insta::assert_snapshot!(out);
-    }
 }

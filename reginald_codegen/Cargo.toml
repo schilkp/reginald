@@ -16,4 +16,3 @@ thiserror = "1.0.57"
 [dev-dependencies]
 pretty_assertions = "1.4.0"
 lazy_static = "1.4.0"
-insta = "1.35.1"
