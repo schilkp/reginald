@@ -1,7 +1,6 @@
 use std::{
     fmt::Write,
     path::{Path, PathBuf},
-    rc::Rc,
 };
 
 use crate::{
@@ -140,35 +139,48 @@ fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap, opts: &Generato
     generate_section_header(out, "Shared Enums")?;
 
     for shared_enum in map.shared_enums.values() {
-        writeln!(out)?;
-        let enum_name_full = name_shared_enum(map, shared_enum);
-        generate_doxy_comment(out, &shared_enum.docs, "", None)?;
-        writeln!(out, "enum {} {{", enum_name_full)?;
-        for entry in shared_enum.entries.values() {
-            generate_doxy_comment(out, &entry.docs, "  ", None)?;
-            writeln!(out, "  {}_{} = 0x{:X}U,", c_macro(&enum_name_full), c_macro(&entry.name), entry.value)?;
-        }
-        writeln!(out, "}};")?;
+        generate_enum(out, map, shared_enum, &c_code(&shared_enum.name), opts)?;
+    }
 
-        if opts.generate_validation_functions {
-            let code_prefix = c_code(&map.map_name);
-            let enum_name = c_code(&shared_enum.name);
-            let uint_type = c_fitting_unsigned_type(map.max_register_width())?;
-            let accept_values: Vec<TypeValue> = shared_enum.entries.values().map(|x| x.value).collect();
-            let accept_ranges = numbers_as_ranges(accept_values);
+    Ok(())
+}
 
-            writeln!(out,)?;
-            writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{enum_name}({uint_type} val) {{")?;
-            for range in accept_ranges {
-                if range.start() == range.end() {
-                    writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
-                } else {
-                    writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", range.start(), range.end())?;
-                }
+fn generate_enum(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    e: &Enum,
+    name: &str,
+    opts: &GeneratorOpts,
+) -> Result<(), GeneratorError> {
+    let code_prefix = c_code(&map.map_name);
+    let macro_prefix = c_macro(&map.map_name);
+
+    writeln!(out)?;
+    generate_doxy_comment(out, &e.docs, "", None)?;
+    writeln!(out, "enum {}_{} {{", code_prefix, name)?;
+    for entry in e.entries.values() {
+        generate_doxy_comment(out, &entry.docs, "  ", None)?;
+        writeln!(out, "  {}_{}_{} = 0x{:X}U,", macro_prefix, c_macro(name), c_macro(&entry.name), entry.value)?;
+    }
+    writeln!(out, "}};")?;
+
+    if opts.generate_validation_functions {
+        let code_prefix = c_code(&map.map_name);
+        let uint_type = c_fitting_unsigned_type(map.max_register_width())?;
+        let accept_values: Vec<TypeValue> = e.entries.values().map(|x| x.value).collect();
+        let accept_ranges = numbers_as_ranges(accept_values);
+
+        writeln!(out,)?;
+        writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{name}({uint_type} val) {{")?;
+        for range in accept_ranges {
+            if range.start() == range.end() {
+                writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
+            } else {
+                writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", range.start(), range.end())?;
             }
-            writeln!(out, "  return false;")?;
-            writeln!(out, "}}")?;
         }
+        writeln!(out, "  return false;")?;
+        writeln!(out, "}}")?;
     }
 
     Ok(())
@@ -298,40 +310,8 @@ fn generate_register_enums(
 ) -> Result<(), GeneratorError> {
     for field in template.fields.values() {
         if let Some(FieldEnum::Local(local_enum)) = &field.field_enum {
-            let enum_name = name_register_enum(map, block, template, local_enum, opts);
-            writeln!(out)?;
-            generate_doxy_comment(out, &local_enum.docs, "", None)?;
-            writeln!(out, "enum {enum_name} {{")?;
-            for entry in local_enum.entries.values() {
-                generate_doxy_comment(out, &entry.docs, "  ", None)?;
-                writeln!(out, "  {}_{} = 0x{:X}U,", c_macro(&enum_name), c_macro(&entry.name), entry.value)?;
-            }
-            writeln!(out, "}};")?;
-
-            if opts.generate_validation_functions {
-                let code_prefix = c_code(&map.map_name);
-                let enum_name = c_code(&local_enum.name);
-                let uint_type = c_fitting_unsigned_type(map.max_register_width())?;
-                let accept_values: Vec<TypeValue> = local_enum.entries.values().map(|x| x.value).collect();
-                let accept_ranges = numbers_as_ranges(accept_values);
-
-                writeln!(out,)?;
-                writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{enum_name}({uint_type} val) {{")?;
-                for range in accept_ranges {
-                    if range.start() == range.end() {
-                        writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
-                    } else {
-                        writeln!(
-                            out,
-                            "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;",
-                            range.start(),
-                            range.end()
-                        )?;
-                    }
-                }
-                writeln!(out, "  return false;")?;
-                writeln!(out, "}}")?;
-            }
+            let enum_name = name_register_enum(block, template, local_enum, opts);
+            generate_enum(out, map, local_enum, &enum_name, opts)?;
         }
     }
 
@@ -617,24 +597,13 @@ fn filename(s: &Path) -> Result<String, GeneratorError> {
         .map(|x| x.to_string_lossy().to_string())
 }
 
-fn name_shared_enum(map: &RegisterMap, shared_enum: &Rc<Enum>) -> String {
-    format!("{}_{}", c_code(&map.map_name), c_code(&shared_enum.name))
-}
-
-fn name_register_enum(
-    map: &RegisterMap,
-    block: &RegisterBlock,
-    template: &Register,
-    field_enum: &Enum,
-    opts: &GeneratorOpts,
-) -> String {
-    let mapname = c_code(&map.map_name);
+fn name_register_enum(block: &RegisterBlock, template: &Register, field_enum: &Enum, opts: &GeneratorOpts) -> String {
     let regname = c_code(&(block.name.to_owned() + &template.name));
     let enumname = c_code(&field_enum.name);
     if opts.field_enum_prefix {
-        format!("{mapname}_{regname}_{enumname}")
+        format!("{regname}_{enumname}")
     } else {
-        format!("{mapname}_{enumname}")
+        format!("{enumname}")
     }
 }
 
@@ -651,9 +620,16 @@ fn register_struct_member_type(
     field: &Field,
     opts: &GeneratorOpts,
 ) -> Result<String, GeneratorError> {
+    let code_prefix = c_code(&map.map_name);
     match &field.field_enum {
-        Some(FieldEnum::Local(local_enum)) => Ok(name_register_enum(map, block, template, local_enum, opts)),
-        Some(FieldEnum::Shared(shared_enum)) => Ok(name_shared_enum(map, shared_enum)),
+        Some(FieldEnum::Local(local_enum)) => {
+            let name = name_register_enum(block, template, local_enum, opts);
+            Ok(format!("{code_prefix}_{name}"))
+        }
+        Some(FieldEnum::Shared(shared_enum)) => {
+            let name = c_code(&shared_enum.name);
+            Ok(format!("{code_prefix}_{name}"))
+        }
         None => c_fitting_unsigned_type(mask_width(field.mask)),
     }
 }
