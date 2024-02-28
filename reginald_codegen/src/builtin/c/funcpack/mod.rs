@@ -1,25 +1,25 @@
-use std::{
-    fmt::Write,
-    path::{Path, PathBuf},
-};
+use std::{fmt::Write, path::Path};
 
 use crate::{
     error::GeneratorError,
     generator_cli::GeneratorCLI,
     regmap::{
+        self,
         bits::{lsb_pos, mask_width, unpositioned_mask},
         Docs, Enum, Field, FieldEnum, Register, RegisterBlock, RegisterMap, TypeValue,
     },
-    utils::{c_fitting_unsigned_type, c_sanitize, numbers_as_ranges, str_pad_to_length, str_pad_to_table},
+    utils::{filename, numbers_as_ranges, str_pad_to_length, str_pad_to_table},
 };
+
+use super::{c_code, c_macro, generate_section_header_comment, c_fitting_unsigned_type};
 
 pub struct FuncpackGenerator {}
 
 impl GeneratorCLI for FuncpackGenerator {
     fn generate(
         &self,
-        _map: crate::regmap::RegisterMap,
-        _output_file_name: std::path::PathBuf,
+        _map: regmap::RegisterMap,
+        _output_file_name: &Path,
         _args: Vec<String>,
     ) -> Result<Vec<String>, crate::error::GeneratorError> {
         todo!()
@@ -51,7 +51,7 @@ pub struct GeneratorOpts {
 pub fn generate(
     out: &mut dyn Write,
     map: &RegisterMap,
-    output_file: &PathBuf,
+    output_file: &Path,
     opts: &GeneratorOpts,
 ) -> Result<(), GeneratorError> {
     generate_header(out, map, output_file, opts)?;
@@ -61,14 +61,14 @@ pub fn generate(
     }
 
     for block in map.register_blocks.values() {
-        generate_register_block_defines(out, &map, &block)?;
+        generate_register_block_defines(out, map, block)?;
 
         for template in block.register_templates.values() {
             if !template_has_content_to_generate(template, opts) {
                 continue;
             }
 
-            generate_register_header(out, &block, &template)?;
+            generate_register_header(out, block, template)?;
 
             if opts.generate_registers {
                 generate_register_defines(out, map, block, template)?;
@@ -102,7 +102,7 @@ pub fn generate(
 fn generate_header(
     out: &mut dyn Write,
     map: &RegisterMap,
-    output_file: &PathBuf,
+    output_file: &Path,
     opts: &GeneratorOpts,
 ) -> Result<(), GeneratorError> {
     if opts.clang_format_guard {
@@ -136,7 +136,7 @@ fn generate_header(
 
 fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) -> Result<(), GeneratorError> {
     writeln!(out)?;
-    generate_section_header(out, "Shared Enums")?;
+    generate_section_header_comment(out, "Shared Enums")?;
 
     for shared_enum in map.shared_enums.values() {
         generate_enum(out, map, shared_enum, &c_code(&shared_enum.name), opts)?;
@@ -230,7 +230,7 @@ fn generate_register_block_defines(
 
     if !defines.is_empty() {
         writeln!(out,)?;
-        generate_section_header(out, &format!("{} Register Block", block.name))?;
+        generate_section_header_comment(out, &format!("{} Register Block", block.name))?;
         if !block.docs.is_empty() {
             write!(out, "{}", block.docs.as_multiline("// "))?;
         }
@@ -249,7 +249,7 @@ fn generate_register_header(
 
     // Register section header:
     writeln!(out)?;
-    generate_section_header(out, &format!("{} Register", generic_template_name))?;
+    generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
     if !template.docs.is_empty() {
         write!(out, "{}", template.docs.as_multiline("// "))?;
     }
@@ -384,7 +384,7 @@ fn generate_register_functions(
                 let shift = lsb_pos(field.mask);
                 let field_value = format!("(val >> {shift}) & 0x{unpos_mask:X}U");
                 let name = match field_enum {
-                    FieldEnum::Local(local_enum) => name_register_enum(block, template, &local_enum, opts),
+                    FieldEnum::Local(local_enum) => name_register_enum(block, template, local_enum, opts),
                     FieldEnum::Shared(shared_enum) => c_code(&shared_enum.name),
                 };
                 let enum_validate_func = format!("{code_prefix}_can_unpack_enum_{name}");
@@ -599,7 +599,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
     Ok(())
 }
 
-fn generate_footer(out: &mut dyn Write, output_file: &PathBuf, opts: &GeneratorOpts) -> Result<(), GeneratorError> {
+fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), GeneratorError> {
     writeln!(out)?;
     writeln!(out, "#endif /* REGINALD_{} */", c_macro(&filename(output_file)?))?;
 
@@ -656,26 +656,7 @@ fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Resu
     }
 }
 
-fn generate_section_header(out: &mut dyn Write, title: &str) -> Result<(), GeneratorError> {
-    writeln!(out, "{}", str_pad_to_length(&format!("// ==== {} ", title), '=', 80))?;
-    Ok(())
-}
-
 // ====== Generator Utils ======================================================
-
-fn c_macro(s: &str) -> String {
-    c_sanitize(&s.to_uppercase())
-}
-
-fn c_code(s: &str) -> String {
-    c_sanitize(&s.to_lowercase())
-}
-
-fn filename(s: &Path) -> Result<String, GeneratorError> {
-    s.file_name()
-        .ok_or(GeneratorError::Error("".into()))
-        .map(|x| x.to_string_lossy().to_string())
-}
 
 fn name_register_enum(block: &RegisterBlock, template: &Register, field_enum: &Enum, opts: &GeneratorOpts) -> String {
     let regname = c_code(&(block.name.to_owned() + &template.name));
@@ -683,7 +664,7 @@ fn name_register_enum(block: &RegisterBlock, template: &Register, field_enum: &E
     if opts.field_enum_prefix {
         format!("{regname}_{enumname}")
     } else {
-        format!("{enumname}")
+        enumname.to_string()
     }
 }
 

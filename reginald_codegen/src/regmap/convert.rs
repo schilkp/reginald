@@ -75,7 +75,6 @@ lazy_static! {
 }
 
 fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, ListingError> {
-
     if !BITRANGE_RE.is_match(bitrange) {
         return Err(ListingError::ConversionError {
             bt: bt.to_string(),

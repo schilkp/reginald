@@ -480,7 +480,15 @@
             bits: [1, 0],
             access: ["R", "W"],
             brief: "Software Reset Function",
-            doc: "Note that the SFT_CRST and SFT_OFF commands initiate the power-down sequence flow as described in the data sheet. This power-down sequence flow has delay elements that add up to 205.24ms (60ms delay + 10.24ms nRST assert delay + 4x2.56ms power-down slot delays + 125ms output discharge delay). If issuing the SFT_CRST and/or SFT_OFF functions in software, wait for more than 300ms before trying to issue any additional commands through I2C.",
+            doc:
+              '''
+              Note that the SFT_CRST and SFT_OFF commands initiate the power-down sequence
+              flow as described in the data sheet. This power-down sequence flow has delay
+              elements that add up to 205.24ms (60ms delay + 10.24ms nRST assert delay +
+              4x2.56ms power-down slot delays + 125ms output discharge delay). If issuing the
+              SFT_CRST and/or SFT_OFF functions in software, wait for more than 300ms before
+              trying to issue any additional commands through I2C.
+              ''',
             enum: {
               Enum: {
                 NO_ACTION: {
@@ -500,7 +508,12 @@
                 FSM: {
                   val: 3,
                   brief: "Factory-ship mode enter (FSM).",
-                  doc: "The IC powers down, configuration registers reset, and the internal BATT to SYS switch opens. The device remains this way until a factory-ship mode exit event occurs."
+                  doc:
+                    '''
+                    The IC powers down, configuration registers reset, and the internal BATT to SYS
+                    switch opens. The device remains this way until a factory-ship mode exit event
+                    occurs.
+                    '''
                 }
               }
             }
@@ -1316,7 +1329,7 @@
           VSYS_REG: {
             bits: ["0-4"],
             brief: "System Voltage Regulation (VSYS-REG)",
-            doc: 
+            doc:
               '''
               This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
               with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and
@@ -1495,7 +1508,13 @@
           CHG_CC_JEITA: {
             bits: ["2-7"],
             brief: "Sets IFAST-CHG-JEITA for when the battery is either cool or warm",
-            doc: "Cool or warm are as defined by the VCOOL and VWARM temperature thresholds. This register is a don't care if the battery temperature is normal. This 6-bit configuration is a linear transfer function that starts at 7.5mA and ends at 300mA, with 7.5mA increments."
+            doc:
+              '''
+              Cool or warm are as defined by the VCOOL and VWARM temperature thresholds.
+              This register is a don't care if the battery temperature is normal. This
+              6-bit configuration is a linear transfer function that starts at 7.5mA and
+              ends at 300mA, with 7.5mA increments.
+              '''
           },
           THM_EN: {
             bits: [1],
@@ -1521,7 +1540,12 @@
           CHG_CV: {
             bits: ["2-7"],
             brief: "Sets fast-charge battery regulation voltage, VFAST-CHG.",
-            doc: "This 6-bit configuration is a linear transfer function that starts at 3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA."
+            doc:
+              '''
+              This 6-bit configuration is a linear transfer function that starts at
+              3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at
+              least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
+              '''
           },
           USBS: {
             bits: [1],
@@ -1544,7 +1568,14 @@
           CHG_CV_JEITA: {
             bits: ["2-7"],
             brief: "Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.",
-            doc: "Cool or warm as defined by the VCOOL and VWARM temperature thresholds. This register is a don't care if the battery temperature is normal. This 6-bit configuration is a linear transfer function that starts at 3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA."
+            doc:
+              '''
+              Cool or warm as defined by the VCOOL and VWARM temperature thresholds.
+              This register is a don't care if the battery temperature is normal.
+              This 6-bit configuration is a linear transfer function that starts at
+              3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least
+              200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
+              '''
           }
         }
       }

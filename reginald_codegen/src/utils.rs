@@ -1,30 +1,10 @@
 use std::fmt::Write;
 use std::ops::RangeInclusive;
+use std::path::Path;
 use std::usize;
 
-use lazy_static::lazy_static;
-use regex::Regex;
-
 use crate::error::GeneratorError;
-use crate::regmap::{TypeBitwidth, TypeValue};
-
-lazy_static!{
-    static ref C_SANITIZE_SCHEMATIC: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
-}
-
-pub fn c_sanitize(s: &str) -> String {
-    C_SANITIZE_SCHEMATIC.replace_all(s, "_").into()
-}
-
-pub fn c_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, GeneratorError> {
-    match width {
-        1..=8 => Ok("uint8_t".to_string()),
-        9..=16 => Ok("uint16_t".to_string()),
-        17..=32 => Ok("uint32_t".to_string()),
-        33..=64 => Ok("uint64_t".to_string()),
-        _ => Err(GeneratorError::Error(format!("Cannot represent {width}-bit wide value as C type!"))),
-    }
-}
+use crate::regmap::TypeValue;
 
 pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     let mut s = s.to_string();
@@ -104,6 +84,12 @@ pub fn numbers_as_ranges(mut i: Vec<TypeValue>) -> Vec<RangeInclusive<TypeValue>
     }
 
     ranges
+}
+
+pub fn filename(s: &Path) -> Result<String, GeneratorError> {
+    s.file_name()
+        .ok_or(GeneratorError::Error("".into()))
+        .map(|x| x.to_string_lossy().to_string())
 }
 
 #[cfg(test)]

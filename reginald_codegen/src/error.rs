@@ -20,6 +20,6 @@ pub enum GeneratorError {
     OutputError(#[from] std::fmt::Error),
     #[error("Invalid args: {0}.")]
     ArgError(#[from] clap::Error),
-    #[error("Generator error {0}.")]
+    #[error("Generator error: {0}.")]
     Error(String),
 }
