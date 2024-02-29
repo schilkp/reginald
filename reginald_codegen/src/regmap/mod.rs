@@ -1,7 +1,10 @@
-use std::{collections::BTreeMap, io, path::PathBuf, rc::Rc};
+use std::{collections::BTreeMap, io, ops::RangeInclusive, path::PathBuf, rc::Rc};
 
-use self::convert::convert_map;
-use crate::error::ListingError;
+use self::{
+    bits::{bit_mask_range, mask_to_bit_ranges},
+    convert::convert_map,
+};
+use crate::{error::ListingError, regmap::bits::lsb_pos, utils::numbers_as_ranges};
 
 pub mod bits;
 mod convert;
@@ -21,34 +24,10 @@ pub enum AccessMode {
 
 pub type Access = Vec<AccessMode>;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Docs {
     pub brief: Option<String>,
     pub doc: Option<String>,
-}
-
-impl Docs {
-    pub fn is_empty(&self) -> bool {
-        self.brief.is_none() && self.doc.is_none()
-    }
-
-    pub fn as_multiline(&self, prefix: &str) -> String {
-        let mut out = String::new();
-        if let Some(brief) = &self.brief {
-            out.push_str(prefix);
-            out.push_str(brief);
-            out.push('\n');
-        }
-        if let Some(doc) = &self.doc {
-            for line in doc.lines() {
-                out.push_str(prefix);
-                out.push_str(line);
-                out.push('\n');
-            }
-        }
-
-        out
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -122,6 +101,113 @@ pub struct RegisterMap {
     pub shared_enums: BTreeMap<String, Rc<Enum>>,
 }
 
+impl Docs {
+    pub fn is_empty(&self) -> bool {
+        self.brief.is_none() && self.doc.is_none()
+    }
+
+    pub fn as_multiline(&self, prefix: &str) -> String {
+        let mut out = String::new();
+        if let Some(brief) = &self.brief {
+            out.push_str(prefix);
+            out.push_str(brief);
+            out.push('\n');
+        }
+        if let Some(doc) = &self.doc {
+            for line in doc.lines() {
+                out.push_str(prefix);
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+
+        out
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum RegisterBitrangeContent<'a> {
+    Empty,
+    Field {
+        field: &'a Field,
+        is_split: bool,
+        subfield_mask: TypeValue,
+    },
+    AlwaysWrite {
+        val: TypeValue,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegisterBitrange<'a> {
+    pub bits: RangeInclusive<TypeBitwidth>,
+    pub content: RegisterBitrangeContent<'a>,
+}
+
+impl Register {
+    pub fn split_to_bitranges(&self) -> Vec<RegisterBitrange> {
+        let mut result = vec![];
+
+        if let Some(AlwaysWrite { mask, value }) = &self.always_write {
+            let ranges = mask_to_bit_ranges(*mask);
+            for range in &ranges {
+                let range_value = (value & bit_mask_range(range)) >> range.start();
+                result.push(RegisterBitrange {
+                    bits: range.clone(),
+                    content: RegisterBitrangeContent::AlwaysWrite { val: range_value },
+                });
+            }
+        }
+
+        for field in self.fields.values() {
+            let ranges = mask_to_bit_ranges(field.mask);
+            for range in &ranges {
+                let subfield_mask = bit_mask_range(range) >> lsb_pos(field.mask);
+
+                result.push(RegisterBitrange {
+                    bits: range.clone(),
+                    content: RegisterBitrangeContent::Field {
+                        field,
+                        is_split: ranges.len() > 1,
+                        subfield_mask,
+                    },
+                });
+            }
+        }
+
+        let empty_bits: Vec<TypeBitwidth> = (0..self.bitwidth).filter(|x| self.empty_at_bitpos(*x)).collect();
+
+        for range in numbers_as_ranges(empty_bits) {
+            result.push(RegisterBitrange {
+                bits: range.clone(),
+                content: RegisterBitrangeContent::Empty,
+            });
+        }
+
+        result.sort_by_key(|x| *(x.bits.start()));
+
+        result
+    }
+
+    fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&Field> {
+        self.fields.values().find(|&field| (1 << bitpos) & field.mask != 0)
+    }
+
+    fn always_write_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<TypeValue> {
+        if let Some(AlwaysWrite { mask, value }) = self.always_write {
+            if (1 << bitpos) & mask != 0 {
+                return Some((value >> bitpos) & 1);
+            }
+        }
+
+        None
+    }
+
+    fn empty_at_bitpos(&self, bitpos: TypeBitwidth) -> bool {
+        self.always_write_at_bitpos(bitpos).is_none() && self.field_at_bitpos(bitpos).is_none()
+    }
+}
+
 impl RegisterMap {
     pub fn from_yaml<R>(inp: R) -> Result<Self, ListingError>
     where
@@ -172,5 +258,93 @@ pub fn assert_regmap_eq(left: RegisterMap, right: RegisterMap) {
     assert_eq!(left.register_blocks, right.register_blocks);
     for (name, left) in left.shared_enums {
         assert_eq!(left, *right.shared_enums.get(&name).unwrap());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_split_to_bitranges() {
+        let reg = Register {
+            name: "TestReg".into(),
+            bitwidth: 16,
+            is_block_template: false,
+            adr: None,
+            always_write: Some(AlwaysWrite {
+                mask: 0b01110110,
+                value: 0b001010100,
+            }),
+            reset_val: None,
+            docs: Docs::default(),
+            fields: BTreeMap::from([
+                (
+                    "A".into(),
+                    Field {
+                        name: "A".into(),
+                        mask: 0b1001,
+                        access: None,
+                        docs: Docs::default(),
+                        field_enum: None,
+                    },
+                ),
+                (
+                    "B".into(),
+                    Field {
+                        name: "B".into(),
+                        mask: 0xF000,
+                        access: None,
+                        docs: Docs::default(),
+                        field_enum: None,
+                    },
+                ),
+            ]),
+        };
+
+        let ranges = reg.split_to_bitranges();
+
+        assert_eq!(
+            ranges,
+            vec![
+                RegisterBitrange {
+                    bits: 0..=0,
+                    content: RegisterBitrangeContent::Field {
+                        field: &reg.fields["A".into()],
+                        is_split: true,
+                        subfield_mask: 0b1
+                    }
+                },
+                RegisterBitrange {
+                    bits: 1..=2,
+                    content: RegisterBitrangeContent::AlwaysWrite { val: 0b10 }
+                },
+                RegisterBitrange {
+                    bits: 3..=3,
+                    content: RegisterBitrangeContent::Field {
+                        field: &reg.fields["A".into()],
+                        is_split: true,
+                        subfield_mask: 0b1000
+                    }
+                },
+                RegisterBitrange {
+                    bits: 4..=6,
+                    content: RegisterBitrangeContent::AlwaysWrite { val: 0b101 }
+                },
+                RegisterBitrange {
+                    bits: 7..=11,
+                    content: RegisterBitrangeContent::Empty
+                },
+                RegisterBitrange {
+                    bits: 12..=15,
+                    content: RegisterBitrangeContent::Field {
+                        field: &reg.fields["B".into()],
+                        is_split: false,
+                        subfield_mask: 0b1111
+                    }
+                },
+            ]
+        );
     }
 }

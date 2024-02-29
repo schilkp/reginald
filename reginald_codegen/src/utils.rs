@@ -1,10 +1,9 @@
 use std::fmt::Write;
-use std::ops::RangeInclusive;
+use std::ops::{Add, RangeInclusive};
 use std::path::Path;
 use std::usize;
 
 use crate::error::GeneratorError;
-use crate::regmap::TypeValue;
 
 pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     let mut s = s.to_string();
@@ -14,9 +13,9 @@ pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     s
 }
 
-pub fn str_pad_to_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) -> String {
+pub fn table_col_width(rows: &Vec<Vec<String>>) -> Vec<usize> {
     if rows.is_empty() {
-        return String::new();
+        return vec![];
     }
 
     // Number of cols:
@@ -33,6 +32,16 @@ pub fn str_pad_to_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) 
         }
         col_widths.push(col_width);
     }
+
+    col_widths
+}
+
+pub fn str_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) -> String {
+    if rows.is_empty() {
+        return String::from('\n');
+    }
+
+    let col_widths = table_col_width(rows);
 
     // Output each row:
     let mut result = String::new();
@@ -52,7 +61,10 @@ pub fn str_pad_to_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) 
     result
 }
 
-pub fn numbers_as_ranges(mut i: Vec<TypeValue>) -> Vec<RangeInclusive<TypeValue>> {
+pub fn numbers_as_ranges<T>(mut i: Vec<T>) -> Vec<RangeInclusive<T>>
+where
+    T: Ord + From<u8> + Add<T, Output = T> + Eq + Copy,
+{
     if i.is_empty() {
         return vec![];
     }
@@ -64,13 +76,13 @@ pub fn numbers_as_ranges(mut i: Vec<TypeValue>) -> Vec<RangeInclusive<TypeValue>
 
     let mut ranges = vec![];
 
-    let mut current_range: Option<(TypeValue, TypeValue)> = None;
+    let mut current_range: Option<(T, T)> = None;
     i.sort();
 
     for val in i {
         current_range = match current_range {
             Some((start, end)) if { end == val } => Some((start, end)),
-            Some((start, end)) if { end + 1 == val } => Some((start, val)),
+            Some((start, end)) if { end + T::from(1) == val } => Some((start, val)),
             Some((start, end)) => {
                 ranges.push(start..=end);
                 Some((val, val))
@@ -99,8 +111,8 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn test_str_pad_to_table() {
-        let is = str_pad_to_table(
+    fn test_str_table() {
+        let is = str_table(
             &vec![
                 vec!["1".into(), "22222".into(), "3".into()],
                 vec!["A".into(), "B".into(), "CCCC".into()],
@@ -115,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_numbers_as_ranges() {
-        assert_eq!(numbers_as_ranges(vec![]), vec![]);
+        assert_eq!(numbers_as_ranges::<u8>(vec![]), vec![]);
         assert_eq!(numbers_as_ranges(vec![1]), vec![1..=1]);
         assert_eq!(numbers_as_ranges(vec![2]), vec![2..=2]);
         assert_eq!(numbers_as_ranges(vec![1, 2]), vec![1..=2]);

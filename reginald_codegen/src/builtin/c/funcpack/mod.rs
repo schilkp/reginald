@@ -8,10 +8,10 @@ use crate::{
         bits::{lsb_pos, mask_width, unpositioned_mask},
         Docs, Enum, Field, FieldEnum, Register, RegisterBlock, RegisterMap, TypeValue,
     },
-    utils::{filename, numbers_as_ranges, str_pad_to_length, str_pad_to_table},
+    utils::{filename, numbers_as_ranges, str_pad_to_length, str_table},
 };
 
-use super::{c_code, c_macro, generate_section_header_comment, c_fitting_unsigned_type};
+use super::{c_code, c_fitting_unsigned_type, c_macro, generate_section_header_comment};
 
 pub struct FuncpackGenerator {}
 
@@ -234,7 +234,7 @@ fn generate_register_block_defines(
         if !block.docs.is_empty() {
             write!(out, "{}", block.docs.as_multiline("// "))?;
         }
-        write!(out, "{}", str_pad_to_table(&defines, "", " "))?;
+        write!(out, "{}", str_table(&defines, "", " "))?;
     }
 
     Ok(())
@@ -303,7 +303,7 @@ fn generate_register_defines(
         ]);
     }
 
-    write!(out, "{}", str_pad_to_table(&defines, "", " "))?;
+    write!(out, "{}", str_table(&defines, "", " "))?;
 
     Ok(())
 }

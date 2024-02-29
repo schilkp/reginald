@@ -1,9 +1,6 @@
 use std::path::PathBuf;
 
-use reginald_codegen::{
-    builtin::c::{funcpack, macromap},
-    regmap::RegisterMap,
-};
+use reginald_codegen::{builtin::c::macromap, regmap::RegisterMap};
 
 fn main() {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

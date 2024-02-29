@@ -3,8 +3,8 @@ use std::{fmt::Write, path::Path};
 use crate::{
     error::GeneratorError,
     regmap::bits::lsb_pos,
-    regmap::{Docs, FieldEnum, Register, RegisterBlock, RegisterMap},
-    utils::{filename, str_pad_to_table},
+    regmap::{FieldEnum, Register, RegisterBlock, RegisterMap},
+    utils::{filename, str_table},
 };
 
 use super::{c_macro, generate_section_header_comment};
@@ -107,7 +107,7 @@ fn generate_register_block_defines(
         if !block.docs.is_empty() {
             write!(out, "{}", block.docs.as_multiline("// "))?;
         }
-        write!(out, "{}", str_pad_to_table(&defines, "", " "))?;
+        write!(out, "{}", str_table(&defines, "", " "))?;
     }
 
     Ok(())
@@ -228,7 +228,7 @@ fn generate_register_defines(
     }
 
     writeln!(out)?;
-    write!(out, "{}", str_pad_to_table(&defines, "", " "))?;
+    write!(out, "{}", str_table(&defines, "", " "))?;
 
     Ok(())
 }
