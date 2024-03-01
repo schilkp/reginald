@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use reginald_codegen::{builtin::c::macromap, regmap::RegisterMap};
+use reginald_codegen::{
+    builtin::{c::funcpack, md::datasheet},
+    regmap::RegisterMap,
+};
 
 fn main() {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -28,16 +31,20 @@ fn main() {
     // .unwrap();
     // print!("{}", out);
 
+    // let mut out = String::new();
+    // macromap::generate(
+    //     &mut out,
+    //     &map,
+    //     &PathBuf::from("max77654.h"),
+    //     &macromap::GeneratorOpts {
+    //         clang_format_guard: true,
+    //         add_include: vec![],
+    //     },
+    // )
+    // .unwrap();
+    // print!("{}", out);
+
     let mut out = String::new();
-    macromap::generate(
-        &mut out,
-        &map,
-        &PathBuf::from("max77654.h"),
-        &macromap::GeneratorOpts {
-            clang_format_guard: true,
-            add_include: vec![],
-        },
-    )
-    .unwrap();
+    datasheet::generate(&mut out, &map).unwrap();
     print!("{}", out);
 }

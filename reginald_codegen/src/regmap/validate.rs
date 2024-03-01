@@ -1,6 +1,6 @@
 use super::{
     bits::{fits_into_bitwidth, unpositioned_mask},
-    Docs, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
+    Docs, FieldEnum, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
 };
 use crate::error::ListingError;
 
@@ -107,8 +107,8 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
         if let Some(e) = &field.field_enum {
             // Validate that the enum fits into the field:
             let enum_entries = match e {
-                super::FieldEnum::Local(field_enum) => field_enum.entries.values(),
-                super::FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
+                FieldEnum::Local(field_enum) => field_enum.entries.values(),
+                FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
             };
 
             for entry in enum_entries {

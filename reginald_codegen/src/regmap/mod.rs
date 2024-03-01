@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, io, ops::RangeInclusive, path::PathBuf, rc::Rc};
+use std::{collections::BTreeMap, fmt::Display, io, ops::RangeInclusive, path::PathBuf, rc::Rc};
 
 use self::{
     bits::{bit_mask_range, mask_to_bit_ranges},
@@ -123,6 +123,25 @@ impl Docs {
 
         out
     }
+
+    pub fn as_twoline(&self, prefix: &str) -> String {
+        let mut out = String::new();
+        if let Some(brief) = &self.brief {
+            out.push_str(prefix);
+            out.push_str(brief);
+            out.push('\n');
+        }
+        if let Some(doc) = &self.doc {
+            for line in doc.lines() {
+                out.push_str(prefix);
+                out.push_str(line);
+                out.push(' ');
+            }
+            out.push('\n');
+        }
+
+        out
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -190,6 +209,12 @@ impl Register {
     }
 
     fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&Field> {
+        for field in self.fields.values() {
+            if (1 << bitpos) & field.mask != 0 {
+                return Some(field);
+            }
+        }
+
         self.fields.values().find(|&field| (1 << bitpos) & field.mask != 0)
     }
 
@@ -243,6 +268,72 @@ impl RegisterMap {
 
         max_width
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum RegisterOrigin<'a> {
+    Register,
+    RegisterBlockInstance {
+        block: &'a RegisterBlock,
+        instance: Instance,
+        offset_from_block_start: Option<TypeAdr>,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PhysicalRegister<'a> {
+    pub name: String,
+    pub absolute_adr: Option<TypeAdr>,
+    pub origin: RegisterOrigin<'a>,
+    pub template: &'a Register,
+}
+
+impl RegisterMap {
+    pub fn physical_registers(&self) -> Vec<PhysicalRegister> {
+        let mut result = vec![];
+        for block in self.register_blocks.values() {
+            for template in block.register_templates.values() {
+                for instance in block.instances.values() {
+                    let absolute_adr = match (instance.adr, template.adr) {
+                        (Some(start), Some(ofs)) => Some(start + ofs),
+                        (_, _) => None,
+                    };
+
+                    let origin = if template.is_block_template {
+                        RegisterOrigin::RegisterBlockInstance {
+                            block,
+                            instance: instance.clone(),
+                            offset_from_block_start: template.adr,
+                        }
+                    } else {
+                        RegisterOrigin::Register
+                    };
+
+                    let name = instance.name.to_owned() + &template.name;
+
+                    result.push(PhysicalRegister {
+                        name,
+                        absolute_adr,
+                        origin,
+                        template,
+                    });
+                }
+            }
+        }
+        result.sort_by_key(|x| x.absolute_adr.unwrap_or(TypeAdr::MAX));
+        result
+    }
+}
+
+pub fn access_string(v: &Access) -> String {
+    let mut result = String::new();
+    for i in v {
+        match i {
+            AccessMode::R => result.push('R'),
+            AccessMode::W => result.push('W'),
+        }
+    }
+    result
 }
 
 #[cfg(test)]
