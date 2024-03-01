@@ -15,15 +15,15 @@ pub type RegDump = BTreeMap<TypeAdr, TypeValue>;
 
 pub fn generate(out: &mut dyn Write, map: &RegisterMap, regdump: &RegDump) -> Result<(), GeneratorError> {
     let registers = map.physical_registers();
-    let adrs = adrs_of_interest(&registers, &regdump);
+    let adrs = adrs_of_interest(&registers, regdump);
 
     writeln!(out, "# {} Register Dump Decode Report", map.map_name)?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "## Register Map")?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     generate_overview(out, &registers, regdump, &adrs)?;
 
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "## Register Details")?;
     for adr in adrs {
         let (regs, val) = lookup_adr(&registers, regdump, adr);
@@ -37,7 +37,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, regdump: &RegDump) -> Re
 
 fn generate_overview(
     out: &mut dyn Write,
-    registers: &Vec<PhysicalRegister>,
+    registers: &[PhysicalRegister],
     regdump: &RegDump,
     adrs: &Vec<TypeAdr>,
 ) -> Result<(), GeneratorError> {
@@ -71,7 +71,7 @@ fn generate_overview(
     Ok(())
 }
 
-fn adrs_of_interest(registers: &Vec<PhysicalRegister>, regdump: &RegDump) -> Vec<TypeAdr> {
+fn adrs_of_interest(registers: &[PhysicalRegister], regdump: &RegDump) -> Vec<TypeAdr> {
     let mut adrs: HashSet<TypeAdr> = HashSet::new();
 
     for reg in registers {
@@ -90,7 +90,7 @@ fn adrs_of_interest(registers: &Vec<PhysicalRegister>, regdump: &RegDump) -> Vec
 }
 
 fn lookup_adr<'a>(
-    registers: &'a Vec<PhysicalRegister<'a>>,
+    registers: &'a [PhysicalRegister<'a>],
     regdump: &RegDump,
     adr: TypeAdr,
 ) -> (Vec<&'a PhysicalRegister<'a>>, Option<TypeValue>) {

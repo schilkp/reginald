@@ -15,12 +15,12 @@ use super::md_table;
 
 pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorError> {
     writeln!(out, "# {}", map.map_name)?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "## Register Map")?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     generate_overview(out, map)?;
 
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "## Register Details")?;
     let registers = map.physical_registers();
     for register in registers {
@@ -54,7 +54,7 @@ fn generate_register_infos(
     value: Option<TypeValue>,
 ) -> Result<(), GeneratorError> {
     // Header:
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "### {}", register.name)?;
 
     // Overview table:
@@ -103,7 +103,7 @@ fn generate_register_infos(
             }
             crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
                 row_field.push(format!("Write '0b{:b}'", val));
-                row_access.push(format!("/"));
+                row_access.push("/".to_string());
             }
         }
 
@@ -114,18 +114,18 @@ fn generate_register_infos(
         }
     }
 
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "#### Register:")?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     if value.is_some() {
         md_table(out, &vec![row_bits, row_field, row_access, row_state, row_decode])?;
     } else {
         md_table(out, &vec![row_bits, row_field, row_access])?;
     }
 
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "#### Info:")?;
-    writeln!(out, "")?;
+    writeln!(out)?;
     if let Some(value) = value {
         writeln!(out, "  - *Current Value: 0x{value:X}*")?;
     }
@@ -166,9 +166,9 @@ fn generate_register_infos(
     }
 
     // Field Info:
-    writeln!(out, "")?;
+    writeln!(out)?;
     writeln!(out, "#### Fields:")?;
-    writeln!(out, "")?;
+    writeln!(out)?;
 
     for field in register.template.fields.values() {
         let value_field = value.map(|x| (x & field.mask) >> lsb_pos(field.mask));
@@ -179,7 +179,7 @@ fn generate_register_infos(
             "".to_string()
         };
 
-        let value_string = value_field.map(|x| format!("0x{:X}", x)).unwrap_or(String::new());
+        let value_string = value_field.map(|x| format!("0x{:X}", x)).unwrap_or_default();
 
         writeln!(out, "  - {}{}: {}", field.name, access, value_string)?;
         write!(out, "{}", field.docs.as_twoline("    - "))?;
@@ -233,5 +233,5 @@ fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
         _ => (),
     }
 
-    return "".to_string();
+    "".to_string()
 }

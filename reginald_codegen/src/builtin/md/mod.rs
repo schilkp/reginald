@@ -15,14 +15,14 @@ pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), Gene
 
     md_table_row(out, &rows[0], &col_widths)?;
     md_sep_row(out, &col_widths)?;
-    for row_idx in 1..rows.len() {
-        md_table_row(out, &rows[row_idx], &col_widths)?;
+    for col in rows.iter().skip(1) {
+        md_table_row(out, col, &col_widths)?;
     }
 
     Ok(())
 }
 
-fn md_table_row(out: &mut dyn Write, row: &Vec<String>, widths: &Vec<usize>) -> Result<(), GeneratorError> {
+fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result<(), GeneratorError> {
     write!(out, "| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
         let col = row.get(col_idx).map_or("".to_string(), |col| col.to_owned());
@@ -36,7 +36,7 @@ fn md_table_row(out: &mut dyn Write, row: &Vec<String>, widths: &Vec<usize>) -> 
     Ok(())
 }
 
-fn md_sep_row(out: &mut dyn Write, widths: &Vec<usize>) -> Result<(), GeneratorError> {
+fn md_sep_row(out: &mut dyn Write, widths: &[usize]) -> Result<(), GeneratorError> {
     write!(out, "| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
         if col_idx != 0 {
