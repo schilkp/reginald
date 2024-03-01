@@ -1,7 +1,10 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use reginald_codegen::{
-    builtin::{c::funcpack, md::datasheet},
+    builtin::{
+        c::funcpack,
+        md::datasheet::{self, regdump::RegDump},
+    },
     regmap::RegisterMap,
 };
 
@@ -44,7 +47,16 @@ fn main() {
     // .unwrap();
     // print!("{}", out);
 
+    // let mut out = String::new();
+    // datasheet::generate(&mut out, &map).unwrap();
+    // print!("{}", out);
+
     let mut out = String::new();
-    datasheet::generate(&mut out, &map).unwrap();
+    datasheet::regdump::generate(
+        &mut out,
+        &map,
+        &RegDump::from([(0, 0x1F), (1, 0x3F), (0x18, 0x1F)]),
+    )
+    .unwrap();
     print!("{}", out);
 }

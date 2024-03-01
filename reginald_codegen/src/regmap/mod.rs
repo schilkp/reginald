@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display, io, ops::RangeInclusive, path::PathBuf, rc::Rc};
+use std::{collections::BTreeMap, io, ops::RangeInclusive, path::PathBuf, rc::Rc};
 
 use self::{
     bits::{bit_mask_range, mask_to_bit_ranges},

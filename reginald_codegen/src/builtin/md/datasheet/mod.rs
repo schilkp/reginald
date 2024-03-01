@@ -1,3 +1,5 @@
+pub mod regdump;
+
 use std::fmt::Write;
 
 use crate::{
@@ -5,7 +7,7 @@ use crate::{
     regmap::{
         access_string,
         bits::{bit_mask_range, lsb_pos, mask_to_bit_ranges, msb_pos},
-        FieldEnum, PhysicalRegister, RegisterMap, RegisterOrigin,
+        FieldEnum, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue,
     },
 };
 
@@ -22,7 +24,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorE
     writeln!(out, "## Register Details")?;
     let registers = map.physical_registers();
     for register in registers {
-        generate_register_infos(out, map, &register)?;
+        generate_register_infos(out, &register, None)?;
     }
 
     Ok(())
@@ -48,8 +50,8 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Gener
 
 fn generate_register_infos(
     out: &mut dyn Write,
-    map: &RegisterMap,
     register: &PhysicalRegister,
+    value: Option<TypeValue>,
 ) -> Result<(), GeneratorError> {
     // Header:
     writeln!(out, "")?;
@@ -61,6 +63,8 @@ fn generate_register_infos(
     let mut row_bits: Vec<String> = vec!["*Bits:*".to_string()];
     let mut row_field: Vec<String> = vec!["*Field:*".to_string()];
     let mut row_access: Vec<String> = vec!["*Access:*".to_string()];
+    let mut row_state: Vec<String> = vec!["*State:*".to_string()];
+    let mut row_decode: Vec<String> = vec!["*Decode:*".to_string()];
 
     for range in ranges.iter().rev() {
         if range.bits.start() == range.bits.end() {
@@ -102,15 +106,29 @@ fn generate_register_infos(
                 row_access.push(format!("/"));
             }
         }
+
+        if let Some(value) = value {
+            let value_range = (value & bit_mask_range(&range.bits)) >> range.bits.start();
+            row_state.push(format!("*0b{:b}*", value_range));
+            row_decode.push(decode_bit_range(&value, range));
+        }
     }
+
     writeln!(out, "")?;
     writeln!(out, "#### Register:")?;
     writeln!(out, "")?;
-    md_table(out, &vec![row_bits, row_field, row_access])?;
+    if value.is_some() {
+        md_table(out, &vec![row_bits, row_field, row_access, row_state, row_decode])?;
+    } else {
+        md_table(out, &vec![row_bits, row_field, row_access])?;
+    }
 
     writeln!(out, "")?;
     writeln!(out, "#### Info:")?;
     writeln!(out, "")?;
+    if let Some(value) = value {
+        writeln!(out, "  - *Current Value: 0x{value:X}*")?;
+    }
     if let Some(adr) = register.absolute_adr {
         writeln!(out, "  - Address: 0x{adr:X}")?;
     }
@@ -121,7 +139,7 @@ fn generate_register_infos(
         let ranges = mask_to_bit_ranges(always_write.mask);
         writeln!(out, "  - Always write:")?;
         for range in ranges {
-            let val = always_write.value & bit_mask_range(&range) >> range.end();
+            let val = (always_write.value & bit_mask_range(&range)) >> range.end();
             let bits = if range.end() == range.start() {
                 format!("bit {}", range.end())
             } else {
@@ -153,12 +171,17 @@ fn generate_register_infos(
     writeln!(out, "")?;
 
     for field in register.template.fields.values() {
+        let value_field = value.map(|x| (x & field.mask) >> lsb_pos(field.mask));
+
         let access = if let Some(access) = &field.access {
             format!(" [{}]", access_string(access))
         } else {
             "".to_string()
         };
-        writeln!(out, "  - {}{}:", field.name, access)?;
+
+        let value_string = value_field.map(|x| format!("0x{:X}", x)).unwrap_or(String::new());
+
+        writeln!(out, "  - {}{}: {}", field.name, access, value_string)?;
         write!(out, "{}", field.docs.as_twoline("    - "))?;
 
         if let Some(field_enum) = &field.field_enum {
@@ -168,11 +191,47 @@ fn generate_register_infos(
                 FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
             };
             for entry in enum_entries {
-                writeln!(out, "      - 0x{:X}: {}", entry.value, entry.name)?;
+                match value_field {
+                    Some(val_field) if val_field == entry.value => {
+                        writeln!(out, "      - *0x{:X}: {}*", entry.value, entry.name)?;
+                    }
+                    _ => {
+                        writeln!(out, "      - 0x{:X}: {}", entry.value, entry.name)?;
+                    }
+                }
                 write!(out, "{}", entry.docs.as_twoline("        - "))?;
             }
         }
     }
 
     Ok(())
+}
+
+fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
+    let value_range = (value & bit_mask_range(&range.bits)) >> range.bits.end();
+
+    match range.content {
+        crate::regmap::RegisterBitrangeContent::Field { field, .. } => {
+            if let Some(field_enum) = &field.field_enum {
+                let field_value = (value & field.mask) >> lsb_pos(field.mask);
+                let mut enum_entries = match field_enum {
+                    FieldEnum::Local(field_enum) => field_enum.entries.values(),
+                    FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
+                };
+                if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
+                    return format!("*{}*", entry.name);
+                }
+            }
+        }
+        crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
+            if value_range == val {
+                return "*OK*".to_string();
+            } else {
+                return "*ERROR*".to_string();
+            }
+        }
+        _ => (),
+    }
+
+    return "".to_string();
 }
