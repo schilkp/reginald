@@ -132,8 +132,8 @@ impl Docs {
             out.push('\n');
         }
         if let Some(doc) = &self.doc {
+            out.push_str(prefix);
             for line in doc.lines() {
-                out.push_str(prefix);
                 out.push_str(line);
                 out.push(' ');
             }
