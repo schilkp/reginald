@@ -224,6 +224,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
+name = "reginald"
+version = "0.1.0"
+
+[[package]]
 name = "reginald-cli"
 version = "0.1.0"
 dependencies = [
@@ -243,6 +247,10 @@ dependencies = [
  "serde_yaml",
  "thiserror",
 ]
+
+[[package]]
+name = "reginald_derive"
+version = "0.1.0"
 
 [[package]]
 name = "ryu"
