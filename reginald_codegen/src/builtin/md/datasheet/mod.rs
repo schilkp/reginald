@@ -32,7 +32,11 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorE
 
 fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorError> {
     let mut rows = vec![];
-    rows.push(vec!["*Address*".to_string(), "*Register*".to_string(), "*Brief*".to_string()]);
+    rows.push(vec![
+        "**Address**".to_string(),
+        "**Register**".to_string(),
+        "**Brief**".to_string(),
+    ]);
     let regs = map.physical_registers();
     for reg in &regs {
         let adr = if let Some(adr) = &reg.absolute_adr {
@@ -60,11 +64,11 @@ fn generate_register_infos(
     // Overview table:
     let ranges = register.template.split_to_bitranges();
 
-    let mut row_bits: Vec<String> = vec!["*Bits:*".to_string()];
-    let mut row_field: Vec<String> = vec!["*Field:*".to_string()];
-    let mut row_access: Vec<String> = vec!["*Access:*".to_string()];
-    let mut row_state: Vec<String> = vec!["*State:*".to_string()];
-    let mut row_decode: Vec<String> = vec!["*Decode:*".to_string()];
+    let mut row_bits: Vec<String> = vec!["**Bits:**".to_string()];
+    let mut row_field: Vec<String> = vec!["**Field:**".to_string()];
+    let mut row_access: Vec<String> = vec!["**Access:**".to_string()];
+    let mut row_state: Vec<String> = vec!["**State:**".to_string()];
+    let mut row_decode: Vec<String> = vec!["**Decode:**".to_string()];
 
     for range in ranges.iter().rev() {
         if range.bits.start() == range.bits.end() {
@@ -109,7 +113,7 @@ fn generate_register_infos(
 
         if let Some(value) = value {
             let value_range = (value & bit_mask_range(&range.bits)) >> range.bits.start();
-            row_state.push(format!("*0b{:b}*", value_range));
+            row_state.push(format!("**0b{:b}**", value_range));
             row_decode.push(decode_bit_range(&value, range));
         }
     }
@@ -127,7 +131,7 @@ fn generate_register_infos(
     writeln!(out, "#### Info:")?;
     writeln!(out)?;
     if let Some(value) = value {
-        writeln!(out, "  - *Current Value: 0x{value:X}*")?;
+        writeln!(out, "  - **Current Value: 0x{value:X}**")?;
     }
     if let Some(adr) = register.absolute_adr {
         writeln!(out, "  - Address: 0x{adr:X}")?;
@@ -193,7 +197,7 @@ fn generate_register_infos(
             for entry in enum_entries {
                 match value_field {
                     Some(val_field) if val_field == entry.value => {
-                        writeln!(out, "      - *0x{:X}: {}*", entry.value, entry.name)?;
+                        writeln!(out, "      - **0x{:X}: {} (SELECTED)**", entry.value, entry.name)?;
                     }
                     _ => {
                         writeln!(out, "      - 0x{:X}: {}", entry.value, entry.name)?;
@@ -219,15 +223,15 @@ fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
                     FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
                 };
                 if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
-                    return format!("*{}*", entry.name);
+                    return format!("**{}**", entry.name);
                 }
             }
         }
         crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
             if value_range == val {
-                return "*OK*".to_string();
+                return "**OK**".to_string();
             } else {
-                return "*ERROR*".to_string();
+                return "**ERROR**".to_string();
             }
         }
         _ => (),

@@ -44,10 +44,10 @@ fn generate_overview(
     let mut rows = vec![];
 
     rows.push(vec![
-        "*Address*".to_string(),
-        "*Register*".to_string(),
-        "*Value*".to_string(),
-        "*Brief*".to_string(),
+        "**Address**".to_string(),
+        "**Register**".to_string(),
+        "**Value**".to_string(),
+        "**Brief**".to_string(),
     ]);
     for adr in adrs {
         let (regs, val) = lookup_adr(registers, regdump, *adr);
