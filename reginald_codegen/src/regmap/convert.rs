@@ -202,8 +202,8 @@ fn convert_field_enum(
     let bt = bt.to_owned() + ".enum";
 
     match &field.field_enum {
-        Some(listing::FieldEnum::Enum(e)) => convert_local_field_enum(field, field_name, e, &bt),
-        Some(listing::FieldEnum::SharedEnum(name)) => convert_shared_field_enum(name, shared_enums, &bt),
+        Some(listing::FieldEnum::Local(e)) => convert_local_field_enum(field, field_name, e, &bt),
+        Some(listing::FieldEnum::Shared(name)) => convert_shared_field_enum(name, shared_enums, &bt),
         None => Ok(None),
     }
 }
@@ -254,7 +254,7 @@ fn convert_registers(
             listing::PhysicalRegister::Register(reg) => {
                 convert_register(physreg_name, reg, default_bitwidth, shared_enums, &bt)?
             }
-            listing::PhysicalRegister::RegisterBlock(regblock) => {
+            listing::PhysicalRegister::Block(regblock) => {
                 convert_register_block(physreg_name, regblock, default_bitwidth, shared_enums, &bt)?
             }
         };

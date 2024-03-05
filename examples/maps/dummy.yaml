@@ -16,20 +16,20 @@ registers:
       FIELD1:
         bits: [7,6]
         access: [R]
-        enum: !SharedEnum
+        enum: !Shared
           STAT
       FIELD2:
         bits: ["3-0"]
         access: [R]
         brief: Another cool field.
         doc: Important details.
-        enum: !Enum
+        enum: !Local
           EN:
             val: 0x3
             brief: Is on.
             doc: important details.
 
-  CHn: !RegisterBlock
+  CHn: !Block
     instances: {"CH1": 0x10, "CH2": 0x20, "CH3": 0x30}
     brief: Channel control.
     doc: One for every channel.
@@ -41,7 +41,7 @@ registers:
           A:
             bits: [0]
             brief: Controls value A
-            enum: !Enum
+            enum: !Local
               "ON":
                 val: 0x1
               "OFF":
@@ -53,7 +53,7 @@ registers:
           STATUS:
             bits: ["0-2"]
             brief: Status
-            enum: !SharedEnum STAT
+            enum: !Shared STAT
 
 enums:
   STAT:

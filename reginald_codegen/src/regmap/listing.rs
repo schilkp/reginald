@@ -35,8 +35,8 @@ pub type EnumEntries = BTreeMap<String, EnumEntry>;
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub enum FieldEnum {
-    Enum(EnumEntries),
-    SharedEnum(String),
+    Local(EnumEntries),
+    Shared(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -84,7 +84,7 @@ pub struct RegisterBlock {
 #[serde(deny_unknown_fields)]
 pub enum PhysicalRegister {
     Register(Register),
-    RegisterBlock(RegisterBlock),
+    Block(RegisterBlock),
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -244,7 +244,6 @@ mod tests {
             enums: BTreeMap::new(),
         };
         assert_eq!(is, expect);
-        // todo!(); // Make list..
     }
 
     lazy_static! {
@@ -281,7 +280,7 @@ mod tests {
             MyEnum:
                 doc: Testdoc
                 brief: very brief brief
-                enum: !Enum
+                enum:
                     OFF:
                         val: 0
                         brief:  off
@@ -312,7 +311,6 @@ mod tests {
         ";
         let is: RegisterMap = deser_hjson::from_str(hjson).unwrap();
         assert_eq!(is, *SHARED_ENUM_EXPECT);
-        // todo!(); // Make list..
     }
 
     lazy_static! {
@@ -409,7 +407,7 @@ mod tests {
             access: vec![],
             doc: None,
             brief: None,
-            field_enum: Some(FieldEnum::Enum(BTreeMap::from([
+            field_enum: Some(FieldEnum::Local(BTreeMap::from([
                 (
                     "A".into(),
                     EnumEntry {
@@ -434,7 +432,7 @@ mod tests {
     fn deser_yaml_field_enum() {
         let yaml = "
         bits: [1]
-        enum: !Enum
+        enum: !Local
             A:
                 val: 0x1
             B:
@@ -449,7 +447,7 @@ mod tests {
         let hjson = "
         bits: [1]
         enum: {
-            Enum: {
+            Local: {
                 A: {
                     val: 1
                 },
@@ -469,7 +467,7 @@ mod tests {
             access: vec![],
             doc: None,
             brief: None,
-            field_enum: Some(FieldEnum::SharedEnum("TestEnum".into())),
+            field_enum: Some(FieldEnum::Shared("TestEnum".into())),
         };
     }
 
@@ -477,7 +475,7 @@ mod tests {
     fn deser_yaml_field_shared_enum() {
         let yaml = "
         bits: [1]
-        enum: !SharedEnum 'TestEnum'
+        enum: !Shared 'TestEnum'
         ";
         let field_is: Field = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(field_is, *FIELD_SHARED_ENUM_EXPECT);
@@ -488,7 +486,7 @@ mod tests {
         let hjson = "
         bits: [1]
         enum: {
-            SharedEnum: 'TestEnum'
+            Shared: 'TestEnum'
         }
         ";
         let field_is: Field = deser_hjson::from_str(hjson).unwrap();

@@ -349,7 +349,7 @@ mod tests {
                 fields:
                     A:
                         bits: [4,5]
-                        enum: !Enum
+                        enum: !Local
                             A:
                                 val: 0x4
         ";
@@ -368,7 +368,7 @@ mod tests {
                             A: {
                                 bits: [3,4]
                                 enum: {
-                                    SharedEnum: \"MyEnum\"
+                                    Shared: \"MyEnum\"
                                 }
                             }
                         }
@@ -393,6 +393,4 @@ mod tests {
         println!("{}", err);
         assert!(format!("{}", err).contains("does not fit into"));
     }
-
-    // TODO: enum validation
 }

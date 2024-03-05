@@ -20,7 +20,7 @@
             bits: [7, 6],
             access: ["R"],
             enum: {
-                SharedEnum: "STAT"
+                Shared: "STAT"
             }
           },
           FIELD2: {
@@ -29,7 +29,7 @@
             brief: "Another cool field.",
             doc: "Important details.",
             enum: {
-              Enum: {
+              Local: {
                 EN: {
                   val: 3,
                   brief: "Is on.",
@@ -43,7 +43,7 @@
     },
 
     CHn: {
-      RegisterBlock: {
+      Block: {
         instances: {
           CH1: 16,
           CH2: 32,
@@ -60,7 +60,7 @@
                 bits: [0],
                 brief: "Controls value A",
                 enum: {
-                  Enum: {
+                  Local: {
                     ON: {
                       val: 1
                     },
@@ -80,7 +80,7 @@
                 bits: ["0-2"],
                 brief: "Status",
                 enum: {
-                    SharedEnum: "STAT"
+                    Shared: "STAT"
                 }
               }
             }
