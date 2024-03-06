@@ -1,3 +1,5 @@
+mod diff;
+
 use std::fs;
 use std::io;
 use std::{path::PathBuf, process::ExitCode};
@@ -94,11 +96,9 @@ fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
     if gen.verify {
         let output_content = fs::read_to_string(&gen.output)?;
         if output_content != out {
-            // let mut msg = format!("File {} differs from generator output!\n", gen.output.to_string_lossy());
-            // for change in diff.iter_all_changes {
-            // }
-            // Err(Error::VerificationError(msg))?;
-            todo!()
+            let diff_msg = diff::diff_report(&output_content, &out);
+            let msg = format!("File {} differs from generator output!\n{}", gen.output.to_string_lossy(), diff_msg);
+            Err(Error::VerificationError(msg))?;
         }
     } else {
         fs::write(gen.output, out)?;
