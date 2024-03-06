@@ -31,8 +31,8 @@
           FIELD1: {
             bits: [7, 6],
             access: ["R"],
-            enum: {
-                Shared: "STAT"
+            accepts: {
+                SharedEnum: "STAT"
             }
           },
           FIELD2: {
@@ -40,8 +40,8 @@
             access: ["R"],
             brief: "Another cool field.",
             doc: "Important details.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 EN: {
                   val: 3,
                   brief: "Is on.",
@@ -52,6 +52,22 @@
           }
         }
       }
+    },
+
+    PINEAPPLE: {
+        Register: {
+            adr: 0,
+            fields: {
+                APPLE: {
+                    bits: [6],
+                    accepts: UInt
+                },
+                PEN: {
+                    bits: [7],
+                    accepts: Bool
+                },
+            }
+        }
     },
 
     CHn: {
@@ -71,8 +87,8 @@
               A: {
                 bits: [0],
                 brief: "Controls value A",
-                enum: {
-                  Local: {
+                accepts: {
+                  LocalEnum: {
                     ON: {
                       val: 1
                     },
@@ -91,8 +107,8 @@
               STATUS: {
                 bits: ["0-2"],
                 brief: "Status",
-                enum: {
-                    Shared: "STAT"
+                accepts: {
+                    SharedEnum: "STAT"
                 }
               }
             }

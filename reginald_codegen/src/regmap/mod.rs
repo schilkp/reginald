@@ -46,9 +46,17 @@ pub struct Enum {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum FieldEnum {
-    Local(Enum),
-    Shared(Rc<Enum>),
+pub enum FieldType {
+    UInt,
+    Bool,
+    LocalEnum(Enum),
+    SharedEnum(Rc<Enum>),
+}
+
+impl Default for FieldType {
+    fn default() -> Self {
+        FieldType::UInt
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -57,13 +65,13 @@ pub struct AlwaysWrite {
     pub value: TypeValue,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Field {
     pub name: String,
     pub mask: TypeValue,
     pub access: Option<Access>,
     pub docs: Docs,
-    pub field_enum: Option<FieldEnum>,
+    pub accepts: FieldType,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -143,6 +151,25 @@ impl Docs {
         }
 
         out
+    }
+}
+
+impl Field {
+    pub fn accepts_enum(&self) -> bool {
+        match &self.accepts {
+            FieldType::UInt => false,
+            FieldType::Bool => false,
+            FieldType::LocalEnum(_) => true,
+            FieldType::SharedEnum(_) => true,
+        }
+    }
+    pub fn enum_entries<'a>(&'a self) -> Option<impl Iterator<Item = &'a EnumEntry>> {
+        match &self.accepts {
+            FieldType::UInt => None,
+            FieldType::Bool => None,
+            FieldType::LocalEnum(local_enum) => Some(local_enum.entries.values()),
+            FieldType::SharedEnum(shared_enum) => Some(shared_enum.entries.values()),
+        }
     }
 }
 
@@ -394,9 +421,7 @@ mod tests {
                     Field {
                         name: "A".into(),
                         mask: 0b1001,
-                        access: None,
-                        docs: Docs::default(),
-                        field_enum: None,
+                        ..Default::default()
                     },
                 ),
                 (
@@ -404,9 +429,7 @@ mod tests {
                     Field {
                         name: "B".into(),
                         mask: 0xF000,
-                        access: None,
-                        docs: Docs::default(),
-                        field_enum: None,
+                        ..Default::default()
                     },
                 ),
             ]),

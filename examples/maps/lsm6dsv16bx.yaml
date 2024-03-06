@@ -51,7 +51,7 @@ registers:
         bits: [2]
         access: [R, W]
         brief: SPI serial interface mode selection.
-        enum: !Local
+        accepts: !LocalEnum
           4WIRE:
             val: 0x0
             brief: 4-wire interface.
@@ -62,7 +62,7 @@ registers:
         bits: [3]
         access: [R, W]
         brief: Push-pull/open-drain selection on INT1 and INT2 pins.
-        enum: !Local
+        accepts: !LocalEnum
           PUSH_PULL:
             val: 0x0
             brief: Push-pull mode.
@@ -73,7 +73,7 @@ registers:
         bits: [4]
         access: [R, W]
         brief: INT1/INT2 active level.
-        enum: !Local
+        accepts: !LocalEnum
           HIGH:
             val: 0x0
             brief: Interrupt output pins active high.
@@ -128,11 +128,11 @@ registers:
       BDR_XL:
         bits: [3-0]
         access: [R, W]
-        enum: !Shared BDR_GY_XL
+        accepts: !SharedEnum BDR_GY_XL
       BDR_GY:
         bits: [7-4]
         access: [R, W]
-        enum: !Shared BDR_GY_XL
+        accepts: !SharedEnum BDR_GY_XL
 
   FIFO_CTRL4: !Register
     adr: 0x0A
@@ -145,7 +145,7 @@ registers:
         bits: [2-0]
         access: [R, W]
         brief: FIFO Operating mode.
-        enum: !Local
+        accepts: !LocalEnum
           BYPASS:
             val: 0x0
             brief: Disabled and flushed.
@@ -163,7 +163,7 @@ registers:
         access: [R, W]
         brief: Selects decimation for timestamp batching in FIFO.
         doc: Write rate is the maximum rate between the accelerometer and gyroscope BDR divided by decimation decoder.
-        enum: !Local
+        accepts: !LocalEnum
           "OFF":
             val: 0x0
             brief: Timestamp not batched in FIFO
@@ -275,7 +275,7 @@ registers:
       ODR_XL:
         bits: [3-0]
         access: [R, W]
-        enum: !Local
+        accepts: !LocalEnum
           POWER_DOWN:
             val: 0x0
             brief: Power-down
@@ -318,7 +318,7 @@ registers:
       OP_MODE_XL:
         bits: [6-4]
         access: [R, W]
-        enum: !Local
+        accepts: !LocalEnum
           HIGH_PERF:
             val: 0x0
             brief: High-performance mode.
@@ -345,7 +345,7 @@ registers:
       ODR_G:
         bits: [3-0]
         access: [R, W]
-        enum: !Local
+        accepts: !LocalEnum
           POWER_DOWN:
             val: 0x0
             brief: Power-down
@@ -385,7 +385,7 @@ registers:
       OP_MODE_G:
         bits: [6-4]
         access: [R, W]
-        enum: !Local
+        accepts: !LocalEnum
           HIGH_PERF:
             val: 0x0
             brief: High-performance mode.
@@ -426,7 +426,7 @@ registers:
       DRDY_PULSED:
         bits: [1]
         access: [R, W]
-        enum: !Local
+        accepts: !LocalEnum
           PULSED:
             val: 0x1
             brief: DRDY pulse 75us long
@@ -468,7 +468,7 @@ registers:
         bits: [3-0]
         access: [R, W]
         brief: Gyroscope full-scale range.
-        enum: !Local
+        accepts: !LocalEnum
           125DPS:
             val: 0x0
             brief: ±125 dps
@@ -503,7 +503,7 @@ registers:
           | 5             | N.A.         | 43            | 53            | 57            | 58            | 58                | 58                | 58                |
           | 6             | 18.0         | 24.2          | 27.3          | 28.4          | 28.7          | 28.8              | N.A.              | N.A.              |
           | 7             | 12.1         | 13.7          | 14.2          | 14.3          | 14.4          | 14.4              | N.A.              | N.A.              |
-        enum: !Local
+        accepts: !LocalEnum
           "0":
             val: 0
             brief: LPF1 setting 0
@@ -549,7 +549,7 @@ registers:
         bits: [5-4]
         access: [R, W]
         brief: QVAR Input Impedance
-        enum: !Local
+        accepts: !LocalEnum
           2400M:
             val: 0x0
             brief: 2.4GΩ
@@ -580,7 +580,7 @@ registers:
         bits: [1-0]
         access: [R, W]
         brief: Accelerometer full-scale range.
-        enum: !Local
+        accepts: !LocalEnum
           2G:
             brief: ±2 g
             val: 0x0
@@ -617,7 +617,7 @@ registers:
         bits: [1]
         access: [R, W]
         brief: Weight with which the user offset is applied.
-        enum: !Local
+        accepts: !LocalEnum
           2_neg10:
             val: 0x0
             brief: Offset has a weight of 2^-10g/LSB
@@ -1352,7 +1352,7 @@ registers:
         bits: [4]
         access: [R, W]
         brief: Selection of TDM slot for transmission.
-        enum: !Local
+        accepts: !LocalEnum
           SLOT123:
             val: 0x0
             brief: Transmission during slot 1, 2, and 3.
@@ -1363,7 +1363,7 @@ registers:
         bits: [5]
         access: [R, W]
         brief: TDM BCLK sampling edge selection.
-        enum: !Local
+        accepts: !LocalEnum
           RISING:
             val: 0x0
             brief: Sampling of BCLK falling edge.
@@ -1385,7 +1385,7 @@ registers:
         bits: [4-3]
         access: [R, W]
         brief: Selects the order of transmission of the TDM axes.
-        enum: !Local
+        accepts: !LocalEnum
           ZYX:
             val: 0x0
             brief: Axes transmitted in Z-Y-X order.
@@ -1416,7 +1416,7 @@ registers:
         bits: [1-0]
         access: [R, W]
         brief: TDM channel accelerometer full-scale selection
-        enum: !Local
+        accepts: !LocalEnum
           2G:
             val: 0x0
             brief: ±2 g
@@ -1466,7 +1466,7 @@ registers:
       TAG_SENSOR:
         bits: [7-3]
         access: [R]
-        enum: !Local
+        accepts: !LocalEnum
           FIFO_EMPTY:
             val: 0x0
           GY_NC:

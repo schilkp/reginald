@@ -1,6 +1,6 @@
 use super::{
-    bits::{fits_into_bitwidth, unpositioned_mask},
-    Docs, FieldEnum, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
+    bits::{fits_into_bitwidth, mask_width, unpositioned_mask},
+    Docs, EnumEntry, Field, FieldType, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
 };
 use crate::error::Error;
 
@@ -74,6 +74,44 @@ pub fn validate_docs(docs: Docs, bt: &str) -> Result<Docs, Error> {
     Ok(docs)
 }
 
+pub fn validate_field_type(field: &Field, bt: &str) -> Result<(), Error> {
+    match &field.accepts {
+        FieldType::UInt => Ok(()),
+        FieldType::Bool => {
+            if mask_width(field.mask) != 1 {
+                return Err(Error::ConversionError {
+                    bt: bt.to_owned() + ".accepts",
+                    msg: format!("Field {} accepts a boolean but is more than one bit wide!", field.name),
+                });
+            } else {
+                Ok(())
+            }
+        }
+        FieldType::LocalEnum(field_enum) => validate_field_enum(&field, field_enum.entries.values(), &bt),
+        FieldType::SharedEnum(shared_enun) => validate_field_enum(&field, shared_enun.entries.values(), &bt),
+    }
+}
+
+pub fn validate_field_enum<'a>(
+    field: &Field,
+    entries: impl Iterator<Item = &'a EnumEntry>,
+    bt: &str,
+) -> Result<(), Error> {
+    for entry in entries {
+        let overshoot = !(unpositioned_mask(field.mask)) & entry.value;
+        if overshoot != 0 {
+            return Err(Error::ConversionError {
+                bt: bt.to_owned() + ".accepts." + &entry.name,
+                msg: format!(
+                    "Enum value 0x{:x} for entry {} does not fit into field {} (unpositioned mask: 0x{:x})!",
+                    entry.value, entry.name, field.name, overshoot
+                ),
+            });
+        }
+    }
+    Ok(())
+}
+
 pub fn validate_register_template(template: Register, bt: &str) -> Result<Register, Error> {
     validate_bitwidth(template.bitwidth, bt)?;
 
@@ -90,7 +128,7 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
     let mut occupied_mask: TypeValue = 0;
 
     for field in template.fields.values() {
-        let bt = bt.to_owned() + ".fields" + &field.name;
+        let bt = bt.to_owned() + ".fields." + &field.name;
 
         // Validate that no fields overlap:
         let overlap = field.mask & occupied_mask;
@@ -116,26 +154,7 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
             });
         }
 
-        if let Some(e) = &field.field_enum {
-            // Validate that the enum fits into the field:
-            let enum_entries = match e {
-                FieldEnum::Local(field_enum) => field_enum.entries.values(),
-                FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
-            };
-
-            for entry in enum_entries {
-                let overshoot = !(unpositioned_mask(field.mask)) & entry.value;
-                if overshoot != 0 {
-                    return Err(Error::ConversionError {
-                        bt: bt.to_owned() + ".enum." + &entry.name,
-                        msg: format!(
-                            "Enum value 0x{:x} for entry {} does not fit into field {} (unpositioned mask: 0x{:x})!",
-                            entry.value, entry.name, field.name, overshoot
-                        ),
-                    });
-                }
-            }
-        }
+        validate_field_type(&field, &bt)?;
     }
 
     if let Some(always_write) = &template.always_write {
@@ -361,7 +380,7 @@ mod tests {
                 fields:
                     A:
                         bits: [4,5]
-                        enum: !Local
+                        accepts: !LocalEnum
                             A:
                                 val: 0x4
         ";
@@ -379,8 +398,8 @@ mod tests {
                         fields: {
                             A: {
                                 bits: [3,4]
-                                enum: {
-                                    Shared: \"MyEnum\"
+                                accepts: {
+                                    SharedEnum: \"MyEnum\"
                                 }
                             }
                         }

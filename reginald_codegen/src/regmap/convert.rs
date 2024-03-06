@@ -6,7 +6,7 @@ use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
 use super::{
     listing::{self},
     validate::{validate_bitpos, validate_map_author, validate_register_template},
-    Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldEnum, Instance, Register, RegisterBlock, RegisterMap,
+    Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldType, Instance, Register, RegisterBlock, RegisterMap,
     TypeAdr, TypeBitwidth, TypeValue,
 };
 
@@ -139,7 +139,7 @@ fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<S
     let bt = bt.to_owned() + ".enums";
 
     for (shared_enum_name, shared_enum) in &m.enums {
-        let bt = bt.clone() + shared_enum_name;
+        let bt = bt.clone() + "." + shared_enum_name;
         result.insert(
             shared_enum_name.to_owned(),
             Rc::new(Enum {
@@ -172,44 +172,45 @@ fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<BTre
     Ok(result)
 }
 
-fn convert_local_field_enum(
+fn convert_field_type_local_enum(
     field: &listing::Field,
     field_name: &str,
     local_enum: &listing::EnumEntries,
     bt: &str,
-) -> Result<Option<FieldEnum>, Error> {
-    Ok(Some(FieldEnum::Local(Enum {
+) -> Result<FieldType, Error> {
+    Ok(FieldType::LocalEnum(Enum {
         name: field_name.to_owned(),
         is_shared: false,
         docs: convert_docs(&field.brief, &field.doc, bt)?,
         entries: convert_enum_entries(local_enum, bt)?,
-    })))
+    }))
 }
 
-fn convert_shared_field_enum(
+fn convert_field_type_shared_enum(
     name: &str,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Option<FieldEnum>, Error> {
+) -> Result<FieldType, Error> {
     let shared_enum = shared_enums.get(name).ok_or(Error::ConversionError {
         bt: bt.to_string(),
         msg: format!("Shared enum '{}' not found.", name),
     })?;
-    Ok(Some(FieldEnum::Shared(shared_enum.clone())))
+    Ok(FieldType::SharedEnum(shared_enum.clone()))
 }
 
-fn convert_field_enum(
+fn convert_field_type(
     field: &listing::Field,
     field_name: &str,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Option<FieldEnum>, Error> {
+) -> Result<FieldType, Error> {
     let bt = bt.to_owned() + ".enum";
 
-    match &field.field_enum {
-        Some(listing::FieldEnum::Local(e)) => convert_local_field_enum(field, field_name, e, &bt),
-        Some(listing::FieldEnum::Shared(name)) => convert_shared_field_enum(name, shared_enums, &bt),
-        None => Ok(None),
+    match &field.accepts {
+        listing::FieldType::LocalEnum(e) => convert_field_type_local_enum(field, field_name, e, &bt),
+        listing::FieldType::SharedEnum(name) => convert_field_type_shared_enum(name, shared_enums, &bt),
+        listing::FieldType::UInt => Ok(FieldType::UInt),
+        listing::FieldType::Bool => Ok(FieldType::Bool),
     }
 }
 
@@ -241,7 +242,7 @@ fn convert_field(
         mask: convert_bits(&field.bits, &bt)?,
         access: convert_access(&field.access, &bt),
         docs: convert_docs(&field.brief, &field.doc, &bt)?,
-        field_enum: convert_field_enum(field, field_name, shared_enums, &bt)?,
+        accepts: convert_field_type(field, field_name, shared_enums, &bt)?,
     })
 }
 
@@ -276,7 +277,7 @@ fn convert_register(
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<RegisterBlock, Error> {
-    let bt = bt.to_owned() + reg_name;
+    let bt = bt.to_owned() + "." + reg_name;
 
     let docs = convert_docs(&reg.brief, &reg.doc, &bt)?;
 
@@ -360,7 +361,7 @@ fn convert_register_block(
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
 ) -> Result<RegisterBlock, Error> {
-    let bt = bt.to_owned() + block_name;
+    let bt = bt.to_owned() + "." + block_name;
     Ok(RegisterBlock {
         name: block_name.to_string(),
         instances: convert_instances(&block.instances),
