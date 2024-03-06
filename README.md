@@ -50,6 +50,10 @@ struct MyBitfield {
 let raw: u64 = val.into();
 ```
 
+https://github.com/ProfFan/dw3000-ng/blob/RUST/src/ll.rs
+https://github.com/jkelleyrtp/dw1000-rs
+rust embedded matrix
+
 Two traits:
     - InfallibleRegister
     - Register

@@ -1,7 +1,10 @@
 use std::{fmt::Write, path::Path};
 
+#[cfg(feature = "cli")]
+use clap::Parser;
+
 use crate::{
-    error::GeneratorError,
+    error::Error,
     regmap::bits::lsb_pos,
     regmap::{FieldEnum, Register, RegisterBlock, RegisterMap},
     utils::{filename, str_table},
@@ -9,17 +12,30 @@ use crate::{
 
 use super::{c_macro, generate_section_header_comment};
 
+// ====== Generator Opts =======================================================
+
+#[derive(Debug)]
+#[cfg_attr(feature = "cli", derive(Parser))]
 pub struct GeneratorOpts {
+    /// Surround header with a clang-format off guard
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub clang_format_guard: bool,
+
+    /// Header file that should be included at the top of the generated header
+    ///
+    /// May be given multiple times.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub add_include: Vec<String>,
 }
 
-pub fn generate(
-    out: &mut dyn Write,
-    map: &RegisterMap,
-    output_file: &Path,
-    opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+// ====== Generator ============================================================
+
+pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     generate_header(out, map, output_file, opts)?;
 
     for block in map.register_blocks.values() {
@@ -39,7 +55,7 @@ fn generate_header(
     map: &RegisterMap,
     output_file: &Path,
     opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     if opts.clang_format_guard {
         writeln!(out, "// clang-format off")?;
     }
@@ -59,18 +75,14 @@ fn generate_header(
     writeln!(out, "#define REGINALD_{}", c_macro(&filename(output_file)?))?;
     writeln!(out)?;
     writeln!(out, "#include <stdint.h>")?;
-    for include in &opts.add_include {
-        writeln!(out, "#include \"{include}\"")?;
-    }
+    // for include in &opts.add_include {
+    //     writeln!(out, "#include \"{include}\"")?;
+    // }
 
     Ok(())
 }
 
-fn generate_register_block_defines(
-    out: &mut dyn Write,
-    map: &RegisterMap,
-    block: &RegisterBlock,
-) -> Result<(), GeneratorError> {
+fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block: &RegisterBlock) -> Result<(), Error> {
     let mut defines = vec![];
 
     if block.instances.len() > 1 && block.register_templates.len() > 1 {
@@ -113,11 +125,7 @@ fn generate_register_block_defines(
     Ok(())
 }
 
-fn generate_register_header(
-    out: &mut dyn Write,
-    block: &RegisterBlock,
-    template: &Register,
-) -> Result<(), GeneratorError> {
+fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template: &Register) -> Result<(), Error> {
     let generic_template_name = block.name.to_owned() + &template.name;
 
     // Register section header:
@@ -151,7 +159,7 @@ fn generate_register_defines(
     map: &RegisterMap,
     block: &RegisterBlock,
     template: &Register,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     let mut defines: Vec<Vec<String>> = vec![];
 
     let macro_prefix = c_macro(&map.map_name);
@@ -233,7 +241,7 @@ fn generate_register_defines(
     Ok(())
 }
 
-fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), GeneratorError> {
+fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     writeln!(out)?;
     writeln!(out, "#endif /* REGINALD_{} */", c_macro(&filename(output_file)?))?;
 

@@ -1,11 +1,11 @@
-use crate::{error::GeneratorError, utils::table_col_width};
+use crate::{error::Error, utils::table_col_width};
 use std::fmt::Write;
 
 pub mod datasheet;
 
-pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), GeneratorError> {
+pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), Error> {
     if rows.len() < 2 {
-        return Err(GeneratorError::Error(format!(
+        return Err(Error::GeneratorError(format!(
             "Cannot generate markdown table from {} rows, need at least 2.",
             rows.len()
         )));
@@ -22,7 +22,7 @@ pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), Gene
     Ok(())
 }
 
-fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result<(), GeneratorError> {
+fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result<(), Error> {
     write!(out, "| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
         let col = row.get(col_idx).map_or("".to_string(), |col| col.to_owned());
@@ -36,7 +36,7 @@ fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result
     Ok(())
 }
 
-fn md_sep_row(out: &mut dyn Write, widths: &[usize]) -> Result<(), GeneratorError> {
+fn md_sep_row(out: &mut dyn Write, widths: &[usize]) -> Result<(), Error> {
     write!(out, "| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
         if col_idx != 0 {

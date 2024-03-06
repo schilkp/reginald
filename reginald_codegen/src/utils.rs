@@ -3,7 +3,7 @@ use std::ops::{Add, RangeInclusive};
 use std::path::Path;
 use std::usize;
 
-use crate::error::GeneratorError;
+use crate::error::Error;
 
 pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     let mut s = s.to_string();
@@ -98,9 +98,9 @@ where
     ranges
 }
 
-pub fn filename(s: &Path) -> Result<String, GeneratorError> {
+pub fn filename(s: &Path) -> Result<String, Error> {
     s.file_name()
-        .ok_or(GeneratorError::Error("".into()))
+        .ok_or(Error::GeneratorError("".into()))
         .map(|x| x.to_string_lossy().to_string())
 }
 

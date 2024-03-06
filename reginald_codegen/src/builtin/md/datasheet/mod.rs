@@ -3,7 +3,7 @@ pub mod regdump;
 use std::fmt::Write;
 
 use crate::{
-    error::GeneratorError,
+    error::Error,
     regmap::{
         access_string,
         bits::{bit_mask_range, lsb_pos, mask_to_bit_ranges, msb_pos},
@@ -13,7 +13,7 @@ use crate::{
 
 use super::md_table;
 
-pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorError> {
+pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
     writeln!(out, "# {}", map.map_name)?;
     writeln!(out)?;
     writeln!(out, "## Register Map")?;
@@ -30,7 +30,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorE
     Ok(())
 }
 
-fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorError> {
+fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
     let mut rows = vec![];
     rows.push(vec![
         "**Address**".to_string(),
@@ -56,7 +56,7 @@ fn generate_register_infos(
     out: &mut dyn Write,
     register: &PhysicalRegister,
     value: Option<TypeValue>,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     // Header:
     writeln!(out)?;
     writeln!(out, "### {}", register.name)?;

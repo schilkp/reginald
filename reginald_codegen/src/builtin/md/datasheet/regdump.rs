@@ -1,32 +1,89 @@
 use std::{
     collections::{BTreeMap, HashSet},
     fmt::Write,
+    path::{Path, PathBuf},
 };
 
 use crate::{
     builtin::md::md_table,
-    error::GeneratorError,
+    error::Error,
     regmap::{PhysicalRegister, RegisterMap, TypeAdr, TypeValue},
 };
 
 use super::generate_register_infos;
 
+#[cfg(feature = "cli")]
+use clap::Parser;
+use serde::{Deserialize, Serialize};
+
+// ====== Register Dump ========================================================
+
 pub type RegDump = BTreeMap<TypeAdr, TypeValue>;
 
-pub fn generate(out: &mut dyn Write, map: &RegisterMap, regdump: &RegDump) -> Result<(), GeneratorError> {
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(untagged, deny_unknown_fields)]
+enum RegDumpListingEntry {
+    One(TypeValue),
+    Multiple(Vec<TypeValue>),
+}
+
+fn read_regdump(path: &Path) -> Result<RegDump, Error> {
+    let reader = std::fs::File::open(path)?;
+    let regdump_listing: BTreeMap<TypeAdr, RegDumpListingEntry> = serde_yaml::from_reader(reader)?;
+
+    let mut regdump = BTreeMap::new();
+    for (start_adr, entry) in regdump_listing {
+        match entry {
+            RegDumpListingEntry::One(val) => {
+                if regdump.insert(start_adr, val).is_some() {
+                    return Err(Error::GeneratorError(format!(
+                        "Regdump contains multiple values for address 0x{start_adr:X}."
+                    )));
+                }
+            }
+            RegDumpListingEntry::Multiple(vals) => {
+                for (idx, val) in vals.iter().enumerate() {
+                    let adr = start_adr + (idx as u64);
+                    if regdump.insert(adr, *val).is_some() {
+                        return Err(Error::GeneratorError(format!(
+                            "Regdump contains multiple values for address 0x{adr:X}."
+                        )));
+                    }
+                }
+            }
+        }
+    }
+    Ok(regdump)
+}
+
+// ====== Generator Options ====================================================
+
+#[derive(Debug)]
+#[cfg_attr(feature = "cli", derive(Parser))]
+pub struct GeneratorOpts {
+    /// Path to YAML register dump file
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub map: PathBuf,
+}
+
+// ====== Generator ============================================================
+
+pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) -> Result<(), Error> {
+    let regdump = read_regdump(&opts.map)?;
+
     let registers = map.physical_registers();
-    let adrs = adrs_of_interest(&registers, regdump);
+    let adrs = adrs_of_interest(&registers, &regdump);
 
     writeln!(out, "# {} Register Dump Decode Report", map.map_name)?;
     writeln!(out)?;
     writeln!(out, "## Register Map")?;
     writeln!(out)?;
-    generate_overview(out, &registers, regdump, &adrs)?;
+    generate_overview(out, &registers, &regdump, &adrs)?;
 
     writeln!(out)?;
     writeln!(out, "## Register Details")?;
     for adr in adrs {
-        let (regs, val) = lookup_adr(&registers, regdump, adr);
+        let (regs, val) = lookup_adr(&registers, &regdump, adr);
         for reg in regs {
             generate_register_infos(out, reg, val)?;
         }
@@ -40,7 +97,7 @@ fn generate_overview(
     registers: &[PhysicalRegister],
     regdump: &RegDump,
     adrs: &Vec<TypeAdr>,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     let mut rows = vec![];
 
     rows.push(vec![

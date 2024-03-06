@@ -4,7 +4,7 @@ use self::{
     bits::{bit_mask_range, mask_to_bit_ranges},
     convert::convert_map,
 };
-use crate::{error::ListingError, regmap::bits::lsb_pos, utils::numbers_as_ranges};
+use crate::{error::Error, regmap::bits::lsb_pos, utils::numbers_as_ranges};
 
 pub mod bits;
 mod convert;
@@ -234,7 +234,21 @@ impl Register {
 }
 
 impl RegisterMap {
-    pub fn from_yaml<R>(inp: R) -> Result<Self, ListingError>
+    pub fn from_file(path: &PathBuf) -> Result<Self, Error> {
+        let inp = std::fs::File::open(path)?;
+        let ext = path.extension().and_then(|x| x.to_str()).map(|x| x.to_lowercase());
+        let listing = match ext {
+            Some(ext) if ext == "yaml" || ext == "yml" => listing::RegisterMap::from_yaml(inp)?,
+            Some(ext) if ext == "json" || ext == "hjson" => listing::RegisterMap::from_hjson(inp)?,
+            _ => {
+                eprintln!("Unknown input file extension. Assuming YAML.");
+                listing::RegisterMap::from_yaml(inp)?
+            }
+        };
+        convert_map(&listing, &Some(path.to_path_buf()))
+    }
+
+    pub fn from_yaml<R>(inp: R) -> Result<Self, Error>
     where
         R: io::Read,
     {
@@ -242,11 +256,11 @@ impl RegisterMap {
         convert_map(&listing, &None)
     }
 
-    pub fn from_yaml_str(inp: &str) -> Result<Self, ListingError> {
+    pub fn from_yaml_str(inp: &str) -> Result<Self, Error> {
         Self::from_yaml(inp.as_bytes())
     }
 
-    pub fn from_hjson<R>(inp: R) -> Result<Self, ListingError>
+    pub fn from_hjson<R>(inp: R) -> Result<Self, Error>
     where
         R: io::Read,
     {
@@ -254,7 +268,7 @@ impl RegisterMap {
         convert_map(&listing, &None)
     }
 
-    pub fn from_hjson_str(inp: &str) -> Result<Self, ListingError> {
+    pub fn from_hjson_str(inp: &str) -> Result<Self, Error> {
         Self::from_hjson(inp.as_bytes())
     }
 

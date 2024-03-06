@@ -1,4 +1,4 @@
-use crate::{error::ListingError, regmap::validate::validate_docs, regmap::AccessMode};
+use crate::{error::Error, regmap::validate::validate_docs, regmap::AccessMode};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
@@ -10,7 +10,7 @@ use super::{
     TypeAdr, TypeBitwidth, TypeValue,
 };
 
-pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Result<RegisterMap, ListingError> {
+pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Result<RegisterMap, Error> {
     let bt = &m.map_name;
 
     let map_name = m.map_name.clone();
@@ -35,7 +35,7 @@ fn convert_always_write(always_write: &Option<listing::AlwaysWrite>, _bt: &str) 
     })
 }
 
-fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, ListingError> {
+fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, Error> {
     let bt = bt.to_owned() + ".bits";
 
     let mut result: TypeValue = 0;
@@ -47,7 +47,7 @@ fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, ListingErro
         };
 
         if mask & result != 0 {
-            return Err(ListingError::ConversionError {
+            return Err(Error::ConversionError {
                 bt,
                 msg: format!("Bitranges in list overlap (mask: 0x{:x})", mask & result,),
             });
@@ -56,7 +56,7 @@ fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, ListingErro
         result |= mask;
     }
     if result == 0 {
-        return Err(ListingError::ConversionError {
+        return Err(Error::ConversionError {
             bt,
             msg: "Bits cannot be zero.".into(),
         });
@@ -65,7 +65,7 @@ fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, ListingErro
     Ok(result)
 }
 
-fn convert_bitpos(bitpos: TypeBitwidth, bt: &str) -> Result<TypeValue, ListingError> {
+fn convert_bitpos(bitpos: TypeBitwidth, bt: &str) -> Result<TypeValue, Error> {
     validate_bitpos(bitpos, bt)?;
     Ok(1 << bitpos)
 }
@@ -74,9 +74,9 @@ lazy_static! {
     static ref BITRANGE_RE: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
 }
 
-fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, ListingError> {
+fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, Error> {
     if !BITRANGE_RE.is_match(bitrange) {
-        return Err(ListingError::ConversionError {
+        return Err(Error::ConversionError {
             bt: bt.to_string(),
             msg: format!("Malformed bit range '{}'", bitrange),
         });
@@ -85,7 +85,7 @@ fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, ListingError>
     let limit_strs: Vec<&str> = bitrange.splitn(2, '-').collect();
     let mut limits = vec![];
     for limit in limit_strs {
-        let limit: TypeBitwidth = limit.parse().map_err(|_| ListingError::ConversionError {
+        let limit: TypeBitwidth = limit.parse().map_err(|_| Error::ConversionError {
             bt: bt.to_owned(),
             msg: format!("Malformed bit range '{}'", bitrange),
         })?;
@@ -121,14 +121,14 @@ fn convert_access(access: &listing::Access, _bt: &str) -> Option<Access> {
     }
 }
 
-fn convert_docs(brief: &Option<String>, doc: &Option<String>, bt: &str) -> Result<Docs, ListingError> {
+fn convert_docs(brief: &Option<String>, doc: &Option<String>, bt: &str) -> Result<Docs, Error> {
     let brief = brief.clone().map(|x| x.trim_end().to_owned());
     let doc = doc.clone().map(|x| x.trim_end().to_owned());
     let docs = Docs { brief, doc };
     validate_docs(docs, bt)
 }
 
-fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<String, Rc<Enum>>, ListingError> {
+fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<String, Rc<Enum>>, Error> {
     let mut result = BTreeMap::new();
 
     let bt = bt.to_owned() + ".enums";
@@ -149,7 +149,7 @@ fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<S
     Ok(result)
 }
 
-fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<BTreeMap<String, EnumEntry>, ListingError> {
+fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<BTreeMap<String, EnumEntry>, Error> {
     let mut result: BTreeMap<String, EnumEntry> = BTreeMap::new();
 
     for (entry_name, entry) in entries {
@@ -172,7 +172,7 @@ fn convert_local_field_enum(
     field_name: &str,
     local_enum: &listing::EnumEntries,
     bt: &str,
-) -> Result<Option<FieldEnum>, ListingError> {
+) -> Result<Option<FieldEnum>, Error> {
     Ok(Some(FieldEnum::Local(Enum {
         name: field_name.to_owned(),
         is_shared: false,
@@ -185,8 +185,8 @@ fn convert_shared_field_enum(
     name: &str,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Option<FieldEnum>, ListingError> {
-    let shared_enum = shared_enums.get(name).ok_or(ListingError::ConversionError {
+) -> Result<Option<FieldEnum>, Error> {
+    let shared_enum = shared_enums.get(name).ok_or(Error::ConversionError {
         bt: bt.to_string(),
         msg: format!("Shared enum '{}' not found.", name),
     })?;
@@ -198,7 +198,7 @@ fn convert_field_enum(
     field_name: &str,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Option<FieldEnum>, ListingError> {
+) -> Result<Option<FieldEnum>, Error> {
     let bt = bt.to_owned() + ".enum";
 
     match &field.field_enum {
@@ -212,7 +212,7 @@ fn convert_fields(
     reg: &listing::Register,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<BTreeMap<String, Field>, ListingError> {
+) -> Result<BTreeMap<String, Field>, Error> {
     let mut result = BTreeMap::new();
     let bt = bt.to_owned() + ".fields";
 
@@ -228,7 +228,7 @@ fn convert_field(
     field: &listing::Field,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<Field, ListingError> {
+) -> Result<Field, Error> {
     let bt = bt.to_owned() + "." + field_name;
 
     Ok(Field {
@@ -245,7 +245,7 @@ fn convert_registers(
     default_bitwidth: TypeBitwidth,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<BTreeMap<String, RegisterBlock>, ListingError> {
+) -> Result<BTreeMap<String, RegisterBlock>, Error> {
     let bt = bt.to_owned() + ".registers";
     let mut result: BTreeMap<String, RegisterBlock> = BTreeMap::new();
 
@@ -270,7 +270,7 @@ fn convert_register(
     default_bitwidth: TypeBitwidth,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<RegisterBlock, ListingError> {
+) -> Result<RegisterBlock, Error> {
     let bt = bt.to_owned() + reg_name;
 
     let docs = convert_docs(&reg.brief, &reg.doc, &bt)?;
@@ -312,7 +312,7 @@ fn convert_register_block_templates(
     default_bitwidth: TypeBitwidth,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<BTreeMap<String, Register>, ListingError> {
+) -> Result<BTreeMap<String, Register>, Error> {
     let mut result = BTreeMap::new();
 
     for (template_name, template) in &block.registers {
@@ -354,7 +354,7 @@ fn convert_register_block(
     default_bitwidth: TypeBitwidth,
     shared_enums: &BTreeMap<String, Rc<Enum>>,
     bt: &str,
-) -> Result<RegisterBlock, ListingError> {
+) -> Result<RegisterBlock, Error> {
     let bt = bt.to_owned() + block_name;
     Ok(RegisterBlock {
         name: block_name.to_string(),

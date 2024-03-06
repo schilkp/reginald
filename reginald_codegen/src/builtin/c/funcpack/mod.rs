@@ -1,10 +1,11 @@
 use std::{fmt::Write, path::Path};
 
+#[cfg(feature = "cli")]
+use clap::Parser;
+
 use crate::{
-    error::GeneratorError,
-    generator_cli::GeneratorCLI,
+    error::Error,
     regmap::{
-        self,
         bits::{lsb_pos, mask_width, unpositioned_mask},
         Docs, Enum, Field, FieldEnum, Register, RegisterBlock, RegisterMap, TypeValue,
     },
@@ -13,47 +14,92 @@ use crate::{
 
 use super::{c_code, c_fitting_unsigned_type, c_macro, generate_section_header_comment};
 
-pub struct FuncpackGenerator {}
+// ====== Generator Opts =======================================================
 
-impl GeneratorCLI for FuncpackGenerator {
-    fn generate(
-        &self,
-        _map: regmap::RegisterMap,
-        _output_file_name: &Path,
-        _args: Vec<String>,
-    ) -> Result<Vec<String>, crate::error::GeneratorError> {
-        todo!()
-    }
+#[derive(Debug)]
+#[cfg_attr(feature = "cli", derive(Parser))]
+pub struct GeneratorOpts {
+    /// Prefix the name of a local field enum with the name of the containing
+    /// register
+    ///
+    /// This avoids naming conflicts, but is often not necessary and
+    /// leads to much longer enum type names.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "false"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub field_enum_prefix: bool,
 
-    fn description(&self) -> String {
-        "C header with register structs and conversion functions.".into()
-    }
+    /// Make register structs bitfields to reduce their memory size
+    ///
+    /// Note that their memory layout will not match the actual register
+    /// and the (un)packing functions must still be used.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub registers_as_bitfields: bool,
 
-    fn help(&self, _args: Vec<String>) {
-        todo!()
-    }
+    /// Surround header with a clang-format off guard
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub clang_format_guard: bool,
+
+    /// Generate field/shared enums
+    ///
+    /// Note that enums are still used in register structs/functions
+    /// if excluded. They must then be generated in a seperate header file.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_enums: bool,
+
+    /// Generate register structs and property defines
+    ///
+    /// Note that the structs are still used in register (un)packing functions.
+    /// They must then be generated in a seperate header file.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_registers: bool,
+
+    /// Generate register packing and unpacking functions
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_register_functions: bool,
+
+    /// Generate generic register packing and unpacking macros
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_generic_macros: bool,
+
+    /// Generate enum and struct unpacking validation functions
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_validation_functions: bool,
+
+    /// Header file that should be included at the top of the generated header
+    ///
+    /// May be given multiple times.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub add_include: Vec<String>,
 }
 
 // ====== Generator ============================================================
 
-pub struct GeneratorOpts {
-    pub field_enum_prefix: bool,
-    pub registers_as_bitfields: bool,
-    pub clang_format_guard: bool,
-    pub generate_enums: bool,
-    pub generate_registers: bool,
-    pub generate_register_functions: bool,
-    pub generate_generic_macros: bool,
-    pub generate_validation_functions: bool,
-    pub add_include: Vec<String>,
-}
-
-pub fn generate(
-    out: &mut dyn Write,
-    map: &RegisterMap,
-    output_file: &Path,
-    opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     generate_header(out, map, output_file, opts)?;
 
     if opts.generate_enums && !map.shared_enums.is_empty() {
@@ -104,7 +150,7 @@ fn generate_header(
     map: &RegisterMap,
     output_file: &Path,
     opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     if opts.clang_format_guard {
         writeln!(out, "// clang-format off")?;
     }
@@ -134,7 +180,7 @@ fn generate_header(
     Ok(())
 }
 
-fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) -> Result<(), GeneratorError> {
+fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) -> Result<(), Error> {
     writeln!(out)?;
     generate_section_header_comment(out, "Shared Enums")?;
 
@@ -151,7 +197,7 @@ fn generate_enum(
     e: &Enum,
     name: &str,
     opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     let code_prefix = c_code(&map.map_name);
     let macro_prefix = c_macro(&map.map_name);
 
@@ -193,11 +239,7 @@ fn generate_enum(
     Ok(())
 }
 
-fn generate_register_block_defines(
-    out: &mut dyn Write,
-    map: &RegisterMap,
-    block: &RegisterBlock,
-) -> Result<(), GeneratorError> {
+fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block: &RegisterBlock) -> Result<(), Error> {
     let mut defines = vec![];
 
     if block.instances.len() > 1 && block.register_templates.len() > 1 {
@@ -240,11 +282,7 @@ fn generate_register_block_defines(
     Ok(())
 }
 
-fn generate_register_header(
-    out: &mut dyn Write,
-    block: &RegisterBlock,
-    template: &Register,
-) -> Result<(), GeneratorError> {
+fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template: &Register) -> Result<(), Error> {
     let generic_template_name = block.name.to_owned() + &template.name;
 
     // Register section header:
@@ -262,7 +300,7 @@ fn generate_register_defines(
     map: &RegisterMap,
     block: &RegisterBlock,
     template: &Register,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     let mut defines: Vec<Vec<String>> = vec![];
 
     let macro_reg_template = c_macro(&(block.name.to_owned() + &template.name));
@@ -314,7 +352,7 @@ fn generate_register_enums(
     block: &RegisterBlock,
     template: &Register,
     opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     for field in template.fields.values() {
         if let Some(FieldEnum::Local(local_enum)) = &field.field_enum {
             let enum_name = name_register_enum(block, template, local_enum, opts);
@@ -331,7 +369,7 @@ fn generate_register_struct(
     block: &RegisterBlock,
     template: &Register,
     opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     let struct_name = name_register_struct(map, block, template);
 
     writeln!(out)?;
@@ -362,7 +400,7 @@ fn generate_register_functions(
     block: &RegisterBlock,
     template: &Register,
     opts: &GeneratorOpts,
-) -> Result<(), GeneratorError> {
+) -> Result<(), Error> {
     let regname = c_code(&(block.name.to_owned() + &template.name));
     let struct_name = name_register_struct(map, block, template);
     let packed_type = c_fitting_unsigned_type(template.bitwidth)?;
@@ -494,7 +532,7 @@ fn generate_register_functions(
     Ok(())
 }
 
-fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(), GeneratorError> {
+fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
     let macro_prefix = c_macro(&map.map_name);
 
     let mut entry_count = 0;
@@ -599,7 +637,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
     Ok(())
 }
 
-fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), GeneratorError> {
+fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     writeln!(out)?;
     writeln!(out, "#endif /* REGINALD_{} */", c_macro(&filename(output_file)?))?;
 
@@ -610,12 +648,7 @@ fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts
     Ok(())
 }
 
-fn generate_doxy_comment(
-    out: &mut dyn Write,
-    docs: &Docs,
-    prefix: &str,
-    note: Option<&str>,
-) -> Result<(), GeneratorError> {
+fn generate_doxy_comment(out: &mut dyn Write, docs: &Docs, prefix: &str, note: Option<&str>) -> Result<(), Error> {
     match (&docs.brief, note, &docs.doc) {
         (None, None, None) => (),
         (Some(brief), None, None) => {
@@ -643,7 +676,7 @@ fn generate_doxy_comment(
     Ok(())
 }
 
-fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Result<(), GeneratorError> {
+fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Result<(), Error> {
     if lines.is_empty() {
         Ok(())
     } else {
@@ -680,7 +713,7 @@ fn register_struct_member_type(
     template: &Register,
     field: &Field,
     opts: &GeneratorOpts,
-) -> Result<String, GeneratorError> {
+) -> Result<String, Error> {
     let code_prefix = c_code(&map.map_name);
     match &field.field_enum {
         Some(FieldEnum::Local(local_enum)) => {

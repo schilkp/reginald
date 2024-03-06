@@ -12,7 +12,7 @@ registers:
         bits: [7]
         access: [R]
         brief: LDO Dropout Detector Rising Interrupt
-        enum: !Shared EN
+        accepts: !LocalEnum EN
       DOD1_R:
         bits: [6]
         access: [R]

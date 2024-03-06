@@ -1,9 +1,11 @@
 use crate::{
-    error::ListingError,
+    error::Error,
     regmap::{TypeAdr, TypeBitwidth, TypeValue},
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, io};
+
+// todo!(); // License
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged, deny_unknown_fields)]
@@ -110,14 +112,14 @@ pub struct RegisterMap {
 }
 
 impl RegisterMap {
-    pub fn from_yaml<R>(inp: R) -> Result<Self, ListingError>
+    pub fn from_yaml<R>(inp: R) -> Result<Self, Error>
     where
         R: io::Read,
     {
         Ok(serde_yaml::from_reader(inp)?)
     }
 
-    pub fn from_hjson<R>(inp: R) -> Result<Self, ListingError>
+    pub fn from_hjson<R>(inp: R) -> Result<Self, Error>
     where
         R: io::Read,
     {
