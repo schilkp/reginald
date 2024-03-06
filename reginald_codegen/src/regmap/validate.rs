@@ -4,6 +4,18 @@ use super::{
 };
 use crate::error::Error;
 
+pub fn validate_map_author(author: &Option<String>, bt: &str) -> Result<(), Error> {
+    if let Some(author) = author {
+        if author.contains('\n') {
+            return Err(Error::ConversionError {
+                bt: bt.to_owned() + ".author",
+                msg: "Author may not contain more than one line.".to_owned(),
+            });
+        }
+    }
+    Ok(())
+}
+
 pub fn validate_bitwidth(bitwidth: TypeBitwidth, bt: &str) -> Result<(), Error> {
     if bitwidth == 0 {
         return Err(Error::ConversionError {

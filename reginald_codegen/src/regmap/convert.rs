@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
 
 use super::{
     listing::{self},
-    validate::{validate_bitpos, validate_register_template},
+    validate::{validate_bitpos, validate_map_author, validate_register_template},
     Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldEnum, Instance, Register, RegisterBlock, RegisterMap,
     TypeAdr, TypeBitwidth, TypeValue,
 };
@@ -14,9 +14,12 @@ pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Re
     let bt = &m.map_name;
 
     let map_name = m.map_name.clone();
+    let note = m.note.clone().map(|x| x.trim_end().to_string());
+    let author = m.author.clone();
+    validate_map_author(&author, bt)?;
     let docs = convert_docs(&m.brief, &m.doc, bt)?;
-    let shared_enums = convert_shared_enums(m, bt)?;
     let default_bitwidth = m.default_register_bitwidth;
+    let shared_enums = convert_shared_enums(m, bt)?;
     let register_blocks = convert_registers(m, default_bitwidth, &shared_enums, bt)?;
 
     Ok(RegisterMap {
@@ -25,6 +28,8 @@ pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Re
         docs,
         register_blocks,
         shared_enums,
+        note,
+        author,
     })
 }
 

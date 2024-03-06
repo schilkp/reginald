@@ -165,6 +165,17 @@ fn generate_header(
     }
     writeln!(out, " *")?;
     writeln!(out, " * Generator: c.funcpack")?;
+    if let Some(author) = &map.author {
+        writeln!(out, " *")?;
+        writeln!(out, " * Listing file author: {author}")?;
+    }
+    if let Some(note) = &map.note {
+        writeln!(out, " *")?;
+        writeln!(out, " * Listing file note:")?;
+        for line in note.lines() {
+            writeln!(out, " *   {line}")?;
+        }
+    }
     writeln!(out, " */")?;
     writeln!(out, "#ifndef REGINALD_{}", c_macro(&filename(output_file)?))?;
     writeln!(out, "#define REGINALD_{}", c_macro(&filename(output_file)?))?;

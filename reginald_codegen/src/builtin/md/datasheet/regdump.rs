@@ -8,6 +8,7 @@ use crate::{
     builtin::md::md_table,
     error::Error,
     regmap::{PhysicalRegister, RegisterMap, TypeAdr, TypeValue},
+    utils::filename,
 };
 
 use super::generate_register_infos;
@@ -77,8 +78,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
     writeln!(out, "# {} Register Dump Decode Report", map.map_name)?;
     writeln!(out)?;
     writeln!(out, "## Register Map")?;
-    writeln!(out)?;
-    generate_overview(out, &registers, &regdump, &adrs)?;
+    generate_overview(out, map, &registers, &regdump, &adrs)?;
 
     writeln!(out)?;
     writeln!(out, "## Register Details")?;
@@ -94,11 +94,30 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
 
 fn generate_overview(
     out: &mut dyn Write,
+    map: &RegisterMap,
     registers: &[PhysicalRegister],
     regdump: &RegDump,
     adrs: &Vec<TypeAdr>,
 ) -> Result<(), Error> {
     let mut rows = vec![];
+
+    if let Some(input_file) = &map.from_file {
+        writeln!(out)?;
+        writeln!(out, "Generated from listing file: {}.", filename(input_file)?)?;
+    }
+    if let Some(author) = &map.author {
+        writeln!(out)?;
+        writeln!(out, "Listing file author: {author}")?;
+    }
+    if let Some(note) = &map.note {
+        writeln!(out,)?;
+        writeln!(out, "Listing file note:")?;
+        writeln!(out, "```")?;
+        for line in note.lines() {
+            writeln!(out, "  {line}")?;
+        }
+        writeln!(out, "```")?;
+    }
 
     rows.push(vec![
         "**Address**".to_string(),
@@ -124,6 +143,7 @@ fn generate_overview(
             }
         }
     }
+    writeln!(out)?;
     md_table(out, &rows)?;
     Ok(())
 }

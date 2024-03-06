@@ -5,8 +5,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, io};
 
-// todo!(); // License
-
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum BitRange {
@@ -41,7 +39,7 @@ pub enum FieldEnum {
     Shared(String),
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Field {
     pub bits: Bits,
@@ -60,7 +58,7 @@ pub struct AlwaysWrite {
     pub val: TypeValue,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Register {
     #[serde(default = "BTreeMap::new")]
@@ -98,13 +96,15 @@ pub struct SharedEnum {
     pub entries: EnumEntries,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct RegisterMap {
     pub map_name: String,
     pub default_register_bitwidth: TypeBitwidth,
     pub doc: Option<String>,
     pub brief: Option<String>,
+    pub note: Option<String>,
+    pub author: Option<String>,
     #[serde(default = "BTreeMap::new")]
     pub registers: BTreeMap<String, PhysicalRegister>,
     #[serde(default = "BTreeMap::new")]
@@ -222,10 +222,7 @@ mod tests {
         let expect = RegisterMap {
             map_name: "DummyChip".to_string(),
             default_register_bitwidth: 8,
-            doc: None,
-            brief: None,
-            registers: BTreeMap::new(),
-            enums: BTreeMap::new(),
+            ..Default::default()
         };
         assert_eq!(is, expect);
     }
@@ -240,10 +237,7 @@ mod tests {
         let expect = RegisterMap {
             map_name: "DummyChip".to_string(),
             default_register_bitwidth: 8,
-            doc: None,
-            brief: None,
-            registers: BTreeMap::new(),
-            enums: BTreeMap::new(),
+            ..Default::default()
         };
         assert_eq!(is, expect);
     }
@@ -252,9 +246,6 @@ mod tests {
         static ref SHARED_ENUM_EXPECT: RegisterMap = RegisterMap {
             map_name: "DummyChip".to_string(),
             default_register_bitwidth: 8,
-            doc: None,
-            brief: None,
-            registers: BTreeMap::new(),
             enums: BTreeMap::from([(
                 "MyEnum".into(),
                 SharedEnum {
@@ -270,6 +261,7 @@ mod tests {
                     )]),
                 },
             )]),
+            ..Default::default()
         };
     }
 
@@ -319,15 +311,9 @@ mod tests {
         static ref BASIC_REGISTER_EXPECT: RegisterMap = RegisterMap {
             map_name: "DummyChip".to_string(),
             default_register_bitwidth: 8,
-            doc: None,
-            brief: None,
             registers: BTreeMap::from([(
                 "FIFOCTRL4".into(),
                 PhysicalRegister::Register(Register {
-                    adr: None,
-                    bitwidth: None,
-                    reset_val: None,
-                    always_write: None,
                     doc: Some("Testdoc".into()),
                     brief: Some("very brief brief".into()),
                     fields: BTreeMap::from([
@@ -335,26 +321,21 @@ mod tests {
                             "F7".into(),
                             Field {
                                 bits: vec![BitRange::Bit(7)],
-                                access: vec![],
-                                doc: None,
-                                brief: None,
-                                field_enum: None,
+                                ..Default::default()
                             },
                         ),
                         (
                             "F1".into(),
                             Field {
                                 bits: vec![BitRange::Bit(1)],
-                                access: vec![],
-                                doc: None,
-                                brief: None,
-                                field_enum: None,
+                                ..Default::default()
                             },
                         ),
                     ]),
+                    ..Default::default()
                 }),
             )]),
-            enums: BTreeMap::new(),
+            ..Default::default()
         };
     }
 

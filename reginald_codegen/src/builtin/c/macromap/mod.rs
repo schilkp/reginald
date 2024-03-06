@@ -70,14 +70,25 @@ fn generate_header(
     }
     writeln!(out, " *")?;
     writeln!(out, " * Generator: c.macromap")?;
+    if let Some(author) = &map.author {
+        writeln!(out, " *")?;
+        writeln!(out, " * Listing file author: {author}")?;
+    }
+    if let Some(note) = &map.note {
+        writeln!(out, " *")?;
+        writeln!(out, " * Listing file note:")?;
+        for line in note.lines() {
+            writeln!(out, " *   {line}")?;
+        }
+    }
     writeln!(out, " */")?;
     writeln!(out, "#ifndef REGINALD_{}", c_macro(&filename(output_file)?))?;
     writeln!(out, "#define REGINALD_{}", c_macro(&filename(output_file)?))?;
     writeln!(out)?;
     writeln!(out, "#include <stdint.h>")?;
-    // for include in &opts.add_include {
-    //     writeln!(out, "#include \"{include}\"")?;
-    // }
+    for include in &opts.add_include {
+        writeln!(out, "#include \"{include}\"")?;
+    }
 
     Ok(())
 }

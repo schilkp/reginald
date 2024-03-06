@@ -9,6 +9,7 @@ use crate::{
         bits::{bit_mask_range, lsb_pos, mask_to_bit_ranges, msb_pos},
         FieldEnum, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue,
     },
+    utils::filename,
 };
 
 use super::md_table;
@@ -17,7 +18,6 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
     writeln!(out, "# {}", map.map_name)?;
     writeln!(out)?;
     writeln!(out, "## Register Map")?;
-    writeln!(out)?;
     generate_overview(out, map)?;
 
     writeln!(out)?;
@@ -31,6 +31,24 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
 }
 
 fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
+    if let Some(input_file) = &map.from_file {
+        writeln!(out)?;
+        writeln!(out, "Generated from listing file: {}.", filename(input_file)?)?;
+    }
+    if let Some(author) = &map.author {
+        writeln!(out)?;
+        writeln!(out, "Listing file author: {author}.")?;
+    }
+    if let Some(note) = &map.note {
+        writeln!(out,)?;
+        writeln!(out, "Listing file note:")?;
+        writeln!(out, "```")?;
+        for line in note.lines() {
+            writeln!(out, "  {line}")?;
+        }
+        writeln!(out, "```")?;
+    }
+
     let mut rows = vec![];
     rows.push(vec![
         "**Address**".to_string(),
@@ -48,7 +66,9 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
         let brief = reg.template.docs.brief.clone().unwrap_or("-".to_string());
         rows.push(vec![adr, name, brief]);
     }
+    writeln!(out)?;
     md_table(out, &rows)?;
+
     Ok(())
 }
 

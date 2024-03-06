@@ -1,6 +1,16 @@
 ---
 map_name: DummyChip
 default_register_bitwidth: 8
+author: "Philipp Schilk"
+note: |
+  +------------------+
+  | copyright notice |
+  +------------------+
+          \   ^__^
+           \  (oo)\_______
+              (__)\       )\/\
+                  ||----w |
+                  ||     ||
 
 registers:
   STATUS: !Register

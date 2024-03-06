@@ -99,6 +99,8 @@ pub struct RegisterMap {
     pub docs: Docs,
     pub register_blocks: BTreeMap<String, RegisterBlock>,
     pub shared_enums: BTreeMap<String, Rc<Enum>>,
+    pub note: Option<String>,
+    pub author: Option<String>,
 }
 
 impl Docs {
@@ -357,6 +359,8 @@ pub fn assert_regmap_eq(left: RegisterMap, right: RegisterMap) {
     use pretty_assertions::assert_eq;
     assert_eq!(left.map_name, right.map_name);
     assert_eq!(left.docs, right.docs);
+    assert_eq!(left.author, right.author);
+    assert_eq!(left.note, right.note);
     for (left, right) in zip(&left.register_blocks, &right.register_blocks) {
         assert_eq!(left, right);
     }
