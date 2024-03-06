@@ -7,7 +7,7 @@ use crate::{
     regmap::{
         access_string,
         bits::{bit_mask_range, lsb_pos, mask_to_bit_ranges, msb_pos},
-        FieldEnum, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue,
+        FieldType, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue,
     },
     utils::filename,
 };
@@ -208,12 +208,8 @@ fn generate_register_infos(
         writeln!(out, "  - {}{}: {}", field.name, access, value_string)?;
         write!(out, "{}", field.docs.as_twoline("    - "))?;
 
-        if let Some(field_enum) = &field.field_enum {
+        if let Some(enum_entries) = field.enum_entries() {
             writeln!(out, "    - Accepts:")?;
-            let enum_entries = match field_enum {
-                FieldEnum::Local(field_enum) => field_enum.entries.values(),
-                FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
-            };
             for entry in enum_entries {
                 match value_field {
                     Some(val_field) if val_field == entry.value => {
@@ -236,14 +232,18 @@ fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
 
     match range.content {
         crate::regmap::RegisterBitrangeContent::Field { field, .. } => {
-            if let Some(field_enum) = &field.field_enum {
-                let field_value = (value & field.mask) >> lsb_pos(field.mask);
-                let mut enum_entries = match field_enum {
-                    FieldEnum::Local(field_enum) => field_enum.entries.values(),
-                    FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
-                };
+            let field_value = (value & field.mask) >> lsb_pos(field.mask);
+            if let Some(mut enum_entries) = field.enum_entries() {
                 if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
                     return format!("**{}**", entry.name);
+                } else {
+                    return format!("**UNKNOWN**");
+                }
+            } else if matches!(field.accepts, FieldType::Bool) {
+                if field_value == 0 {
+                    return format!("**false**");
+                } else {
+                    return format!("**true**");
                 }
             }
         }

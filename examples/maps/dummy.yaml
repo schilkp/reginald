@@ -26,18 +26,27 @@ registers:
       FIELD1:
         bits: [7,6]
         access: [R]
-        enum: !Shared
-          STAT
+        accepts: !SharedEnum STAT
       FIELD2:
         bits: ["3-0"]
         access: [R]
         brief: Another cool field.
         doc: Important details.
-        enum: !Local
+        accepts: !LocalEnum
           EN:
             val: 0x3
             brief: Is on.
             doc: important details.
+
+  PINEAPPLE: !Register
+    adr: 0x00
+    fields:
+      APPLE:
+        bits: [6]
+        accepts: !UInt
+      PEN:
+        bits: [7]
+        accepts: !Bool
 
   CHn: !Block
     instances: {"CH1": 0x10, "CH2": 0x20, "CH3": 0x30}
@@ -51,7 +60,7 @@ registers:
           A:
             bits: [0]
             brief: Controls value A
-            enum: !Local
+            accepts: !LocalEnum
               "ON":
                 val: 0x1
               "OFF":
@@ -63,7 +72,7 @@ registers:
           STATUS:
             bits: ["0-2"]
             brief: Status
-            enum: !Shared STAT
+            accepts: !SharedEnum STAT
 
 enums:
   STAT:

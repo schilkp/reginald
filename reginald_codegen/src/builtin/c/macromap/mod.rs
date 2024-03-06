@@ -6,7 +6,7 @@ use clap::Parser;
 use crate::{
     error::Error,
     regmap::bits::lsb_pos,
-    regmap::{FieldEnum, Register, RegisterBlock, RegisterMap},
+    regmap::{Register, RegisterBlock, RegisterMap},
     utils::{filename, str_table},
 };
 
@@ -231,11 +231,7 @@ fn generate_register_defines(
             format!("//!< {}.{}: bit shift", generic_template_name, field.name),
         ]);
 
-        if let Some(e) = &field.field_enum {
-            let enum_entries = match e {
-                FieldEnum::Local(field_enum) => field_enum.entries.values(),
-                FieldEnum::Shared(shared_enun) => shared_enun.entries.values(),
-            };
+        if let Some(enum_entries) = field.enum_entries() {
             for entry in enum_entries {
                 defines.push(vec![
                     format!("#define {}_{}_{}", template_macro_prefix, field_name, c_macro(&entry.name)),

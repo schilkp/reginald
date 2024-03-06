@@ -7,7 +7,7 @@ use crate::{
     error::Error,
     regmap::{
         bits::{lsb_pos, mask_width, unpositioned_mask},
-        Docs, Enum, Field, FieldEnum, Register, RegisterBlock, RegisterMap, TypeValue,
+        Docs, Enum, Field, FieldType, Register, RegisterBlock, RegisterMap, TypeValue,
     },
     utils::{filename, numbers_as_ranges, str_pad_to_length, str_table},
 };
@@ -181,9 +181,7 @@ fn generate_header(
     writeln!(out, "#define REGINALD_{}", c_macro(&filename(output_file)?))?;
     writeln!(out)?;
     writeln!(out, "#include <stdint.h>")?;
-    if opts.generate_validation_functions {
-        writeln!(out, "#include <stdbool.h>")?;
-    }
+    writeln!(out, "#include <stdbool.h>")?;
     for include in &opts.add_include {
         writeln!(out, "#include \"{include}\"")?;
     }
@@ -365,7 +363,7 @@ fn generate_register_enums(
     opts: &GeneratorOpts,
 ) -> Result<(), Error> {
     for field in template.fields.values() {
-        if let Some(FieldEnum::Local(local_enum)) = &field.field_enum {
+        if let FieldType::LocalEnum(local_enum) = &field.accepts {
             let enum_name = name_register_enum(block, template, local_enum, opts);
             generate_enum(out, map, local_enum, &enum_name, opts)?;
         }
@@ -428,17 +426,17 @@ fn generate_register_functions(
         generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_{regname}({packed_type} val) {{")?;
         for field in template.fields.values() {
-            if let Some(field_enum) = &field.field_enum {
-                let unpos_mask = unpositioned_mask(field.mask);
-                let shift = lsb_pos(field.mask);
-                let field_value = format!("(val >> {shift}) & 0x{unpos_mask:X}U");
-                let name = match field_enum {
-                    FieldEnum::Local(local_enum) => name_register_enum(block, template, local_enum, opts),
-                    FieldEnum::Shared(shared_enum) => c_code(&shared_enum.name),
-                };
-                let enum_validate_func = format!("{code_prefix}_can_unpack_enum_{name}");
-                writeln!(out, "  if (!{enum_validate_func}({field_value})) return false;")?;
-            }
+            let unpos_mask = unpositioned_mask(field.mask);
+            let shift = lsb_pos(field.mask);
+            let field_value = format!("(val >> {shift}) & 0x{unpos_mask:X}U");
+            let name = match &field.accepts {
+                FieldType::LocalEnum(local_enum) => name_register_enum(block, template, local_enum, opts),
+                FieldType::SharedEnum(shared_enum) => c_code(&shared_enum.name),
+                FieldType::UInt => continue,
+                FieldType::Bool => continue,
+            };
+            let enum_validate_func = format!("{code_prefix}_can_unpack_enum_{name}");
+            writeln!(out, "  if (!{enum_validate_func}({field_value})) return false;")?;
         }
         writeln!(out, "  return true;")?;
         writeln!(out, "}}")?;
@@ -512,10 +510,10 @@ fn generate_register_functions(
         let unpos_mask = unpositioned_mask(mask);
         let shift = lsb_pos(mask);
         let field_type = register_struct_member_type(map, block, template, field, opts)?;
-        if field.field_enum.is_some() {
-            writeln!(out, "  r->{field_name} = ({field_type})((val >> {shift}U) & 0x{unpos_mask:X}U);")?;
-        } else {
+        if matches!(field.accepts, FieldType::UInt) {
             writeln!(out, "  r->{field_name} = (val >> {shift}U) & 0x{unpos_mask:X}U;")?;
+        } else {
+            writeln!(out, "  r->{field_name} = ({field_type})((val >> {shift}U) & 0x{unpos_mask:X}U);")?;
         }
     }
     writeln!(out, "}}",)?;
@@ -726,16 +724,17 @@ fn register_struct_member_type(
     opts: &GeneratorOpts,
 ) -> Result<String, Error> {
     let code_prefix = c_code(&map.map_name);
-    match &field.field_enum {
-        Some(FieldEnum::Local(local_enum)) => {
+    match &field.accepts {
+        FieldType::LocalEnum(local_enum) => {
             let name = name_register_enum(block, template, local_enum, opts);
             Ok(format!("{code_prefix}_{name}"))
         }
-        Some(FieldEnum::Shared(shared_enum)) => {
+        FieldType::SharedEnum(shared_enum) => {
             let name = c_code(&shared_enum.name);
             Ok(format!("{code_prefix}_{name}"))
         }
-        None => c_fitting_unsigned_type(mask_width(field.mask)),
+        FieldType::UInt => c_fitting_unsigned_type(mask_width(field.mask)),
+        FieldType::Bool => Ok(format!("bool")),
     }
 }
 
@@ -747,7 +746,7 @@ fn template_has_content_to_generate(template: &Register, opts: &GeneratorOpts) -
 
     if opts.generate_enums {
         for field in template.fields.values() {
-            if matches!(field.field_enum, Some(FieldEnum::Local(_))) {
+            if matches!(field.accepts, FieldType::LocalEnum(_)) {
                 return true;
             }
         }

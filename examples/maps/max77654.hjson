@@ -12,64 +12,64 @@
             bits: [7],
             access: ["R"],
             brief: "LDO Dropout Detector Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           DOD1_R: {
             bits: [6],
             access: ["R"],
             brief: "LDO Dropout Detector Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           TJAL2_R: {
             bits: [5],
             access: ["R"],
             brief: "Thermal Alarm 2 Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           TJAL1_R: {
             bits: [4],
             access: ["R"],
             brief: "Thermal Alarm 1 Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           nEN_R: {
             bits: [3],
             access: ["R"],
             brief: "nEN Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           nEN_F: {
             bits: [2],
             access: ["R"],
             brief: "nEN Falling Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           GPI0_R: {
             bits: [1],
             access: ["R"],
             brief: "GPI0 Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           GPI0_F: {
             bits: [0],
             access: ["R"],
             brief: "GPI0 Falling Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           }
         }
@@ -90,16 +90,16 @@
             bits: [6],
             access: ["R"],
             brief: "LDO1 Fault Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           LDO0_F: {
             bits: [5],
             brief: "LDO0 Fault Interrupt",
             access: ["R"],
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           SBB_TO: {
@@ -111,32 +111,32 @@
             bits: [3],
             access: ["R"],
             brief: "GPI Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           GPI2_F: {
             bits: [2],
             access: ["R"],
             brief: "GPI Falling Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           GPI1_R: {
             bits: [1],
             access: ["R"],
             brief: "GPI Rising Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           GPI1_F: {
             bits: [0],
             access: ["R"],
             brief: "GPI Falling Interrupt",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           }
         }
@@ -259,56 +259,56 @@
             bits: [6],
             access: ["R", "W"],
             brief: "LDO1 Fault Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           LDO0_M: {
             bits: [5],
             access: ["R", "W"],
             brief: "LDO0 Fault Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           SBB_TO_M: {
             bits: [4],
             access: ["R", "W"],
             brief: "SBB Timeout Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           GPI2_RM: {
             bits: [3],
             access: ["R", "W"],
             brief: "GPI Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           GPI2_FM: {
             bits: [2],
             access: ["R", "W"],
             brief: "GPI Falling Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           GPI1_RM: {
             bits: [1],
             access: ["R", "W"],
             brief: "GPI Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           GPI1_FM: {
             bits: [0],
             access: ["R", "W"],
             brief: "GPI Falling Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           }
         }
@@ -325,64 +325,64 @@
             bits: [7],
             access: ["R", "W"],
             brief: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           DOD1_RM: {
             bits: [6],
             access: ["R", "W"],
             brief: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           TJAL2_RM: {
             bits: [5],
             access: ["R", "W"],
             brief: "Thermal Alarm 2 Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           TJAL1_RM: {
             bits: [4],
             access: ["R", "W"],
             brief: "Thermal Alarm 1 Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           nEN_RM: {
             bits: [3],
             access: ["R", "W"],
             brief: "nEN Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           nEN_FM: {
             bits: [2],
             access: ["R", "W"],
             brief: "nEN Falling Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           GPI0_RM: {
             bits: [1],
             access: ["R", "W"],
             brief: "GPI Rising Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           GPI0_FM: {
             bits: [0],
             access: ["R", "W"],
             brief: "GPI Falling Interrupt Mask/Disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           }
         }
@@ -399,8 +399,8 @@
             bits: [7],
             brief: "nEN Internal Pullup Resistor",
             access: ["R", "W"],
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 200K: {
                   val: 0,
                   brief: "200kOhm"
@@ -416,8 +416,8 @@
             bits: [6],
             brief: "Sets the Manual Reset Time (tMRST)",
             access: ["R", "W"],
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 8s: {
                   val: 0,
                   brief: "8 seconds"
@@ -438,16 +438,16 @@
             bits: [4],
             access: ["R", "W"],
             brief: "Main Bias Force Enable Software Request",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           nEN_MODE: {
             bits: [3],
             access: ["R", "W"],
             brief: "nEN Input (ON-KEY) Default Configuration",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 PUSHBTN: {
                   val: 0,
                   brief: "Push-button"
@@ -463,8 +463,8 @@
             bits: [2],
             access: ["R", "W"],
             brief: "Debounce Timer Enable for the nEN Pin",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 500us: {
                   val: 0,
                   brief: "500 microseconds"
@@ -489,8 +489,8 @@
               SFT_CRST and/or SFT_OFF functions in software, wait for more than 300ms before
               trying to issue any additional commands through I2C.
               ''',
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 NO_ACTION: {
                   val: 0,
                   brief: "No Action"
@@ -543,16 +543,16 @@
                 bits: [5],
                 access: ["R", "W"],
                 brief: "Alternate Mode Enable for GPIO0",
-                enum: {
-                  Shared: "EN"
+                accepts: {
+              SharedEnum: "EN"
                 }
               },
               DBEN_GPI: {
                 bits: [4],
                 access: ["R", "W"],
                 brief: "General Purpose Input Debounce Timer enable (30ms)",
-                enum: {
-                  Shared: "EN"
+                accepts: {
+              SharedEnum: "EN"
                 }
               },
               DOUT: {
@@ -564,8 +564,8 @@
                 bits: [2],
                 access: ["R", "W"],
                 brief: "General Purpose Output Driver Type",
-                enum: {
-                  Local: {
+                accepts: {
+                  LocalEnum: {
                     OD: {
                       val: 0,
                       brief: "Open-drain"
@@ -586,8 +586,8 @@
                 bits: [0],
                 access: ["R", "W"],
                 brief: "GPIO Direction",
-                enum: {
-                  Local: {
+                accepts: {
+                  LocalEnum: {
                     OUTPUT: {
                       val: 0,
                       brief: "Output"
@@ -636,8 +636,8 @@
           WDT_PER: {
             bits: [5, 4],
             brief: "Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 16s: {
                   val: 0,
                   brief: "16 seconds"
@@ -660,8 +660,8 @@
           WDT_MODE: {
             bits: [3],
             brief: "Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 PWR_OFF: {
                   val: 0,
                   brief: "Expiration causes power-off."
@@ -680,15 +680,15 @@
           WDT_EN: {
             bits: [1],
             brief: "Watchdog Timer Enable. Write protected.",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           },
           WDT_LOCK: {
             bits: [0],
             brief: "Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           }
         }
@@ -771,8 +771,8 @@
             bits: [2, 1, 0],
             brief: "Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.",
             access: ["R"],
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 THM_OFF: {
                   val: 0,
                   brief: "Thermistor is disabled (THM_EN = 0)."
@@ -815,8 +815,8 @@
           CHG_DTLS: {
             bits: ["4-7"],
             brief: "Charger Status details",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 OFF: {
                   val: 0,
                   brief: "Off"
@@ -875,8 +875,8 @@
           CHGIN_DTLS: {
             bits: [3, 2],
             brief: "CHGIN Status details",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 UVLO: {
                   val: 0,
                   brief: "The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO)."
@@ -921,50 +921,50 @@
           SYS_CNFG_I: {
             bits: [6],
             brief: "System Voltage Configuration Error Interrupt Mask/disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           SYS_CTRL_I: {
             bits: [5],
             brief: "Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           CHGIN_CTRL_I: {
             bits: [4],
             brief: "CHGIN Control-Loop Related Interrupt Mask/disabled.",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           TJ_REG_I: {
             bits: [3],
             brief: "Die Junction Temperature Regulation Interrupt Mask/disabled.",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           CHGIN_I: {
             bits: [2],
             brief: "CHGIN Related Interrupt Mask/disabled.",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           CHG_I: {
             bits: [1],
             brief: "Charger Related Interrupt Mask/disabled.",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           },
           THM_I: {
             bits: [0],
             brief: "Thermistor Related Interrupt Mask/disabled.",
-            enum: {
-              Shared: "INT_MASK"
+            accepts: {
+              SharedEnum: "INT_MASK"
             }
           }
         }
@@ -980,8 +980,8 @@
           THM_HOT: {
             bits: [7, 6],
             brief: "Sets the VHOT JEITA Temperature Threshold",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 0V411: {
                   val: 0,
                   brief: "VHOT = 0.411V (45degC for beta = 3380K)"
@@ -1004,8 +1004,8 @@
           THM_WARM: {
             bits: [5, 4],
             brief: "Sets the VWARM JEITA Temperature Threshold",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 0V511: {
                   val: 0,
                   brief: "VWARM = 0.511V (35degC for beta = 3380K)"
@@ -1028,8 +1028,8 @@
           THM_COOL: {
             bits: [3, 2],
             brief: "Sets the VCOOL JEITA Temperature Threshold",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 0V923: {
                   val: 0,
                   brief: "VCOOL = 0.923V (0degC for beta = 3380K)"
@@ -1052,8 +1052,8 @@
           THM_COLD: {
             bits: [1, 0],
             brief: "Sets the VCOLD JEITA Temperature Threshold",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 1V024: {
                   val: 0,
                   brief: "VCOLD = 1.024V (-10degC for beta = 3380K)"
@@ -1086,8 +1086,8 @@
           VCHGIN_MIN: {
             bits: [7, 6, 5],
             brief: "Minimum CHGIN Regulation Voltage (VCHGIN-MIN)",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 4V0: {
                   val: 0,
                   brief: "4.0V"
@@ -1126,8 +1126,8 @@
           ICHGIN_LIM: {
             bits: [4, 3, 2],
             brief: "CHGIN Input Current Limit (ICHGIN-LIM)",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 95mA: {
                   val: 0,
                   brief: "95mA"
@@ -1154,8 +1154,8 @@
           I_PQ: {
             bits: [1],
             brief: "Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 10PERC: {
                   val: 0,
                   brief: "10% of IFAST-CHG"
@@ -1170,8 +1170,8 @@
           CHG_EN: {
             bits: [0],
             brief: "Charger Enable",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           }
         }
@@ -1187,8 +1187,8 @@
           CHG_PQ: {
             bits: [7, 6, 5],
             brief: "Battery Prequalification Voltage Threshold (VPQ)",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 2V3: {
                   val: 0,
                   brief: "2.3V"
@@ -1227,8 +1227,8 @@
           I_TERM: {
             bits: [4, 3],
             brief: "Charger Termination Current (ITERM)",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 5PERC: {
                   val: 0,
                   brief: "5% of IFAST-CHG"
@@ -1251,8 +1251,8 @@
           T_TOPOFF: {
             bits: [2, 1, 0],
             brief: "Top-Off Timer val (t_TO)",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 0MIN: {
                   val: 0,
                   brief: "0 minutes"
@@ -1301,8 +1301,8 @@
           TJ_REG: {
             bits: [7, 6, 5],
             brief: "Sets the die junction temperature regulation point, TJ-REG.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 60degC: {
                   val: 0,
                   brief: "60degC"
@@ -1335,8 +1335,8 @@
               with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and
               VFAST-CHG-JEITA.
               '''
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 4V1: {
                   val: 0,
                   brief: "4.100V"
@@ -1474,8 +1474,8 @@
           T_FAST_CHG: {
             bits: [1, 0],
             brief: "Sets the fast-charge safety timer, t_FC.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 OFF: {
                   val: 0,
                   brief: "Timer disabled"
@@ -1519,8 +1519,8 @@
           THM_EN: {
             bits: [1],
             brief: "Thermistor Enable",
-            enum: {
-              Shared: "EN"
+            accepts: {
+              SharedEnum: "EN"
             }
           }
         }
@@ -1590,8 +1590,8 @@
           IMON_DISCHG_SCALE: {
             bits: ["4-7"],
             brief: "Selects the battery discharge current full-scale current val.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 8mA2: {
                   val: 0,
                   brief: "8.2mA"
@@ -1642,8 +1642,8 @@
           MUX_SEL: {
             bits: ["0-3"],
             brief: "Selects the analog channel to connect to AMUX.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 DISABLED: {
                   val: 0,
                   brief: "DISABLED"
@@ -1727,8 +1727,8 @@
               SBB_OP_MODE: {
                 bits: [6],
                 brief: "Operation Mode of SBBn",
-                enum: {
-                  Local: {
+                accepts: {
+              LocalEnum: {
                     BUCK_BOOST: {
                       val: 0,
                       brief: "Buck-boost mode."
@@ -1743,8 +1743,8 @@
               IP_SBB: {
                 bits: [5, 4],
                 brief: "SIMO Buck-Boost Channel Peak Current Limit",
-                enum: {
-                  Local: {
+                accepts: {
+              LocalEnum: {
                     1A: {
                       val: 0,
                       brief: "1.000A"
@@ -1767,16 +1767,16 @@
               ADE_SBB: {
                 bits: [3],
                 brief: "SIMO Buck-Boost Channel Active-Discharge Enable",
-                enum: {
-                  Shared: "EN"
+                accepts: {
+                  SharedEnum: "EN"
                 }
               },
               EN_SBB: {
                 bits: [2, 1, 0],
                 brief: "Enable control for SIMO buck-boost channel.",
                 doc: "Selects either an FPS slot the channel powers-up and powers-down in or whether the channel is forced on or off.",
-                enum: {
-                  Shared: "REG_EN"
+                accepts: {
+                  SharedEnum: "REG_EN"
                 }
               }
             }
@@ -1800,8 +1800,8 @@
             bits: [1, 0],
             access: ["R", "W"],
             brief: "SIMO Buck-Boost (all channels) Drive Strength Trim.",
-            enum: {
-              Local: {
+            accepts: {
+              LocalEnum: {
                 FASTEST: {
                   val: 0,
                   brief: "Fastest transition time"
@@ -1856,32 +1856,32 @@
               LDO_OP_MODE: {
                 bits: [4],
                 brief: "Operation Mode of LDO0",
-                enum: {
-                  Local: {
-                    LDO: {
-                      val: 0,
-                      brief: "LDO regulator"
-                    },
-                    SW: {
-                      val: 1,
-                      brief: "Switch"
-                    }
+                accepts: {
+                  LocalEnum: {
+                        LDO: {
+                          val: 0,
+                          brief: "LDO regulator"
+                        },
+                        SW: {
+                          val: 1,
+                          brief: "Switch"
+                        }
                   }
                 }
               },
               ADE_LDO: {
                 bits: [3],
                 brief: "LDO Channel Active-Discharge Enable",
-                enum: {
-                  Shared: "EN"
+                accepts: {
+                  SharedEnum: "EN"
                 }
               },
               EN_LDO: {
                 bits: [2, 1, 0],
                 brief: "Enable control for LDO",
                 doc: "Selects either an FPS slot the channel powers-up and powers-down in or whether the channel is forced on or off.",
-                enum: {
-                  Shared: "REG_EN"
+                accepts: {
+                  SharedEnum: "REG_EN"
                 }
               }
             }

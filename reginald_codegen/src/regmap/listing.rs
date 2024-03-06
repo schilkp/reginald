@@ -34,9 +34,17 @@ pub type EnumEntries = BTreeMap<String, EnumEntry>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub enum FieldEnum {
-    Local(EnumEntries),
-    Shared(String),
+pub enum FieldType {
+    UInt,
+    Bool,
+    LocalEnum(EnumEntries),
+    SharedEnum(String),
+}
+
+impl Default for FieldType {
+    fn default() -> Self {
+        FieldType::UInt
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
@@ -47,8 +55,8 @@ pub struct Field {
     pub access: Access,
     pub doc: Option<String>,
     pub brief: Option<String>,
-    #[serde(rename = "enum")]
-    pub field_enum: Option<FieldEnum>,
+    #[serde(default)]
+    pub accepts: FieldType,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -390,7 +398,7 @@ mod tests {
             access: vec![],
             doc: None,
             brief: None,
-            field_enum: Some(FieldEnum::Local(BTreeMap::from([
+            accepts: FieldType::LocalEnum(BTreeMap::from([
                 (
                     "A".into(),
                     EnumEntry {
@@ -407,7 +415,7 @@ mod tests {
                         brief: None,
                     },
                 ),
-            ]))),
+            ])),
         };
     }
 
@@ -415,7 +423,7 @@ mod tests {
     fn deser_yaml_field_enum() {
         let yaml = "
         bits: [1]
-        enum: !Local
+        accepts: !LocalEnum
             A:
                 val: 0x1
             B:
@@ -429,8 +437,8 @@ mod tests {
     fn deser_hjson_field_enum() {
         let hjson = "
         bits: [1]
-        enum: {
-            Local: {
+        accepts: {
+            LocalEnum: {
                 A: {
                     val: 1
                 },
@@ -450,7 +458,7 @@ mod tests {
             access: vec![],
             doc: None,
             brief: None,
-            field_enum: Some(FieldEnum::Shared("TestEnum".into())),
+            accepts: FieldType::SharedEnum("TestEnum".into()),
         };
     }
 
@@ -458,7 +466,7 @@ mod tests {
     fn deser_yaml_field_shared_enum() {
         let yaml = "
         bits: [1]
-        enum: !Shared 'TestEnum'
+        accepts: !SharedEnum 'TestEnum'
         ";
         let field_is: Field = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(field_is, *FIELD_SHARED_ENUM_EXPECT);
@@ -468,8 +476,8 @@ mod tests {
     fn deser_hjson_field_shared_enum() {
         let hjson = "
         bits: [1]
-        enum: {
-            Shared: 'TestEnum'
+        accepts: {
+            SharedEnum: 'TestEnum'
         }
         ";
         let field_is: Field = deser_hjson::from_str(hjson).unwrap();
