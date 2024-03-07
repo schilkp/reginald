@@ -235,10 +235,16 @@ fn generate_enum(
         generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{name}({uint_type} val) {{")?;
         for range in accept_ranges {
-            if range.start() == range.end() {
-                writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
-            } else {
-                writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", range.start(), range.end())?;
+            match (range.start(), range.end()) {
+                (&start, &end) if start == end => {
+                    writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
+                }
+                (0, &end) => {
+                    writeln!(out, "  if (val <= 0x{:X}U) return true;", end)?;
+                }
+                (&start, &end) => {
+                    writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", start, end)?;
+                }
             }
         }
         writeln!(out, "  return false;")?;
@@ -425,18 +431,24 @@ fn generate_register_functions(
         };
         generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_{regname}({packed_type} val) {{")?;
+        let mut have_used_arg = false;
         for field in template.fields.values() {
-            let unpos_mask = unpositioned_mask(field.mask);
-            let shift = lsb_pos(field.mask);
-            let field_value = format!("(val >> {shift}) & 0x{unpos_mask:X}U");
             let name = match &field.accepts {
                 FieldType::LocalEnum(local_enum) => name_register_enum(block, template, local_enum, opts),
                 FieldType::SharedEnum(shared_enum) => c_code(&shared_enum.name),
                 FieldType::UInt => continue,
                 FieldType::Bool => continue,
             };
+            let unpos_mask = unpositioned_mask(field.mask);
+            let shift = lsb_pos(field.mask);
+            let uint_type = c_fitting_unsigned_type(map.max_register_width())?;
+            let field_value = format!("({uint_type})(val >> {shift}U) & 0x{unpos_mask:X}U");
             let enum_validate_func = format!("{code_prefix}_can_unpack_enum_{name}");
             writeln!(out, "  if (!{enum_validate_func}({field_value})) return false;")?;
+            have_used_arg = true;
+        }
+        if !have_used_arg {
+            writeln!(out, "  (void) val;")?;
         }
         writeln!(out, "  return true;")?;
         writeln!(out, "}}")?;
@@ -455,7 +467,7 @@ fn generate_register_functions(
         "static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{"
     )?;
     if template.always_write.is_some() {
-        writeln!(out, "  val &= ~({packed_type}){macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK;")?;
+        writeln!(out, "  val &= ({packed_type})~({packed_type}){macro_prefix}_{macro_reg_template}_ALWAYSWRITE_MASK;")?;
         writeln!(out, "  val |= {macro_prefix}_{macro_reg_template}_ALWAYSWRITE_VALUE;")?;
     }
     for field in template.fields.values() {
@@ -463,8 +475,8 @@ fn generate_register_functions(
         let mask = field.mask;
         let unpos_mask = unpositioned_mask(mask);
         let shift = lsb_pos(mask);
-        writeln!(out, "  val &= ~({packed_type})0x{mask:X}U;")?;
-        writeln!(out, "  val |= ((({packed_type})r->{field_name}) & 0x{unpos_mask:X}U) << ({packed_type}){shift}U;")?;
+        writeln!(out, "  val &= ({packed_type})~({packed_type})0x{mask:X}U;")?;
+        writeln!(out, "  val |= ({packed_type})(((({packed_type})r->{field_name}) & 0x{unpos_mask:X}U) << ({packed_type}){shift}U);")?;
     }
     writeln!(out, "  return val;",)?;
     writeln!(out, "}}",)?;
@@ -489,12 +501,21 @@ fn generate_register_functions(
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {}_UNPACK(_VAL_) {{", c_macro(&struct_name)));
     for field in template.fields.values() {
-        let mask = unpositioned_mask(field.mask);
-        let shift = lsb_pos(field.mask);
         let field_name = c_code(&field.name);
-        macro_lines.push(format!("  .{field_name} = ((_VAL_) >> {shift}U) & 0x{mask:X}U,"));
+        let mask = field.mask;
+        let unpos_mask = unpositioned_mask(mask);
+        let shift = lsb_pos(mask);
+        let field_type = register_struct_member_type(map, block, template, field, opts)?;
+        let unsigned_type = c_fitting_unsigned_type(mask_width(mask))?;
+        if matches!(field.accepts, FieldType::UInt) {
+            macro_lines.push(format!("  .{field_name} = ({field_type})((_VAL_) >> {shift}U) & 0x{unpos_mask:X}U,"));
+        } else {
+            macro_lines.push(format!(
+                "  .{field_name} = ({field_type})(({unsigned_type})((_VAL_) >> {shift}U) & 0x{unpos_mask:X}U),"
+            ));
+        }
     }
-    macro_lines.push("}}".to_string());
+    macro_lines.push("}".to_string());
     generate_multiline_macro(out, macro_lines)?;
 
     writeln!(out)?;
@@ -510,10 +531,14 @@ fn generate_register_functions(
         let unpos_mask = unpositioned_mask(mask);
         let shift = lsb_pos(mask);
         let field_type = register_struct_member_type(map, block, template, field, opts)?;
+        let unsigned_type = c_fitting_unsigned_type(mask_width(mask))?;
         if matches!(field.accepts, FieldType::UInt) {
-            writeln!(out, "  r->{field_name} = (val >> {shift}U) & 0x{unpos_mask:X}U;")?;
+            writeln!(out, "  r->{field_name} = ({field_type})(val >> {shift}U) & 0x{unpos_mask:X}U;")?;
         } else {
-            writeln!(out, "  r->{field_name} = ({field_type})((val >> {shift}U) & 0x{unpos_mask:X}U);")?;
+            writeln!(
+                out,
+                "  r->{field_name} = ({field_type})(({unsigned_type})(val >> {shift}U) & 0x{unpos_mask:X}U);"
+            )?;
         }
     }
     writeln!(out, "}}",)?;
@@ -555,7 +580,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
     };
     generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!("#define {macro_prefix}_OVERWRITE(_struct_ptr, _val_) _Generic((_struct_ptr),"));
+    macro_lines.push(format!("#define {macro_prefix}_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
         for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
@@ -581,7 +606,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
     };
     generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!("#define {macro_prefix}_PACK(_struct_ptr) _Generic((_struct_ptr),"));
+    macro_lines.push(format!("#define {macro_prefix}_PACK(_struct_ptr_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
         for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
@@ -603,7 +628,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
     };
     generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!("#define {macro_prefix}_UNPACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
+    macro_lines.push(format!("#define {macro_prefix}_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
         for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
@@ -628,7 +653,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
     };
     generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!("#define {macro_prefix}_TRY_UNPACK_INTO(_val_, _struct_ptr) _Generic((_struct_ptr),"));
+    macro_lines.push(format!("#define {macro_prefix}_TRY_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
         for template in block.register_templates.values() {
             let struct_name = name_register_struct(map, block, template);
@@ -727,11 +752,11 @@ fn register_struct_member_type(
     match &field.accepts {
         FieldType::LocalEnum(local_enum) => {
             let name = name_register_enum(block, template, local_enum, opts);
-            Ok(format!("{code_prefix}_{name}"))
+            Ok(format!("enum {code_prefix}_{name}"))
         }
         FieldType::SharedEnum(shared_enum) => {
             let name = c_code(&shared_enum.name);
-            Ok(format!("{code_prefix}_{name}"))
+            Ok(format!("enum {code_prefix}_{name}"))
         }
         FieldType::UInt => c_fitting_unsigned_type(mask_width(field.mask)),
         FieldType::Bool => Ok(format!("bool")),
