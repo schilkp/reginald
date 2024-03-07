@@ -12,7 +12,13 @@ int main(void) {
       .field3 = true,
       .field4 = 0xA,
   };
+
+#ifdef GENERIC_REGINALD_FUNCS
   uint16_t packed_reg1 = CHIP_PACK(&reg1);
+#else
+  uint16_t packed_reg1 = chip_reg1_pack(&reg1);
+#endif
+
   uint16_t expected_reg1 = (0x1 << 4)    // Always write
                            | (0x3 << 6)  // Field 1 == "HOT"
                            | (0x3 << 0)  // Field 2 == "EN"
@@ -24,7 +30,11 @@ int main(void) {
   packed_reg1 |= 0x7 << 13; // futz with unused bits
   packed_reg1 |= 0x3 << 4;  // futz with always-write
 
+#ifdef GENERIC_REGINALD_FUNCS
   CHIP_UNPACK_INTO(packed_reg1, &reg1);
+#else
+  chip_reg1_unpack_into(packed_reg1, &reg1);
+#endif
   assert(reg1.field1 == CHIP_STAT_HOT);
   assert(reg1.field2 == CHIP_FIELD2_EN);
   assert(reg1.field3 == true);
@@ -51,14 +61,25 @@ int main(void) {
   struct chip_reg2 reg2 = {
       .field0 = true,
   };
+
+#ifdef GENERIC_REGINALD_FUNCS
   uint8_t packed_reg2 = CHIP_PACK(&reg2);
-  uint8_t expected_reg2 = (0x1 << 0); // Field 0
+#else
+  uint8_t packed_reg2 = chip_reg2_pack(&reg2);
+#endif
+
+  uint16_t expected_reg2 = (0x1 << 0); // Field 0
   assert(packed_reg2 == expected_reg2);
 
   // Basic unpacking:
   packed_reg2 |= 0xF << 1; // futz with unused bits
 
+#ifdef GENERIC_REGINALD_FUNCS
   CHIP_UNPACK_INTO(packed_reg2, &reg2);
+#else
+  chip_reg2_unpack_into(packed_reg2, &reg2);
+#endif
+
   assert(reg2.field0 == true);
 
   struct chip_reg2 reg2_copy = CHIP_REG2_UNPACK((uint64_t)packed_reg2);
@@ -70,14 +91,23 @@ int main(void) {
   struct chip_reg3 reg3 = {
       .field0 = 10,
   };
+#ifdef GENERIC_REGINALD_FUNCS
   uint8_t packed_reg3 = CHIP_PACK(&reg3);
+#else
+  uint8_t packed_reg3 = chip_reg3_pack(&reg3);
+#endif
+
   uint8_t expected_reg3 = (10 << 0); // Field 0
   assert(packed_reg3 == expected_reg3);
 
   // Basic unpacking:
   packed_reg3 |= 0xF << 4; // futz with unused bits
 
+#ifdef GENERIC_REGINALD_FUNCS
   CHIP_UNPACK_INTO(packed_reg3, &reg3);
+#else
+  chip_reg3_unpack_into(packed_reg3, &reg3);
+#endif
   assert(reg3.field0 == 10);
 
   struct chip_reg3 reg3_copy = CHIP_REG3_UNPACK((uint64_t)packed_reg3);
@@ -91,14 +121,24 @@ int main(void) {
   // Basic packing:
   struct chip_bigreg bigreg = {.field0 = 0xFFF, .field1 = 0x1F};
 
+#ifdef GENERIC_REGINALD_FUNCS
   uint64_t packed_bigreg = CHIP_PACK(&bigreg);
+#else
+  uint64_t packed_bigreg = chip_bigreg_pack(&bigreg);
+#endif
+
   uint64_t expected_bigreg = 0x1F00000000000FFF;
   assert(packed_bigreg == expected_bigreg);
 
   // Basic unpacking:
   packed_bigreg |= 0xF << 20; // futz with unused bits
 
+#ifdef GENERIC_REGINALD_FUNCS
   CHIP_UNPACK_INTO(packed_bigreg, &bigreg);
+#else
+  chip_bigreg_unpack_into(packed_bigreg, &bigreg);
+#endif
+
   assert(bigreg.field0 == 0xFFF);
   assert(bigreg.field1 == 0x1F);
 
