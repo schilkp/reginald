@@ -235,10 +235,16 @@ fn generate_enum(
         generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{name}({uint_type} val) {{")?;
         for range in accept_ranges {
-            if range.start() == range.end() {
-                writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
-            } else {
-                writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", range.start(), range.end())?;
+            match (range.start(), range.end()) {
+                (&start, &end) if start == end => {
+                    writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
+                }
+                (0, &end) => {
+                    writeln!(out, "  if (val <= 0x{:X}U) return true;", end)?;
+                }
+                (&start, &end) => {
+                    writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", start, end)?;
+                }
             }
         }
         writeln!(out, "  return false;")?;
