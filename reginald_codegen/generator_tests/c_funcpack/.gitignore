@@ -1,2 +1,3 @@
-Cargo.lock
+output/
+.cache/
 compile_commands.json
