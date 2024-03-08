@@ -237,13 +237,13 @@ fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
                 if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
                     return format!("**{}**", entry.name);
                 } else {
-                    return format!("**UNKNOWN**");
+                    return "**UNKNOWN**".to_string();
                 }
             } else if matches!(field.accepts, FieldType::Bool) {
                 if field_value == 0 {
-                    return format!("**false**");
+                    return "**false**".to_string();
                 } else {
-                    return format!("**true**");
+                    return "**true**".to_string();
                 }
             }
         }

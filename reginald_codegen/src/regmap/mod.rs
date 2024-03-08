@@ -1,7 +1,13 @@
-use std::{collections::BTreeMap, io, ops::RangeInclusive, path::PathBuf, rc::Rc};
+use std::{
+    collections::{BTreeMap, HashSet},
+    io,
+    ops::RangeInclusive,
+    path::PathBuf,
+    rc::Rc,
+};
 
 use self::{
-    bits::{bit_mask_range, mask_to_bit_ranges},
+    bits::{bit_mask_range, mask_to_bit_ranges, mask_to_bits, unpositioned_mask},
     convert::convert_map,
 };
 use crate::{error::Error, regmap::bits::lsb_pos, utils::numbers_as_ranges};
@@ -30,14 +36,14 @@ pub struct Docs {
     pub doc: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct EnumEntry {
     pub name: String,
     pub value: TypeValue,
     pub docs: Docs,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Enum {
     pub name: String,
     pub is_shared: bool,
@@ -45,18 +51,13 @@ pub struct Enum {
     pub entries: BTreeMap<String, EnumEntry>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum FieldType {
+    #[default]
     UInt,
     Bool,
     LocalEnum(Enum),
     SharedEnum(Rc<Enum>),
-}
-
-impl Default for FieldType {
-    fn default() -> Self {
-        FieldType::UInt
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -154,6 +155,25 @@ impl Docs {
     }
 }
 
+impl Enum {
+    /// Check if enum can represent every possible value that fits into 'mask'
+    pub fn can_always_unpack(&self, mask: TypeValue) -> bool {
+        // All enum values that fit into the mask:
+        let enum_vals: HashSet<u64> = HashSet::from_iter(
+            self.entries
+                .values()
+                .map(|x| x.value.clone())
+                .filter(|x| x & !mask == 0),
+        );
+
+        // Number of values the mask can represent:
+        let mask_bit_count = mask_to_bits(mask).len();
+        let mask_vals_count = 2_usize.pow(mask_bit_count.try_into().unwrap());
+
+        mask_vals_count == enum_vals.len()
+    }
+}
+
 impl Field {
     pub fn accepts_enum(&self) -> bool {
         match &self.accepts {
@@ -163,12 +183,22 @@ impl Field {
             FieldType::SharedEnum(_) => true,
         }
     }
-    pub fn enum_entries<'a>(&'a self) -> Option<impl Iterator<Item = &'a EnumEntry>> {
+
+    pub fn enum_entries(&self) -> Option<impl Iterator<Item = &EnumEntry>> {
         match &self.accepts {
             FieldType::UInt => None,
             FieldType::Bool => None,
             FieldType::LocalEnum(local_enum) => Some(local_enum.entries.values()),
             FieldType::SharedEnum(shared_enum) => Some(shared_enum.entries.values()),
+        }
+    }
+
+    pub fn can_always_unpack(&self) -> bool {
+        match &self.accepts {
+            FieldType::UInt => true,
+            FieldType::Bool => true,
+            FieldType::LocalEnum(local_enum) => local_enum.can_always_unpack(unpositioned_mask(self.mask)),
+            FieldType::SharedEnum(shared_enum) => shared_enum.can_always_unpack(unpositioned_mask(self.mask)),
         }
     }
 }
@@ -237,7 +267,7 @@ impl Register {
         result
     }
 
-    fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&Field> {
+    pub fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&Field> {
         for field in self.fields.values() {
             if (1 << bitpos) & field.mask != 0 {
                 return Some(field);
@@ -247,7 +277,7 @@ impl Register {
         self.fields.values().find(|&field| (1 << bitpos) & field.mask != 0)
     }
 
-    fn always_write_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<TypeValue> {
+    pub fn always_write_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<TypeValue> {
         if let Some(AlwaysWrite { mask, value }) = self.always_write {
             if (1 << bitpos) & mask != 0 {
                 return Some((value >> bitpos) & 1);
@@ -257,8 +287,17 @@ impl Register {
         None
     }
 
-    fn empty_at_bitpos(&self, bitpos: TypeBitwidth) -> bool {
+    pub fn empty_at_bitpos(&self, bitpos: TypeBitwidth) -> bool {
         self.always_write_at_bitpos(bitpos).is_none() && self.field_at_bitpos(bitpos).is_none()
+    }
+
+    pub fn can_always_unpack(&self) -> bool {
+        for field in self.fields.values() {
+            if !field.can_always_unpack() {
+                return false;
+            };
+        }
+        true
     }
 }
 
@@ -478,5 +517,32 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[test]
+    fn test_enum_can_always_unpack() {
+        let e = Enum {
+            entries: BTreeMap::from_iter(vec![0, 1, 2, 3, 4, 5, 6, 7].into_iter().map(|x| {
+                (
+                    format!("E{x}"),
+                    EnumEntry {
+                        value: x,
+                        ..Default::default()
+                    },
+                )
+            })),
+            ..Default::default()
+        };
+
+        for val in 0..8 {
+            println!("0b{val:b}");
+            assert_eq!(e.can_always_unpack(val), true);
+        }
+
+        for val in 0..8 {
+            println!("base val: 0b{val:b}");
+            assert_eq!(e.can_always_unpack(0b1000 | val), false);
+            assert_eq!(e.can_always_unpack(0b110101000 | val), false);
+        }
     }
 }

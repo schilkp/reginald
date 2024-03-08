@@ -165,6 +165,10 @@ fn generate_header(
     }
     writeln!(out, " *")?;
     writeln!(out, " * Generator: c.funcpack")?;
+    if !map.docs.is_empty() {
+        writeln!(out, " *")?;
+        write!(out, "{}", map.docs.as_multiline("///"));
+    }
     if let Some(author) = &map.author {
         writeln!(out, " *")?;
         writeln!(out, " * Listing file author: {author}")?;
@@ -759,7 +763,7 @@ fn register_struct_member_type(
             Ok(format!("enum {code_prefix}_{name}"))
         }
         FieldType::UInt => c_fitting_unsigned_type(mask_width(field.mask)),
-        FieldType::Bool => Ok(format!("bool")),
+        FieldType::Bool => Ok("bool".to_string()),
     }
 }
 

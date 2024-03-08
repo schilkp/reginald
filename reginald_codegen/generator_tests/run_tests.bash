@@ -10,6 +10,10 @@ echo_green() { printf "\033[0;92m" ; echo "$@" ; printf "\033[0m"; }
 # Set CWD to location of this script:
 cd "${0%/*}"
 
+echo_cyan "=== COMPILE ==="
+cargo build
+echo_green "DONE"
+
 # Run tests:
 echo_cyan "=== TESTING C FUNCPACK ==="
 bash ./c_funcpack/run_test.bash || echo_red "TEST FAIL"

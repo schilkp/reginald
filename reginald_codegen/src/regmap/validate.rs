@@ -79,16 +79,16 @@ pub fn validate_field_type(field: &Field, bt: &str) -> Result<(), Error> {
         FieldType::UInt => Ok(()),
         FieldType::Bool => {
             if mask_width(field.mask) != 1 {
-                return Err(Error::ConversionError {
+                Err(Error::ConversionError {
                     bt: bt.to_owned() + ".accepts",
                     msg: format!("Field {} accepts a boolean but is more than one bit wide!", field.name),
-                });
+                })
             } else {
                 Ok(())
             }
         }
-        FieldType::LocalEnum(field_enum) => validate_field_enum(&field, field_enum.entries.values(), &bt),
-        FieldType::SharedEnum(shared_enun) => validate_field_enum(&field, shared_enun.entries.values(), &bt),
+        FieldType::LocalEnum(field_enum) => validate_field_enum(field, field_enum.entries.values(), bt),
+        FieldType::SharedEnum(shared_enun) => validate_field_enum(field, shared_enun.entries.values(), bt),
     }
 }
 
@@ -154,7 +154,7 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
             });
         }
 
-        validate_field_type(&field, &bt)?;
+        validate_field_type(field, &bt)?;
     }
 
     if let Some(always_write) = &template.always_write {
