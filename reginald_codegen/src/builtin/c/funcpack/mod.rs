@@ -759,7 +759,7 @@ fn register_struct_member_type(
             Ok(format!("enum {code_prefix}_{name}"))
         }
         FieldType::UInt => c_fitting_unsigned_type(mask_width(field.mask)),
-        FieldType::Bool => Ok(format!("bool")),
+        FieldType::Bool => Ok("bool".to_string()),
     }
 }
 

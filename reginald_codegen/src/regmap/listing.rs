@@ -34,18 +34,16 @@ pub type EnumEntries = BTreeMap<String, EnumEntry>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+#[derive(Default)]
 pub enum FieldType {
+    #[default]
     UInt,
     Bool,
     LocalEnum(EnumEntries),
     SharedEnum(String),
 }
 
-impl Default for FieldType {
-    fn default() -> Self {
-        FieldType::UInt
-    }
-}
+
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]

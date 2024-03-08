@@ -45,18 +45,13 @@ pub struct Enum {
     pub entries: BTreeMap<String, EnumEntry>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum FieldType {
+    #[default]
     UInt,
     Bool,
     LocalEnum(Enum),
     SharedEnum(Rc<Enum>),
-}
-
-impl Default for FieldType {
-    fn default() -> Self {
-        FieldType::UInt
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -163,7 +158,7 @@ impl Field {
             FieldType::SharedEnum(_) => true,
         }
     }
-    pub fn enum_entries<'a>(&'a self) -> Option<impl Iterator<Item = &'a EnumEntry>> {
+    pub fn enum_entries(&self) -> Option<impl Iterator<Item = &EnumEntry>> {
         match &self.accepts {
             FieldType::UInt => None,
             FieldType::Bool => None,
