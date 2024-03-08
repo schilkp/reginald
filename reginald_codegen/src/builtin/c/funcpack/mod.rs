@@ -165,6 +165,10 @@ fn generate_header(
     }
     writeln!(out, " *")?;
     writeln!(out, " * Generator: c.funcpack")?;
+    if !map.docs.is_empty() {
+        writeln!(out, " *")?;
+        write!(out, "{}", map.docs.as_multiline("///"));
+    }
     if let Some(author) = &map.author {
         writeln!(out, " *")?;
         writeln!(out, " * Listing file author: {author}")?;
