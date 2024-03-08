@@ -60,7 +60,7 @@ pub fn fits_into_bitwidth(val: TypeValue, bitwidth: TypeBitwidth) -> bool {
     (!bit_mask_width(bitwidth)) & val == 0
 }
 
-pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> {
+pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
     let mut bits = vec![];
 
     for bitpos in 0..MAX_BITWIDTH {
@@ -69,7 +69,11 @@ pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> 
         }
     }
 
-    numbers_as_ranges(bits)
+    return bits;
+}
+
+pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> {
+    numbers_as_ranges(mask_to_bits(mask))
 }
 
 #[cfg(test)]
@@ -143,6 +147,14 @@ mod tests {
         assert_eq!(fits_into_bitwidth(0b111, 2), false);
         assert_eq!(fits_into_bitwidth(0b111, 3), true);
         assert_eq!(fits_into_bitwidth(0b111, 4), true);
+    }
+
+    #[test]
+    fn test_mask_to_bits() {
+        assert_eq!(mask_to_bits(0b0), vec![]);
+        assert_eq!(mask_to_bits(0b111), vec![0, 1, 2]);
+        assert_eq!(mask_to_bits(0b1110), vec![1, 2, 3]);
+        assert_eq!(mask_to_bits(0b1101110), vec![1, 2, 3, 5, 6]);
     }
 
     #[test]
