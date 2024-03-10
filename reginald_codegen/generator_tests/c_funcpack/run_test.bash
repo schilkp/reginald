@@ -22,7 +22,7 @@ echo
 echo "Generating..."
 rm -rf output
 mkdir -p output
-cargo run -- gen -i map.yaml -o output/generated.h c-funcpack --generate-generic-macros=false
+cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack --generate-generic-macros=false
 
 # Compile test executeable:
 echo "Compiling for host..."
@@ -49,7 +49,7 @@ echo
 echo "Generating..."
 rm -rf output
 mkdir -p output
-cargo run -- gen -i map.yaml -o output/generated.h c-funcpack
+cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack
 
 # Compile test executeable:
 echo "Compiling for host..."

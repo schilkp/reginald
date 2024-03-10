@@ -389,7 +389,7 @@ impl Generator<'_> {
             writeln!(out)?;
             writeln!(out, "    impl From<{uint_type}> for {struct_name} {{",)?;
             writeln!(out, "        fn from(value: {uint_type}) -> Self {{")?;
-            writeln!(out, "            {struct_name} {{")?;
+            writeln!(out, "            Self {{")?;
         } else {
             writeln!(out)?;
             writeln!(out, "    impl TryFrom<{uint_type}> for {struct_name} {{",)?;
@@ -399,12 +399,12 @@ impl Generator<'_> {
                 writeln!(out, "        type Error = ();")?;
             }
             writeln!(out, "        fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
-            writeln!(out, "            Ok({struct_name} {{")?;
+            writeln!(out, "            Ok(Self {{")?;
         }
 
         for field in template.fields.values() {
             let field_name = rs_snakecase(&field.name);
-            let field_value = format!("(value & 0x{:X}) >> {}", field.mask, msb_pos(field.mask));
+            let field_value = format!("(value & 0x{:X}) >> {}", field.mask, lsb_pos(field.mask));
             write!(out, "                ")?;
             write!(out, "{field_name}: ")?;
             if let Some(e) = field.get_enum() {
@@ -420,11 +420,15 @@ impl Generator<'_> {
                     writeln!(out, "(({field_value}) as {enum_type}).{conversion},")?;
                 }
             } else {
-                let field_type = self.register_struct_member_type(field)?;
-                if field_type == uint_type {
-                    writeln!(out, "{field_value},")?;
+                if matches!(field.accepts, FieldType::Bool) {
+                    writeln!(out, "{field_value} != 0,")?;
                 } else {
-                    writeln!(out, "({field_value}) as {uint_type},")?;
+                    let field_type = self.register_struct_member_type(field)?;
+                    if field_type == uint_type {
+                        writeln!(out, "{field_value},")?;
+                    } else {
+                        writeln!(out, "({field_value}) as {field_type},")?;
+                    }
                 }
             }
         }
@@ -439,13 +443,13 @@ impl Generator<'_> {
 
         writeln!(out)?;
         writeln!(out, "    impl From<{}> for {uint_type} {{", rs_pascalcase(&template_name))?;
-        writeln!(out, "        fn from(value: {}) -> {uint_type} {{", rs_pascalcase(&template_name))?;
+        writeln!(out, "        fn from(value: {}) -> Self {{", rs_pascalcase(&template_name))?;
         for field in template.fields.values() {
             let field_name = rs_snakecase(&field.name);
             let field_type = self.register_struct_member_type(field)?;
 
             write!(out, "            ")?;
-            write!(out, "let {field_name}: {uint_type} = ")?;
+            write!(out, "let {field_name}: Self = ")?;
             let value = if let Some(e) = field.get_enum() {
                 let enum_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
                 if enum_type == uint_type {

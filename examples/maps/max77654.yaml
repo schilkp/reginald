@@ -1077,7 +1077,6 @@ registers:
     adr: 0x28
     reset_val: 0xF0
     brief: Charger Config register I.
-    bitwidth: 32
     fields:
       IMON_DISCHG_SCALE:
         bits: [4-7]
