@@ -43,8 +43,6 @@ pub enum FieldType {
     SharedEnum(String),
 }
 
-
-
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Field {
@@ -88,7 +86,7 @@ pub struct RegisterBlock {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub enum PhysicalRegister {
+pub enum RegisterListing {
     Register(Register),
     Block(RegisterBlock),
 }
@@ -112,7 +110,7 @@ pub struct RegisterMap {
     pub note: Option<String>,
     pub author: Option<String>,
     #[serde(default = "BTreeMap::new")]
-    pub registers: BTreeMap<String, PhysicalRegister>,
+    pub registers: BTreeMap<String, RegisterListing>,
     #[serde(default = "BTreeMap::new")]
     pub enums: BTreeMap<String, SharedEnum>,
 }
@@ -319,7 +317,7 @@ mod tests {
             default_register_bitwidth: 8,
             registers: BTreeMap::from([(
                 "FIFOCTRL4".into(),
-                PhysicalRegister::Register(Register {
+                RegisterListing::Register(Register {
                     doc: Some("Testdoc".into()),
                     brief: Some("very brief brief".into()),
                     fields: BTreeMap::from([

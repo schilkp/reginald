@@ -1,8 +1,26 @@
+use std::collections::HashSet;
+
 use super::{
     bits::{fits_into_bitwidth, mask_width, unpositioned_mask},
-    Docs, EnumEntry, Field, FieldType, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
+    Docs, Enum, EnumEntry, Field, FieldType, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
 };
 use crate::error::Error;
+use lazy_static::lazy_static;
+use regex::Regex;
+
+lazy_static! {
+    static ref NAME_REGEX: Regex = Regex::new(r"^[_a-zA-Z]").unwrap();
+}
+
+pub fn validate_name(name: &str, bt: &str, bt_extra: &str) -> Result<(), Error> {
+    if !name.is_empty() && !NAME_REGEX.is_match(name) {
+        return Err(Error::ConversionError {
+            bt: bt.to_owned() + bt_extra,
+            msg: "Name may only begin with an ASCII letter or an underscore ([_a-zA-Z})".to_owned(),
+        });
+    }
+    Ok(())
+}
 
 pub fn validate_map_author(author: &Option<String>, bt: &str) -> Result<(), Error> {
     if let Some(author) = author {
@@ -72,6 +90,30 @@ pub fn validate_docs(docs: Docs, bt: &str) -> Result<Docs, Error> {
     };
 
     Ok(docs)
+}
+
+pub fn validate_enum(e: &Enum, bt: &str) -> Result<(), Error> {
+    if e.entries.is_empty() {
+        return Err(Error::ConversionError {
+            bt: bt.to_owned(),
+            msg: "Empty enum.".into(),
+        });
+    }
+
+    let mut enum_vals: HashSet<TypeValue> = HashSet::new();
+
+    // TODO This is only required for the rust output ATM. Should this be a
+    // general limitation, or specific to the rust output?
+    for entry in e.entries.values() {
+        if !enum_vals.insert(entry.value) {
+            return Err(Error::ConversionError {
+                bt: bt.to_owned(),
+                msg: format!("Enum contains multiple entries with value 0x{:X}", entry.value),
+            });
+        }
+    }
+
+    Ok(())
 }
 
 pub fn validate_field_type(field: &Field, bt: &str) -> Result<(), Error> {

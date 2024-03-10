@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
 
 use super::{
     listing::{self},
-    validate::{validate_bitpos, validate_map_author, validate_register_template},
+    validate::{validate_bitpos, validate_enum, validate_map_author, validate_name, validate_register_template},
     Access, AlwaysWrite, Docs, Enum, EnumEntry, Field, FieldType, Instance, Register, RegisterBlock, RegisterMap,
     TypeAdr, TypeBitwidth, TypeValue,
 };
@@ -13,6 +13,7 @@ use super::{
 pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Result<RegisterMap, Error> {
     let bt = &m.map_name;
 
+    validate_name(&m.map_name, bt, ".map_name")?;
     let map_name = m.map_name.clone();
     let note = m.note.clone().map(|x| x.trim_end().to_string());
     let author = m.author.clone();
@@ -140,15 +141,19 @@ fn convert_shared_enums(m: &listing::RegisterMap, bt: &str) -> Result<BTreeMap<S
 
     for (shared_enum_name, shared_enum) in &m.enums {
         let bt = bt.clone() + "." + shared_enum_name;
-        result.insert(
-            shared_enum_name.to_owned(),
-            Rc::new(Enum {
-                name: shared_enum_name.to_owned(),
-                is_shared: true,
-                docs: convert_docs(&shared_enum.brief, &shared_enum.doc, &bt)?,
-                entries: convert_enum_entries(&shared_enum.entries, &bt)?,
-            }),
-        );
+
+        validate_name(shared_enum_name, &bt, "")?;
+
+        let e = Rc::new(Enum {
+            name: shared_enum_name.to_owned(),
+            is_shared: true,
+            docs: convert_docs(&shared_enum.brief, &shared_enum.doc, &bt)?,
+            entries: convert_enum_entries(&shared_enum.entries, &bt)?,
+        });
+
+        validate_enum(&e, &bt)?;
+
+        result.insert(shared_enum_name.to_owned(), e);
     }
 
     Ok(result)
@@ -159,6 +164,9 @@ fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<BTre
 
     for (entry_name, entry) in entries {
         let bt = bt.to_owned() + "." + entry_name;
+
+        validate_name(entry_name, &bt, "")?;
+
         result.insert(
             entry_name.clone(),
             EnumEntry {
@@ -178,12 +186,18 @@ fn convert_field_type_local_enum(
     local_enum: &listing::EnumEntries,
     bt: &str,
 ) -> Result<FieldType, Error> {
-    Ok(FieldType::LocalEnum(Enum {
+    validate_name(field_name, bt, "")?;
+
+    let e = Enum {
         name: field_name.to_owned(),
         is_shared: false,
         docs: convert_docs(&field.brief, &field.doc, bt)?,
         entries: convert_enum_entries(local_enum, bt)?,
-    }))
+    };
+
+    validate_enum(&e, &bt)?;
+
+    Ok(FieldType::LocalEnum(e))
 }
 
 fn convert_field_type_shared_enum(
@@ -237,6 +251,8 @@ fn convert_field(
 ) -> Result<Field, Error> {
     let bt = bt.to_owned() + "." + field_name;
 
+    validate_name(field_name, &bt, "")?;
+
     Ok(Field {
         name: field_name.to_owned(),
         mask: convert_bits(&field.bits, &bt)?,
@@ -257,10 +273,10 @@ fn convert_registers(
 
     for (physreg_name, physreg) in &map.registers {
         let block = match physreg {
-            listing::PhysicalRegister::Register(reg) => {
+            listing::RegisterListing::Register(reg) => {
                 convert_register(physreg_name, reg, default_bitwidth, shared_enums, &bt)?
             }
-            listing::PhysicalRegister::Block(regblock) => {
+            listing::RegisterListing::Block(regblock) => {
                 convert_register_block(physreg_name, regblock, default_bitwidth, shared_enums, &bt)?
             }
         };
@@ -279,6 +295,8 @@ fn convert_register(
 ) -> Result<RegisterBlock, Error> {
     let bt = bt.to_owned() + "." + reg_name;
 
+    validate_name(reg_name, &bt, "")?;
+
     let docs = convert_docs(&reg.brief, &reg.doc, &bt)?;
 
     // Register template:
@@ -287,7 +305,7 @@ fn convert_register(
     let template = Register {
         name: String::new(), // Template unnamed.
         bitwidth: reg.bitwidth.unwrap_or(default_bitwidth),
-        is_block_template: false,
+        from_explicit_listing_block: false,
         adr: Some(0), // Offset
         reset_val: reg.reset_val,
         always_write: convert_always_write(&reg.always_write, &bt),
@@ -307,6 +325,7 @@ fn convert_register(
             },
         )]),
         docs,
+        from_explicit_listing_block: false,
         register_templates: BTreeMap::from([(String::new(), template)]),
     };
 
@@ -326,7 +345,7 @@ fn convert_register_block_templates(
         let template = Register {
             name: template_name.to_string(),
             bitwidth: template.bitwidth.unwrap_or(default_bitwidth),
-            is_block_template: true,
+            from_explicit_listing_block: true,
             adr: template.adr,
             reset_val: template.reset_val,
             always_write: convert_always_write(&template.always_write, &bt),
@@ -339,8 +358,15 @@ fn convert_register_block_templates(
     Ok(result)
 }
 
-fn convert_instances(instances: &BTreeMap<String, Option<TypeAdr>>) -> BTreeMap<String, Instance> {
-    instances
+fn convert_instances(
+    instances: &BTreeMap<String, Option<TypeAdr>>,
+    bt: &str,
+) -> Result<BTreeMap<String, Instance>, Error> {
+    for instance in instances.keys() {
+        validate_name(instance, bt, ".instances")?;
+    }
+
+    Ok(instances
         .iter()
         .map(|(name, adr)| {
             (
@@ -351,7 +377,7 @@ fn convert_instances(instances: &BTreeMap<String, Option<TypeAdr>>) -> BTreeMap<
                 },
             )
         })
-        .collect()
+        .collect())
 }
 
 fn convert_register_block(
@@ -362,10 +388,14 @@ fn convert_register_block(
     bt: &str,
 ) -> Result<RegisterBlock, Error> {
     let bt = bt.to_owned() + "." + block_name;
+
+    validate_name(block_name, &bt, "")?;
+
     Ok(RegisterBlock {
         name: block_name.to_string(),
-        instances: convert_instances(&block.instances),
+        instances: convert_instances(&block.instances, &bt)?,
         docs: convert_docs(&block.brief, &block.doc, &bt)?,
+        from_explicit_listing_block: true,
         register_templates: convert_register_block_templates(block, default_bitwidth, shared_enums, &bt)?,
     })
 }

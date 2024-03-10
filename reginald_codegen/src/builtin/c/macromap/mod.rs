@@ -10,7 +10,7 @@ use crate::{
     utils::{filename, str_table},
 };
 
-use super::{c_macro, generate_section_header_comment};
+use super::{c_generate_section_header_comment, c_macro};
 
 // ====== Generator Opts =======================================================
 
@@ -113,7 +113,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 
         for template in block.register_templates.values() {
             if let Some(template_offset) = template.adr {
-                let template_name = block.name.to_owned() + &template.name;
+                let template_name = template.name_in_block(block);
                 let macro_template_name = c_macro(&template_name);
                 defines.push(vec![
                     format!("#define {}_{}_OFFSET", macro_prefix, macro_template_name),
@@ -126,7 +126,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 
     if !defines.is_empty() {
         writeln!(out,)?;
-        generate_section_header_comment(out, &format!("{} Register Block", block.name))?;
+        c_generate_section_header_comment(out, &format!("{} Register Block", block.name))?;
         if !block.docs.is_empty() {
             write!(out, "{}", block.docs.as_multiline("// "))?;
         }
@@ -137,11 +137,11 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 }
 
 fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template: &Register) -> Result<(), Error> {
-    let generic_template_name = block.name.to_owned() + &template.name;
+    let generic_template_name = template.name_in_block(block);
 
     // Register section header:
     writeln!(out)?;
-    generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
+    c_generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
     if !template.docs.is_empty() {
         write!(out, "{}", template.docs.as_multiline("// "))?;
     }
@@ -174,13 +174,13 @@ fn generate_register_defines(
     let mut defines: Vec<Vec<String>> = vec![];
 
     let macro_prefix = c_macro(&map.map_name);
-    let template_macro_prefix = format!("{macro_prefix}_{}", c_macro(&(block.name.to_owned() + &template.name)));
-    let generic_template_name = block.name.to_owned() + &template.name;
+    let generic_template_name = template.name_in_block(block);
+    let template_macro_prefix = format!("{macro_prefix}_{}", c_macro(&generic_template_name));
 
     // Absolute address of all instances:
     if let Some(template_offset) = template.adr {
         for instance in block.instances.values() {
-            let instance_name = instance.name.to_owned() + &template.name;
+            let instance_name = template.name_in_instance(instance);
             if let Some(instance_adr) = &instance.adr {
                 defines.push(vec![
                     format!("#define {}_{}", macro_prefix, c_macro(&instance_name)),
