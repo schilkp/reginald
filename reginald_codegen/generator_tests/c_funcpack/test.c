@@ -52,6 +52,7 @@ int main(void) {
   assert(chip_can_unpack_enum_stat(0x2) == true);
   assert(chip_can_unpack_enum_stat(0x3) == true);
   assert(chip_can_unpack_enum_stat(0x4) == false);
+
   assert(chip_can_unpack_enum_field2(0x0) == false);
   assert(chip_can_unpack_enum_field2(0x3) == true);
 

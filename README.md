@@ -3,13 +3,21 @@
 Philipp Schilk
 2022-2024
 
-### General Notes:
+### TODOs:
 
-Convert 'enum' to 'accepts':
-    - 'uint' (default)
-    - 'bool' (must be 1 bit)
-    - 'local_enum'
-    - 'shared_enum'
+- Cleanup/Refactor genertors
+    - Move options/naming stuff into opts struct impl?
+
+- Implement some sort of caching/pre-cal layer for max-width, physical registers etc?
+    - Or just refactor generators to be struct with that stuff?
+
+- Implement std::fmt::write or std::io::write wrapper that handles indenting?
+    - Could be used in rs-nodeps
+
+- TEST NO-CONTINOUS FIELDS!
+    - With enum!
+
+- RS Nodeps: options for what to derive for both struct & enum.
 
 ### RUST API NOTES:
 

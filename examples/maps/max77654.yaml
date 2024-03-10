@@ -274,10 +274,10 @@ registers:
         brief: nEN Internal Pullup Resistor
         access: [R, W]
         accepts: !LocalEnum
-          200K:
+          PU_200K:
             val: 0
             brief: "200kOhm"
-          10M:
+          PU_10M:
             val: 1
             brief: "10MOhm"
       T_MRST:
@@ -285,10 +285,10 @@ registers:
         brief: Sets the Manual Reset Time (tMRST)
         access: [R, W]
         accepts: !LocalEnum
-          8s:
+          Hold8s:
             val: 0
             brief: 8 seconds
-          16s:
+          Hold16s:
             val: 1
             brief: 16 seconds
       SBIA_LPM:
@@ -305,7 +305,7 @@ registers:
         access: [R, W]
         brief: nEN Input (ON-KEY) Default Configuration
         accepts: !LocalEnum
-          PUSHBTN:
+          PUSH_BTN:
             val: 0
             brief: "Push-button"
           SLIDE:
@@ -316,10 +316,10 @@ registers:
         access: [R, W]
         brief: Debounce Timer Enable for the nEN Pin
         accepts: !LocalEnum
-          500us:
+          DBNC_500us:
             val: 0
             brief: 500 microseconds
-          30ms:
+          DBNC_30ms:
             val: 1
             brief: 30 milliseconds
       SFT_CTRL:
@@ -433,16 +433,16 @@ registers:
         bits: [5, 4]
         brief: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.
         accepts: !LocalEnum
-          16s:
+          WDT_16s:
             val: 0x0
             brief: 16 seconds
-          32s:
+          WDT_32s:
             val: 0x1
             brief: 32 seconds
-          64s:
+          WDT_64s:
             val: 0x2
             brief: 64 seconds
-          128s:
+          WDT_128s:
             val: 0x3
             brief: 128 seconds
       WDT_MODE:
@@ -664,64 +664,64 @@ registers:
         bits: [7, 6]
         brief: Sets the VHOT JEITA Temperature Threshold
         accepts: !LocalEnum
-          0V411:
+          THM_0V411:
             val: 0x0
             brief: VHOT = 0.411V (45degC for beta = 3380K)
-          0V367:
+          THM_0V367:
             val: 0x1
             brief: VHOT = 0.367V (50degC for beta = 3380K)
-          0V327:
+          THM_0V327:
             val: 0x2
             brief: VHOT = 0.327V (55degC for beta = 3380K)
-          0V291:
+          THM_0V291:
             val: 0x3
             brief: VHOT = 0.291V (60degC for beta = 3380K)
       THM_WARM:
         bits: [5, 4]
         brief: Sets the VWARM JEITA Temperature Threshold
         accepts: !LocalEnum
-          0V511:
+          THM_0V511:
             val: 0x0
             brief: VWARM = 0.511V (35degC for beta = 3380K)
-          0V459:
+          THM_0V459:
             val: 0x1
             brief: VWARM = 0.459V (40degC for beta = 3380K)
-          0V411:
+          THM_0V411:
             val: 0x2
             brief: VWARM = 0.411V (45degC for beta = 3380K)
-          0V367:
+          THM_0V367:
             val: 0x3
             brief: VWARM = 0.367V (50degC for beta = 3380K)
       THM_COOL:
         bits: [3, 2]
         brief: Sets the VCOOL JEITA Temperature Threshold
         accepts: !LocalEnum
-          0V923:
+          THM_0V923:
             val: 0x0
             brief: VCOOL = 0.923V (0degC for beta = 3380K)
-          0V867:
+          THM_0V867:
             val: 0x1
             brief: VCOOL = 0.867V (5degC for beta = 3380K)
-          0V807:
+          THM_0V807:
             val: 0x2
             brief: VCOOL = 0.807V (10degC for beta = 3380K)
-          0V747:
+          THM_0V747:
             val: 0x3
             brief: VCOOL = 0.747V (15degC for beta = 3380K)
       THM_COLD:
         bits: [1, 0]
         brief: Sets the VCOLD JEITA Temperature Threshold
         accepts: !LocalEnum
-          1V024:
+          THM_1V024:
             val: 0x0
             brief: VCOLD = 1.024V (-10degC for beta = 3380K)
-          0V976:
+          THM_0V976:
             val: 0x1
             brief: VCOLD = 0.976V (-5degC for beta = 3380K)
-          0V923:
+          THM_0V923:
             val: 0x2
             brief: VCOLD = 0.923V (0degC for beta = 3380K)
-          0V867:
+          THM_0V867:
             val: 0x3
             brief: VCOLD = 0.867V (5degC for beta = 3380K)
 
@@ -734,57 +734,57 @@ registers:
         bits: [7, 6, 5]
         brief: Minimum CHGIN Regulation Voltage (VCHGIN-MIN)
         accepts: !LocalEnum
-          4V0:
+          VCHGIN_4V0:
             val: 0x0
             brief: 4.0V
-          4V1:
+          VCHGIN_4V1:
             val: 0x1
             brief: 4.1V
-          4V2:
+          VCHGIN_4V2:
             val: 0x2
             brief: 4.2V
-          4V3:
+          VCHGIN_4V3:
             val: 0x3
             brief: 4.3V
-          4V4:
+          VCHGIN_4V4:
             val: 0x4
             brief: 4.4V
-          4V5:
+          VCHGIN_4V5:
             val: 0x5
             brief: 4.5V
-          4V6:
+          VCHGIN_4V6:
             val: 0x6
             brief: 4.6V
-          4V7:
+          VCHGIN_4V7:
             val: 0x7
             brief: 4.7V
       ICHGIN_LIM:
         bits: [4, 3, 2]
         brief: CHGIN Input Current Limit (ICHGIN-LIM)
         accepts: !LocalEnum
-          95mA:
+          ICHGIN_95mA:
             val: 0x0
             brief: 95mA
-          190mA:
+          ICHGIN_190mA:
             val: 0x1
             brief: 190mA
-          285mA:
+          ICHGIN_285mA:
             val: 0x2
             brief: 285mA
-          380mA:
+          ICHGIN_380mA:
             val: 0x3
             brief: 380mA
-          475mA:
+          ICHGIN_475mA:
             val: 0x4
             brief: 475mA
       I_PQ:
         bits: [1]
         brief: Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.
         accepts: !LocalEnum
-          10PERC:
+          PQ_10PERC:
             val: 0
             brief: 10% of IFAST-CHG
-          20PERC:
+          PQ_20PERC:
             val: 1
             brief: 20% of IFAST-CHG
       CHG_EN:
@@ -801,72 +801,72 @@ registers:
         bits: [7, 6, 5]
         brief: Battery Prequalification Voltage Threshold (VPQ)
         accepts: !LocalEnum
-          2V3:
+          PQ_2V3:
             val: 0x0
             brief: 2.3V
-          2V4:
+          PQ_2V4:
             val: 0x1
             brief: 2.4V
-          2V5:
+          PQ_2V5:
             val: 0x2
             brief: 2.5V
-          2V6:
+          PQ_2V6:
             val: 0x3
             brief: 2.6V
-          2V7:
+          PQ_2V7:
             val: 0x4
             brief: 2.7V
-          2V8:
+          PQ_2V8:
             val: 0x5
             brief: 2.8V
-          2V9:
+          PQ_2V9:
             val: 0x6
             brief: 2.9V
-          3V0:
+          PQ_3V0:
             val: 0x7
             brief: 3.0V
       I_TERM:
         bits: [4, 3]
         brief: Charger Termination Current (ITERM)
         accepts: !LocalEnum
-          5PERC:
+          ITERM_5PERC:
             val: 0x0
             brief: 5% of IFAST-CHG
-          7PERC5:
+          ITERM_7PERC5:
             val: 0x1
             brief: 7.5% of IFAST-CHG
-          10PERC:
+          ITERM_10PERC:
             val: 0x2
             brief: 10% of IFAST-CHG
-          15PERC:
+          ITERM_15PERC:
             val: 0x3
             brief: 15% of IFAST-CHG
       T_TOPOFF:
         bits: [2, 1, 0]
         brief: Top-Off Timer val (t_TO)
         accepts: !LocalEnum
-          0MIN:
+          T_0MIN:
             val: 0x0
             brief: 0 minutes
-          5MIN:
+          T_5MIN:
             val: 0x1
             brief: 5 minutes
-          10MIN:
+          T_10MIN:
             val: 0x2
             brief: 10 minutes
-          15MIN:
+          T_15MIN:
             val: 0x3
             brief: 15 minutes
-          20MIN:
+          T_20MIN:
             val: 0x4
             brief: 20 minutes
-          25MIN:
+          T_25MIN:
             val: 0x5
             brief: 25 minutes
-          30MIN:
+          T_30MIN:
             val: 0x6
             brief: 30 minutes
-          35MIN:
+          T_35MIN:
             val: 0x7
             brief: 35 minute
 
@@ -879,19 +879,19 @@ registers:
         bits: [7, 6, 5]
         brief: Sets the die junction temperature regulation point, TJ-REG.
         accepts: !LocalEnum
-          60degC:
+          TJ_60degC:
             val: 0x0
             brief: 60degC
-          70degC:
+          TJ_70degC:
             val: 0x1
             brief: 70degC
-          80degC:
+          TJ_80degC:
             val: 0x2
             brief: 80degC
-          90degC:
+          TJ_90degC:
             val: 0x3
             brief: 90degC
-          100degC:
+          TJ_100degC:
             val: 0x4
             brief: 100degC
       VSYS_REG:
@@ -902,91 +902,91 @@ registers:
           with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and
           VFAST-CHG-JEITA.
         accepts: !LocalEnum
-          4V1:
+          VSYS_4V1:
             val: 0x00
             brief: 4.100V
-          4V125:
+          VSYS_4V125:
             val: 0x01
             brief: 4.125V
-          4V15:
+          VSYS_4V15:
             val: 0x02
             brief: 4.150V
-          4V175:
+          VSYS_4V175:
             val: 0x03
             brief: 4.175V
-          4V2:
+          VSYS_4V2:
             val: 0x04
             brief: 4.200V
-          4V225:
+          VSYS_4V225:
             val: 0x05
             brief: 4.225V
-          4V25:
+          VSYS_4V25:
             val: 0x06
             brief: 4.250V
-          4V275:
+          VSYS_4V275:
             val: 0x07
             brief: 4.275V
-          4V3:
+          VSYS_4V3:
             val: 0x08
             brief: 4.300V
-          4V325:
+          VSYS_4V325:
             val: 0x09
             brief: 4.325V
-          4V35:
+          VSYS_4V35:
             val: 0x0A
             brief: 4.350V
-          4V375:
+          VSYS_4V375:
             val: 0x0B
             brief: 4.375V
-          4V4:
+          VSYS_4V4:
             val: 0x0C
             brief: 4.400V
-          4V425:
+          VSYS_4V425:
             val: 0x0D
             brief: 4.425V
-          4V45:
+          VSYS_4V45:
             val: 0x0E
             brief: 4.450V
-          4V475:
+          VSYS_4V475:
             val: 0x0F
             brief: 4.475V
-          4V5:
+          VSYS_4V5:
             val: 0x10
             brief: 4.500V
-          4V525:
+          VSYS_4V525:
             val: 0x11
             brief: 4.525V
-          4V55:
+          VSYS_4V55:
             val: 0x12
             brief: 4.550V
-          4V575:
+          VSYS_4V575:
             val: 0x13
             brief: 4.575V
-          4V6:
+          VSYS_4V6:
             val: 0x14
             brief: 4.600V
-          4V625:
+          VSYS_4V625:
             val: 0x15
             brief: 4.625V
-          4V65:
+          VSYS_4V65:
             val: 0x16
             brief: 4.650V
-          4V675:
+          VSYS_4V675:
             val: 0x17
             brief: 4.675V
-          4V7:
+          VSYS_4V7:
             val: 0x18
             brief: 4.700V
-          4V725:
+          VSYS_4V725:
             val: 0x19
             brief: 4.725V
-          4V75:
+          VSYS_4V75:
             val: 0x1A
             brief: 4.750V
-          4V775:
+          VSYS_4V775:
             val: 0x1B
             brief: 4.775V
-          4V8:
+          VSYS_4V8:
             val: 0x1C
             brief: 4.800V
 
@@ -1005,16 +1005,16 @@ registers:
         bits: [1, 0]
         brief: Sets the fast-charge safety timer, t_FC.
         accepts: !LocalEnum
-          "OFF":
+          T_OFF:
             val: 0x0
             brief: Timer disabled
-          3H:
+          T_3H:
             val: 0x1
             brief: 3 hours
-          5H:
+          T_5H:
             val: 0x2
             brief: 5 hours
-          7H:
+          T_7H:
             val: 0x3
             brief: 7 hours
 
@@ -1082,37 +1082,37 @@ registers:
         bits: [4-7]
         brief: Selects the battery discharge current full-scale current val.
         accepts: !LocalEnum
-          8mA2:
+          IMON_8mA2:
             val: 0x0
             brief: 8.2mA
-          40mA5:
+          IMON_40mA5:
             val: 0x1
             brief: 40.5mA
-          72mA3:
+          IMON_72mA3:
             val: 0x2
             brief: 72.3mA
-          103mA4:
+          IMON_103mA4:
             val: 0x3
             brief: 103.4mA
-          134mA1:
+          IMON_134mA1:
             val: 0x4
             brief: 134.1mA
-          164mA1:
+          IMON_164mA1:
             val: 0x5
             brief: 164.1mA
-          193mA7:
+          IMON_193mA7:
             val: 0x6
             brief: 193.7mA
-          222mA7:
+          IMON_222mA7:
             val: 0x7
             brief: 222.7mA
-          251mA2:
+          IMON_251mA2:
             val: 0x8
             brief: 251.2mA
-          279mA3:
+          IMON_279mA3:
             val: 0x9
             brief: 279.3mA
-          300mA:
+          IMON_300mA:
             val: 0xA
             brief: 300.0mA
       MUX_SEL:
@@ -1153,13 +1153,13 @@ registers:
             val: 0xA
             brief: SYS voltage monitor
 
-  CNFG_SBBn: !Block
+  CNFG_SBB: !Block
     instances: {CNFG_SBB0: 0x29, CNFG_SBB1: 0x2B, CNFG_SBB3: 0x2D}
     registers:
-      _A:
+      A:
         adr: 0x0
         reset_val: 0x00
-        brief: SBBn Config A.
+        brief: SBB Config A.
         fields:
           TV_SBB:
             bits: [0-6]
@@ -1168,17 +1168,17 @@ registers:
               This 7-bit configuration is a linear transfer
               function that starts at 0.8V, ends at 5.5V, with
               50mV increments.
-      _B:
+      B:
         adr: 0x1
         reset_val: 0x00
-        brief: SBBn Config B.
+        brief: SBB Config B.
         always_write:
           mask: 0x80
           val: 0x0
         fields:
           SBB_OP_MODE:
             bits: [6]
-            brief: Operation Mode of SBBn
+            brief: Operation Mode of SBB
             accepts: !LocalEnum
               BUCK_BOOST:
                 val: 0
@@ -1190,16 +1190,16 @@ registers:
             bits: [5, 4]
             brief: SIMO Buck-Boost Channel Peak Current Limit
             accepts: !LocalEnum
-              1A:
+              IP_1A:
                 val: 0x0
                 brief: 1.000A
-              0A75:
+              IP_0A75:
                 val: 0x1
                 brief: 0.750A
-              0A5:
+              IP_0A5:
                 val: 0x2
                 brief: 0.500A
-              0A3:
+              IP_0A3:
                 val: 0x3
                 brief: 0.333A
           ADE_SBB:
@@ -1241,13 +1241,13 @@ registers:
             val: 0x3
             brief: A little slower than SLOWEST
 
-  CNFG_LDOn: !Block
+  CNFG_LDO: !Block
     instances: {CNFG_LDO0: 0x38, CNFG_LDO1: 0x3A}
     registers:
-      _A:
+      A:
         adr: 0x00
         reset_val: 0x00
-        brief: LDOn Config A.
+        brief: LDO Config A.
         always_write:
           mask: 0x80
           val: 0x00
@@ -1259,10 +1259,10 @@ registers:
               This 7-bit configuration is a linear transfer
               function that starts at 0.8V and ends at
               3.975V, with 25mV increments.
-      _B:
+      B:
         adr: 0x01
         reset_val: 0x00
-        brief: LDOn Config B.
+        brief: LDO Config B.
         fields:
           LDO_OP_MODE:
             bits: [4]
@@ -1322,12 +1322,6 @@ enums:
       UNMASKED:
         val: 0
         brief: "Enabled/Unmasked"
-      ENABLED:
-        val: 0
-        brief: "Enabled/Unmasked"
       MASKED:
-        val: 1
-        brief: "Disabled/Masked"
-      DISABLED:
         val: 1
         brief: "Disabled/Masked"

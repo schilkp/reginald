@@ -12,7 +12,7 @@ use crate::{
     utils::{filename, numbers_as_ranges, str_pad_to_length, str_table},
 };
 
-use super::{c_code, c_fitting_unsigned_type, c_macro, generate_section_header_comment};
+use super::{c_code, c_fitting_unsigned_type, c_generate_doxy_comment, c_generate_section_header_comment, c_macro};
 
 // ====== Generator Opts =======================================================
 
@@ -167,7 +167,7 @@ fn generate_header(
     writeln!(out, " * Generator: c.funcpack")?;
     if !map.docs.is_empty() {
         writeln!(out, " *")?;
-        write!(out, "{}", map.docs.as_multiline("///"));
+        write!(out, "{}", map.docs.as_multiline(" * "))?;
     }
     if let Some(author) = &map.author {
         writeln!(out, " *")?;
@@ -195,7 +195,7 @@ fn generate_header(
 
 fn generate_shared_enums(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) -> Result<(), Error> {
     writeln!(out)?;
-    generate_section_header_comment(out, "Shared Enums")?;
+    c_generate_section_header_comment(out, "Shared Enums")?;
 
     for shared_enum in map.shared_enums.values() {
         generate_enum(out, map, shared_enum, &c_code(&shared_enum.name), opts)?;
@@ -215,10 +215,10 @@ fn generate_enum(
     let macro_prefix = c_macro(&map.map_name);
 
     writeln!(out)?;
-    generate_doxy_comment(out, &e.docs, "", None)?;
+    c_generate_doxy_comment(out, &e.docs, "", None)?;
     writeln!(out, "enum {}_{} {{", code_prefix, name)?;
     for entry in e.entries.values() {
-        generate_doxy_comment(out, &entry.docs, "  ", None)?;
+        c_generate_doxy_comment(out, &entry.docs, "  ", None)?;
         writeln!(out, "  {}_{}_{} = 0x{:X}U,", macro_prefix, c_macro(name), c_macro(&entry.name), entry.value)?;
     }
     writeln!(out, "}};")?;
@@ -236,7 +236,7 @@ fn generate_enum(
             )),
             doc: None,
         };
-        generate_doxy_comment(out, &docs, "", None)?;
+        c_generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_enum_{name}({uint_type} val) {{")?;
         for range in accept_ranges {
             match (range.start(), range.end()) {
@@ -278,7 +278,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 
         for template in block.register_templates.values() {
             if let Some(template_offset) = template.adr {
-                let template_name = block.name.to_owned() + &template.name;
+                let template_name = template.name_in_block(block);
                 let macro_template_name = c_macro(&template_name);
                 defines.push(vec![
                     format!("#define {}_{}_OFFSET", macro_prefix, macro_template_name),
@@ -291,7 +291,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 
     if !defines.is_empty() {
         writeln!(out,)?;
-        generate_section_header_comment(out, &format!("{} Register Block", block.name))?;
+        c_generate_section_header_comment(out, &format!("{} Register Block", block.name))?;
         if !block.docs.is_empty() {
             write!(out, "{}", block.docs.as_multiline("// "))?;
         }
@@ -302,11 +302,11 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 }
 
 fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template: &Register) -> Result<(), Error> {
-    let generic_template_name = block.name.to_owned() + &template.name;
+    let generic_template_name = template.name_in_block(block);
 
     // Register section header:
     writeln!(out)?;
-    generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
+    c_generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
     if !template.docs.is_empty() {
         write!(out, "{}", template.docs.as_multiline("// "))?;
     }
@@ -322,13 +322,13 @@ fn generate_register_defines(
 ) -> Result<(), Error> {
     let mut defines: Vec<Vec<String>> = vec![];
 
-    let macro_reg_template = c_macro(&(block.name.to_owned() + &template.name));
+    let generic_template_name = template.name_in_block(block);
+    let macro_reg_template = c_macro(&generic_template_name);
     let macro_prefix = c_macro(&map.map_name);
-    let generic_template_name = block.name.to_owned() + &template.name;
 
     if let Some(template_offset) = template.adr {
         for instance in block.instances.values() {
-            let instance_name = instance.name.to_owned() + &template.name;
+            let instance_name = template.name_in_instance(instance);
             if let Some(instance_adr) = &instance.adr {
                 defines.push(vec![
                     format!("#define {}_{}", macro_prefix, c_macro(&instance_name)),
@@ -392,7 +392,7 @@ fn generate_register_struct(
     let struct_name = name_register_struct(map, block, template);
 
     writeln!(out)?;
-    generate_doxy_comment(
+    c_generate_doxy_comment(
         out,
         &template.docs,
         "",
@@ -402,7 +402,7 @@ fn generate_register_struct(
     for field in template.fields.values() {
         let field_type = register_struct_member_type(map, block, template, field, opts)?;
         let field_name = c_code(&field.name);
-        generate_doxy_comment(out, &field.docs, "  ", None)?;
+        c_generate_doxy_comment(out, &field.docs, "  ", None)?;
         if opts.registers_as_bitfields {
             writeln!(out, "  {field_type} {field_name} : {};", mask_width(field.mask))?;
         } else {
@@ -420,10 +420,10 @@ fn generate_register_functions(
     template: &Register,
     opts: &GeneratorOpts,
 ) -> Result<(), Error> {
-    let regname = c_code(&(block.name.to_owned() + &template.name));
+    let regname = c_code(&template.name_in_block(block));
     let struct_name = name_register_struct(map, block, template);
     let packed_type = c_fitting_unsigned_type(template.bitwidth)?;
-    let macro_reg_template = c_macro(&(block.name.to_owned() + &template.name));
+    let macro_reg_template = c_macro(&template.name_in_block(block));
     let macro_prefix = c_macro(&map.map_name);
     let code_prefix = c_code(&map.map_name);
 
@@ -433,7 +433,7 @@ fn generate_register_functions(
             brief: Some(format!("Validate that a given value can be unpacked to as a @ref struct {struct_name}.")),
             doc: Some("Verifies that all enum fields can represent the given value.".to_string()),
         };
-        generate_doxy_comment(out, &docs, "", None)?;
+        c_generate_doxy_comment(out, &docs, "", None)?;
         writeln!(out, "static inline bool {code_prefix}_can_unpack_{regname}({packed_type} val) {{")?;
         let mut have_used_arg = false;
         for field in template.fields.values() {
@@ -465,7 +465,7 @@ fn generate_register_functions(
             "All bits that are not part of a field or specified as 'always write' are kept as in 'val'.".to_string(),
         ),
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     writeln!(
         out,
         "static inline {packed_type} {struct_name}_overwrite(const struct {struct_name} *r, {packed_type} val) {{"
@@ -490,7 +490,7 @@ fn generate_register_functions(
         brief: Some("Convert register struct to packed register value.".to_string()),
         doc: None,
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     writeln!(out, "static inline {packed_type} {struct_name}_pack(const struct {struct_name} *r) {{")?;
     writeln!(out, "  return {struct_name}_overwrite(r, 0);")?;
     writeln!(out, "}}",)?;
@@ -500,7 +500,7 @@ fn generate_register_functions(
         brief: Some("Convert packed register value to register struct initialization".to_string()),
         doc: None,
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
 
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {}_UNPACK(_VAL_) {{", c_macro(&struct_name)));
@@ -527,7 +527,7 @@ fn generate_register_functions(
         brief: Some("Convert packed register value into a register struct.".to_string()),
         doc: None,
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     writeln!(out, "static inline void {struct_name}_unpack_into({packed_type} val,  struct {struct_name} *r) {{")?;
     for field in template.fields.values() {
         let field_name = c_code(&field.name);
@@ -556,7 +556,7 @@ fn generate_register_functions(
                     + "@returns 0 if the register was succesfully unpacked, 1 otherwise.",
             ),
         };
-        generate_doxy_comment(out, &docs, "", None)?;
+        c_generate_doxy_comment(out, &docs, "", None)?;
         writeln!(
             out,
             "static inline int {struct_name}_try_unpack_into({packed_type} val,  struct {struct_name} *r) {{"
@@ -582,7 +582,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
             "All bits that are not part of a field or specified as 'always write' are kept as in 'val'.".to_string(),
         ),
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_OVERWRITE(_struct_ptr_, _val_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
@@ -608,7 +608,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
         brief: Some("Convert register struct to packed register value.".to_string()),
         doc: None,
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_PACK(_struct_ptr_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
@@ -630,7 +630,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
         brief: Some("Convert packed register value to register struct.".to_string()),
         doc: None,
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
@@ -655,7 +655,7 @@ fn generate_generic_macros(out: &mut dyn Write, map: &RegisterMap) -> Result<(),
                 + "@returns 0 if the register was succesfully unpacked, 1 otherwise.",
         ),
     };
-    generate_doxy_comment(out, &docs, "", None)?;
+    c_generate_doxy_comment(out, &docs, "", None)?;
     let mut macro_lines: Vec<String> = vec![];
     macro_lines.push(format!("#define {macro_prefix}_TRY_UNPACK_INTO(_val_, _struct_ptr_) _Generic((_struct_ptr_),"));
     for block in map.register_blocks.values() {
@@ -686,34 +686,6 @@ fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts
     Ok(())
 }
 
-fn generate_doxy_comment(out: &mut dyn Write, docs: &Docs, prefix: &str, note: Option<&str>) -> Result<(), Error> {
-    match (&docs.brief, note, &docs.doc) {
-        (None, None, None) => (),
-        (Some(brief), None, None) => {
-            writeln!(out, "{prefix}/** @brief {brief} */")?;
-        }
-        (None, Some(note), None) => {
-            writeln!(out, "{prefix}/** @note {note} */")?;
-        }
-        (brief, note, doc) => {
-            writeln!(out, "{prefix}/**")?;
-            if let Some(brief) = brief {
-                writeln!(out, "{prefix} * @brief {brief}")?;
-            }
-            if let Some(note) = note {
-                writeln!(out, "{prefix} * @note {note}")?;
-            }
-            if let Some(doc) = doc {
-                for line in doc.lines() {
-                    writeln!(out, "{prefix} * {line}")?;
-                }
-            }
-            writeln!(out, "{prefix} */")?;
-        }
-    }
-    Ok(())
-}
-
 fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Result<(), Error> {
     if lines.is_empty() {
         Ok(())
@@ -730,7 +702,7 @@ fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Resu
 // ====== Generator Utils ======================================================
 
 fn name_register_enum(block: &RegisterBlock, template: &Register, field_enum: &Enum, opts: &GeneratorOpts) -> String {
-    let regname = c_code(&(block.name.to_owned() + &template.name));
+    let regname = c_code(&template.name_in_block(block));
     let enumname = c_code(&field_enum.name);
     if opts.field_enum_prefix {
         format!("{regname}_{enumname}")
@@ -741,7 +713,7 @@ fn name_register_enum(block: &RegisterBlock, template: &Register, field_enum: &E
 
 fn name_register_struct(map: &RegisterMap, block: &RegisterBlock, template: &Register) -> String {
     let mapname = c_code(&map.map_name);
-    let regname = c_code(&(block.name.to_owned() + &template.name));
+    let regname = c_code(&template.name_in_block(block));
     format!("{mapname}_{regname}")
 }
 

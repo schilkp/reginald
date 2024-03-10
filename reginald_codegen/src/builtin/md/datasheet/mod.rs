@@ -6,7 +6,7 @@ use crate::{
     error::Error,
     regmap::{
         access_string,
-        bits::{bit_mask_range, lsb_pos, mask_to_bit_ranges, msb_pos},
+        bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, msb_pos},
         FieldType, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue,
     },
     utils::filename,
@@ -132,7 +132,7 @@ fn generate_register_infos(
         }
 
         if let Some(value) = value {
-            let value_range = (value & bit_mask_range(&range.bits)) >> range.bits.start();
+            let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.start();
             row_state.push(format!("**0b{:b}**", value_range));
             row_decode.push(decode_bit_range(&value, range));
         }
@@ -163,7 +163,7 @@ fn generate_register_infos(
         let ranges = mask_to_bit_ranges(always_write.mask);
         writeln!(out, "  - Always write:")?;
         for range in ranges {
-            let val = (always_write.value & bit_mask_range(&range)) >> range.end();
+            let val = (always_write.value & bitmask_from_range(&range)) >> range.end();
             let bits = if range.end() == range.start() {
                 format!("bit {}", range.end())
             } else {
@@ -228,7 +228,7 @@ fn generate_register_infos(
 }
 
 fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
-    let value_range = (value & bit_mask_range(&range.bits)) >> range.bits.end();
+    let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.end();
 
     match range.content {
         crate::regmap::RegisterBitrangeContent::Field { field, .. } => {

@@ -73,11 +73,11 @@
             brief: "SPI serial interface mode selection.",
             accepts: {
               LocalEnum: {
-                4WIRE: {
+                FOUR_WIRE: {
                   val: 0,
                   brief: "4-wire interface."
                 },
-                3WIRE: {
+                THREE_WIRE: {
                   val: 1,
                   brief: "3-wire interface."
                 }
@@ -414,51 +414,51 @@
                   val: 0,
                   brief: "Power-down"
                 },
-                1HZ875: {
+                ODR_1HZ875: {
                   val: 1,
                   brief: "1.875 Hz (Available in low-power mode)"
                 },
-                7HZ5: {
+                ODR_7HZ5: {
                   val: 2,
                   brief: "7.5 Hz (Available in high-performance mode)"
                 },
-                15HZ: {
+                ODR_15HZ: {
                   val: 3,
                   brief: "15 Hz (Available in low-power, high-performance mode)"
                 },
-                30HZ: {
+                ODR_30HZ: {
                   val: 4,
                   brief: "30 Hz (Available in low-power, high-performance mode)"
                 },
-                60HZ: {
+                ODR_60HZ: {
                   val: 5,
                   brief: "60 Hz (Available in low-power, high-performance mode)"
                 },
-                120HZ: {
+                ODR_120HZ: {
                   val: 6,
                   brief: "120 Hz (Available in low-power, high-performance mode)"
                 },
-                240HZ: {
+                ODR_240HZ: {
                   val: 7,
                   brief: "240 Hz (Available in low-power, high-performance mode)"
                 },
-                480HZ: {
+                ODR_480HZ: {
                   val: 8,
                   brief: "480 Hz (Available in high-performance mode)"
                 },
-                960HZ: {
+                ODR_960HZ: {
                   val: 9,
                   brief: "960 Hz (Available in high-performance mode)"
                 },
-                1920HZ: {
+                ODR_1920HZ: {
                   val: 10,
                   brief: "1.92 kHz (Available in high-performance mode)"
                 },
-                3840HZ: {
+                ODR_3840HZ: {
                   val: 11,
                   brief: "3.84 kHz (Available in high-performance mode)"
                 },
-                7680HZ: {
+                ODR_7680HZ: {
                   val: 12,
                   brief: "7.68 kHz (Available in high-performance mode)"
                 }
@@ -515,47 +515,47 @@
                   val: 0,
                   brief: "Power-down"
                 },
-                7HZ5: {
+                ODR_7HZ5: {
                   val: 2,
                   brief: "7.5 Hz (Available in high-performance mode)"
                 },
-                15HZ: {
+                ODR_15HZ: {
                   val: 3,
                   brief: "15 Hz (Available in low-power, high-performance mode)"
                 },
-                30HZ: {
+                ODR_30HZ: {
                   val: 4,
                   brief: "30 Hz (Available in low-power, high-performance mode)"
                 },
-                60HZ: {
+                ODR_60HZ: {
                   val: 5,
                   brief: "60 Hz (Available in low-power, high-performance mode)"
                 },
-                120HZ: {
+                ODR_120HZ: {
                   val: 6,
                   brief: "120 Hz (Available in low-power, high-performance mode)"
                 },
-                240HZ: {
+                ODR_240HZ: {
                   val: 7,
                   brief: "240 Hz (Available in low-power, high-performance mode)"
                 },
-                480HZ: {
+                ODR_480HZ: {
                   val: 8,
                   brief: "480 Hz (Available in high-performance mode)"
                 },
-                960HZ: {
+                ODR_960HZ: {
                   val: 9,
                   brief: "960 Hz (Available in high-performance mode)"
                 },
-                1920HZ: {
+                ODR_1920HZ: {
                   val: 10,
                   brief: "1.92 kHz (Available in high-performance mode)"
                 },
-                3840HZ: {
+                ODR_3840HZ: {
                   val: 11,
                   brief: "3.84 kHz (Available in high-performance mode)"
                 },
-                7680HZ: {
+                ODR_7680HZ: {
                   val: 12,
                   brief: "7.68 kHz (Available in high-performance mode)"
                 }
@@ -692,27 +692,27 @@
             brief: "Gyroscope full-scale range.",
             accepts: {
               LocalEnum: {
-                125DPS: {
+                FS_125DPS: {
                   val: 0,
                   brief: "±125 dps"
                 },
-                250DPS: {
+                FS_250DPS: {
                   val: 1,
                   brief: "±250 dps"
                 },
-                500DPS: {
+                FS_500DPS: {
                   val: 2,
                   brief: "±500 dps"
                 },
-                1000DPS: {
+                FS_1000DPS: {
                   val: 3,
                   brief: "±1000 dps"
                 },
-                2000DPS: {
+                FS_2000DPS: {
                   val: 4,
                   brief: "±2000 dps"
                 },
-                4000DPS: {
+                FS_4000DPS: {
                   val: 12,
                   brief: "±4000 dps"
                 }
@@ -737,42 +737,6 @@
               | 6             | 18.0         | 24.2          | 27.3          | 28.4          | 28.7          | 28.8              | N.A.              | N.A.              |
               | 7             | 12.1         | 13.7          | 14.2          | 14.3          | 14.4          | 14.4              | N.A.              | N.A.              |
               '''
-            accepts: {
-              LocalEnum: {
-                0: {
-                  val: 0,
-                  brief: "LPF1 setting 0"
-                },
-                1: {
-                  val: 1,
-                  brief: "LPF1 setting 1"
-                },
-                2: {
-                  val: 2,
-                  brief: "LPF1 setting 2"
-                },
-                3: {
-                  val: 3,
-                  brief: "LPF1 setting 3"
-                },
-                4: {
-                  val: 4,
-                  brief: "LPF1 setting 4"
-                },
-                5: {
-                  val: 5,
-                  brief: "LPF1 setting 5"
-                },
-                6: {
-                  val: 6,
-                  brief: "LPF1 setting 6"
-                },
-                7: {
-                  val: 7,
-                  brief: "LPF1 setting 7"
-                }
-              }
-            }
           }
         }
       }
@@ -805,19 +769,19 @@
             brief: "QVAR Input Impedance",
             accepts: {
               LocalEnum: {
-                2400M: {
+                ZIN_2400M: {
                   val: 0,
                   brief: "2.4GΩ"
                 },
-                730M: {
+                ZIN_730M: {
                   val: 1,
                   brief: "730MΩ;"
                 },
-                300M: {
+                ZIN_300M: {
                   val: 2,
                   brief: "300MΩ;"
                 },
-                235M: {
+                ZIN_235M: {
                   val: 3,
                   brief: "235MΩ"
                 }
@@ -851,19 +815,19 @@
             brief: "Accelerometer full-scale range.",
             accepts: {
               LocalEnum: {
-                2G: {
+                FS_2G: {
                   brief: "±2 g",
                   val: 0
                 },
-                4G: {
+                FS_4G: {
                   brief: "±4 g",
                   val: 1
                 },
-                8G: {
+                FS_8G: {
                   brief: "±8 g",
                   val: 2
                 },
-                16G: {
+                FS_16G: {
                   brief: "±16 g",
                   val: 3
                 }
@@ -905,11 +869,11 @@
             brief: "Weight with which the user offset is applied.",
             accepts: {
               LocalEnum: {
-                2_neg10: {
+                WEIGHT_neg10: {
                   val: 0,
                   brief: "Offset has a weight of 2^-10g/LSB"
                 },
-                2_neg6: {
+                WEIGHT_neg6: {
                   val: 1,
                   brief: "Offset has a weight of 2^-6g/LSB"
                 }
@@ -2123,15 +2087,15 @@
             brief: "TDM channel accelerometer full-scale selection",
             accepts: {
               LocalEnum: {
-                2G: {
+                FS_2G: {
                   val: 0,
                   brief: "±2 g"
                 },
-                4G: {
+                FS_4G: {
                   val: 1,
                   brief: "±4 g"
                 },
-                8G: {
+                FS_8G: {
                   val: 2,
                   brief: "±8 g"
                 }
@@ -2356,51 +2320,51 @@
       doc: null,
       brief: "Batch data rate (write frequency in FIFO) for accelerometer/gyroscope data.",
       enum: {
-        1HZ875: {
+        ODR_1HZ875: {
           val: 1,
           brief: "1.875 Hz"
         },
-        7HZ5: {
+        ODR_7HZ5: {
           val: 2,
           brief: "7.5 Hz"
         },
-        15HZ: {
+        ODR_15HZ: {
           val: 3,
           brief: "15 Hz"
         },
-        30HZ: {
+        ODR_30HZ: {
           val: 4,
           brief: "30 Hz"
         },
-        60HZ: {
+        ODR_60HZ: {
           val: 5,
           brief: "60 Hz"
         },
-        120HZ: {
+        ODR_120HZ: {
           val: 6,
           brief: "120 Hz"
         },
-        240HZ: {
+        ODR_240HZ: {
           val: 7,
           brief: "240 Hz"
         },
-        480HZ: {
+        ODR_480HZ: {
           val: 8,
           brief: "480 Hz"
         },
-        960HZ: {
+        ODR_960HZ: {
           val: 9,
           brief: "960 Hz"
         },
-        1920HZ: {
+        ODR_1920HZ: {
           val: 10,
           brief: "1.92 kHz"
         },
-        3840HZ: {
+        ODR_3840HZ: {
           val: 11,
           brief: "3.84 kHz"
         },
-        7680HZ: {
+        ODR_7680HZ: {
           val: 12,
           brief: "7.68 kHz"
         }

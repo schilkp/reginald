@@ -7,6 +7,7 @@ use std::{path::PathBuf, process::ExitCode};
 use clap::{CommandFactory, Parser};
 use reginald_codegen::builtin::c;
 use reginald_codegen::builtin::md;
+use reginald_codegen::builtin::rs;
 use reginald_codegen::error::Error;
 use reginald_codegen::regmap::RegisterMap;
 
@@ -54,6 +55,8 @@ enum Generator {
     MdDatasheet,
     /// Decode register dump
     MdRegdumpDecode(md::datasheet::regdump::GeneratorOpts),
+    /// Rust module with no dependency
+    RsNodeps(rs::nodeps::GeneratorOpts),
 }
 
 #[derive(Parser, Debug)]
@@ -90,6 +93,7 @@ fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
         Generator::CMacromap(opts) => c::macromap::generate(&mut out, &map, &gen.output, opts)?,
         Generator::MdDatasheet => md::datasheet::generate(&mut out, &map)?,
         Generator::MdRegdumpDecode(opts) => md::datasheet::regdump::generate(&mut out, &map, opts)?,
+        Generator::RsNodeps(opts) => rs::nodeps::generate(&mut out, &map, opts)?,
     };
 
     // Verify or write ouput:

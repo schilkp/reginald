@@ -4,7 +4,7 @@ use crate::utils::numbers_as_ranges;
 
 use super::{TypeBitwidth, TypeValue, MAX_BITWIDTH};
 
-pub fn bit_mask_width(width: TypeBitwidth) -> TypeValue {
+pub fn bitmask_from_width(width: TypeBitwidth) -> TypeValue {
     if width == 0 {
         0
     } else {
@@ -16,13 +16,13 @@ pub fn bit_mask_width(width: TypeBitwidth) -> TypeValue {
     }
 }
 
-pub fn bit_mask_range(range: &RangeInclusive<TypeBitwidth>) -> TypeValue {
+pub fn bitmask_from_range(range: &RangeInclusive<TypeBitwidth>) -> TypeValue {
     let width = range.end() - range.start() + 1;
-    bit_mask_width(width) << range.start()
+    bitmask_from_width(width) << range.start()
 }
 
-pub fn bit_mask_is_contigous(mask: TypeValue) -> bool {
-    bit_mask_range(&(lsb_pos(mask)..=msb_pos(mask))) == mask
+pub fn bitmask_is_contigous(mask: TypeValue) -> bool {
+    bitmask_from_range(&(lsb_pos(mask)..=msb_pos(mask))) == mask
 }
 
 pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
@@ -53,11 +53,15 @@ pub fn unpositioned_mask(mask: TypeValue) -> TypeValue {
 }
 
 pub fn mask_width(mask: TypeValue) -> TypeBitwidth {
-    msb_pos(mask) - lsb_pos(mask) + 1
+    if mask == 0 {
+        return 0;
+    } else {
+        msb_pos(mask) - lsb_pos(mask) + 1
+    }
 }
 
 pub fn fits_into_bitwidth(val: TypeValue, bitwidth: TypeBitwidth) -> bool {
-    (!bit_mask_width(bitwidth)) & val == 0
+    (!bitmask_from_width(bitwidth)) & val == 0
 }
 
 pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
@@ -69,7 +73,7 @@ pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
         }
     }
 
-    return bits;
+    bits
 }
 
 pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> {
@@ -84,27 +88,27 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn test_bit_mask() {
-        assert_eq!(bit_mask_width(0), 0b00);
-        assert_eq!(bit_mask_width(1), 0b01);
-        assert_eq!(bit_mask_width(2), 0b11);
+    fn test_bitmask_from_witdth() {
+        assert_eq!(bitmask_from_width(0), 0b00);
+        assert_eq!(bitmask_from_width(1), 0b01);
+        assert_eq!(bitmask_from_width(2), 0b11);
     }
 
     #[test]
-    fn test_bit_mask_range() {
-        assert_eq!(bit_mask_range(&(0..=0)), 0b01);
-        assert_eq!(bit_mask_range(&(1..=1)), 0b10);
-        assert_eq!(bit_mask_range(&(3..=5)), 0b111000);
+    fn test_bitmask_from_ranges() {
+        assert_eq!(bitmask_from_range(&(0..=0)), 0b01);
+        assert_eq!(bitmask_from_range(&(1..=1)), 0b10);
+        assert_eq!(bitmask_from_range(&(3..=5)), 0b111000);
     }
 
     #[test]
-    fn test_bit_mask_is_contigous() {
-        assert_eq!(bit_mask_is_contigous(0b1), true);
-        assert_eq!(bit_mask_is_contigous(0b10), true);
-        assert_eq!(bit_mask_is_contigous(0b100), true);
-        assert_eq!(bit_mask_is_contigous(0b111), true);
-        assert_eq!(bit_mask_is_contigous(0b1110), true);
-        assert_eq!(bit_mask_is_contigous(0b1010), false);
+    fn test_bitmask_is_contigous() {
+        assert_eq!(bitmask_is_contigous(0b1), true);
+        assert_eq!(bitmask_is_contigous(0b10), true);
+        assert_eq!(bitmask_is_contigous(0b100), true);
+        assert_eq!(bitmask_is_contigous(0b111), true);
+        assert_eq!(bitmask_is_contigous(0b1110), true);
+        assert_eq!(bitmask_is_contigous(0b1010), false);
     }
 
     #[test]
@@ -112,11 +116,18 @@ mod tests {
         assert_eq!(msb_pos(0x0), 0);
         assert_eq!(msb_pos(0x1), 0);
         assert_eq!(msb_pos(0x2), 1);
+        assert_eq!(msb_pos(0x3), 1);
         assert_eq!(msb_pos(0x10), 4);
         assert_eq!(msb_pos(0x1F), 4);
         assert_eq!(msb_pos(0x20), 5);
-        assert_eq!(msb_pos(bit_mask_width(5)), 5 - 1);
-        assert_eq!(msb_pos(bit_mask_width(MAX_BITWIDTH)), MAX_BITWIDTH - 1);
+        assert_eq!(msb_pos(bitmask_from_width(5)), 5 - 1);
+        assert_eq!(msb_pos(bitmask_from_width(MAX_BITWIDTH)), MAX_BITWIDTH - 1);
+        for msb_position in [4_u32, 6, 10] {
+            for lsbs in 0..(2_u32.pow(msb_position)) {
+                let val = (1 << msb_position) | lsbs;
+                assert_eq!(msb_pos(val.into()), msb_position);
+            }
+        }
     }
 
     #[test]
@@ -163,5 +174,14 @@ mod tests {
         assert_eq!(mask_to_bit_ranges(0b111), vec![0..=2]);
         assert_eq!(mask_to_bit_ranges(0b1110), vec![1..=3]);
         assert_eq!(mask_to_bit_ranges(0b1101110), vec![1..=3, 5..=6]);
+    }
+
+    #[test]
+    fn test_mask_width() {
+        assert_eq!(mask_width(0b0), 0);
+        assert_eq!(mask_width(0b1), 1);
+        assert_eq!(mask_width(0b11), 2);
+        assert_eq!(mask_width(0b1100), 2);
+        assert_eq!(mask_width(0b1101), 4);
     }
 }

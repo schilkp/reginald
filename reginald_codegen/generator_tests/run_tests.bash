@@ -15,6 +15,12 @@ cargo build
 echo_green "DONE"
 
 # Run tests:
+echo
 echo_cyan "=== TESTING C FUNCPACK ==="
 bash ./c_funcpack/run_test.bash || echo_red "TEST FAIL"
+echo_green "DONE"
+
+echo
+echo_cyan "=== TESTING RS NODEPS==="
+bash ./rs_nodeps/run_test.bash || echo_red "TEST FAIL"
 echo_green "DONE"

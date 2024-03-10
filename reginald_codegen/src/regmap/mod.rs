@@ -7,7 +7,7 @@ use std::{
 };
 
 use self::{
-    bits::{bit_mask_range, mask_to_bit_ranges, mask_to_bits, unpositioned_mask},
+    bits::{bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask},
     convert::convert_map,
 };
 use crate::{error::Error, regmap::bits::lsb_pos, utils::numbers_as_ranges};
@@ -80,7 +80,7 @@ pub struct Register {
     pub name: String,
     pub fields: BTreeMap<String, Field>,
     pub bitwidth: TypeBitwidth,
-    pub is_block_template: bool,
+    pub from_explicit_listing_block: bool,
     pub adr: Option<TypeAdr>,
     pub always_write: Option<AlwaysWrite>,
     pub reset_val: Option<TypeValue>,
@@ -98,6 +98,7 @@ pub struct RegisterBlock {
     pub name: String,
     pub instances: BTreeMap<String, Instance>,
     pub docs: Docs,
+    pub from_explicit_listing_block: bool,
     pub register_templates: BTreeMap<String, Register>,
 }
 
@@ -157,20 +158,31 @@ impl Docs {
 
 impl Enum {
     /// Check if enum can represent every possible value that fits into 'mask'
-    pub fn can_always_unpack(&self, mask: TypeValue) -> bool {
+    pub fn can_unpack_mask(&self, unpos_mask: TypeValue) -> bool {
         // All enum values that fit into the mask:
-        let enum_vals: HashSet<u64> = HashSet::from_iter(
-            self.entries
-                .values()
-                .map(|x| x.value.clone())
-                .filter(|x| x & !mask == 0),
-        );
+        let enum_vals: HashSet<u64> =
+            HashSet::from_iter(self.entries.values().map(|x| x.value).filter(|x| x & !unpos_mask == 0));
 
         // Number of values the mask can represent:
-        let mask_bit_count = mask_to_bits(mask).len();
+        let mask_bit_count = mask_to_bits(unpos_mask).len();
         let mask_vals_count = 2_usize.pow(mask_bit_count.try_into().unwrap());
 
         mask_vals_count == enum_vals.len()
+    }
+
+    /// Minimum bitwidth required to represent all values in this enum.
+    pub fn min_bitdwith(&self) -> TypeBitwidth {
+        return msb_pos(self.max_value()) + 1;
+    }
+
+    /// Check if enum can repreent every possible value of a N-bit number, where N is the
+    /// minimum bitwidth of this enum.
+    pub fn can_unpack_min_bitwidth(&self) -> bool {
+        return self.can_unpack_mask(bitmask_from_width(self.min_bitdwith()));
+    }
+
+    pub fn max_value(&self) -> TypeValue {
+        self.entries.values().map(|x| x.value).max().unwrap_or(0)
     }
 }
 
@@ -181,6 +193,15 @@ impl Field {
             FieldType::Bool => false,
             FieldType::LocalEnum(_) => true,
             FieldType::SharedEnum(_) => true,
+        }
+    }
+
+    pub fn get_enum<'a>(&'a self) -> Option<&'a Enum> {
+        match &self.accepts {
+            FieldType::UInt => None,
+            FieldType::Bool => None,
+            FieldType::LocalEnum(e) => Some(e),
+            FieldType::SharedEnum(e) => Some(e),
         }
     }
 
@@ -197,8 +218,8 @@ impl Field {
         match &self.accepts {
             FieldType::UInt => true,
             FieldType::Bool => true,
-            FieldType::LocalEnum(local_enum) => local_enum.can_always_unpack(unpositioned_mask(self.mask)),
-            FieldType::SharedEnum(shared_enum) => shared_enum.can_always_unpack(unpositioned_mask(self.mask)),
+            FieldType::LocalEnum(local_enum) => local_enum.can_unpack_mask(unpositioned_mask(self.mask)),
+            FieldType::SharedEnum(shared_enum) => shared_enum.can_unpack_mask(unpositioned_mask(self.mask)),
         }
     }
 }
@@ -229,7 +250,7 @@ impl Register {
         if let Some(AlwaysWrite { mask, value }) = &self.always_write {
             let ranges = mask_to_bit_ranges(*mask);
             for range in &ranges {
-                let range_value = (value & bit_mask_range(range)) >> range.start();
+                let range_value = (value & bitmask_from_range(range)) >> range.start();
                 result.push(RegisterBitrange {
                     bits: range.clone(),
                     content: RegisterBitrangeContent::AlwaysWrite { val: range_value },
@@ -240,7 +261,7 @@ impl Register {
         for field in self.fields.values() {
             let ranges = mask_to_bit_ranges(field.mask);
             for range in &ranges {
-                let subfield_mask = bit_mask_range(range) >> lsb_pos(field.mask);
+                let subfield_mask = bitmask_from_range(range) >> lsb_pos(field.mask);
 
                 result.push(RegisterBitrange {
                     bits: range.clone(),
@@ -298,6 +319,22 @@ impl Register {
             };
         }
         true
+    }
+
+    pub fn name_in_block(&self, block: &RegisterBlock) -> String {
+        if self.name.is_empty() {
+            String::from(&block.name)
+        } else {
+            format!("{}_{}", block.name, self.name)
+        }
+    }
+
+    pub fn name_in_instance(&self, instance: &Instance) -> String {
+        if self.name.is_empty() {
+            String::from(&instance.name)
+        } else {
+            format!("{}_{}", instance.name, self.name)
+        }
     }
 }
 
@@ -381,7 +418,7 @@ impl RegisterMap {
                         (_, _) => None,
                     };
 
-                    let origin = if template.is_block_template {
+                    let origin = if template.from_explicit_listing_block {
                         RegisterOrigin::RegisterBlockInstance {
                             block,
                             instance: instance.clone(),
@@ -391,7 +428,7 @@ impl RegisterMap {
                         RegisterOrigin::Register
                     };
 
-                    let name = instance.name.to_owned() + &template.name;
+                    let name = template.name_in_instance(instance);
 
                     result.push(PhysicalRegister {
                         name,
@@ -439,14 +476,14 @@ pub fn assert_regmap_eq(left: RegisterMap, right: RegisterMap) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_split_to_bitranges() {
+        use pretty_assertions::assert_eq;
         let reg = Register {
             name: "TestReg".into(),
             bitwidth: 16,
-            is_block_template: false,
+            from_explicit_listing_block: false,
             adr: None,
             always_write: Some(AlwaysWrite {
                 mask: 0b01110110,
@@ -520,7 +557,7 @@ mod tests {
     }
 
     #[test]
-    fn test_enum_can_always_unpack() {
+    fn test_enum_can_unpack_mask() {
         let e = Enum {
             entries: BTreeMap::from_iter(vec![0, 1, 2, 3, 4, 5, 6, 7].into_iter().map(|x| {
                 (
@@ -536,13 +573,81 @@ mod tests {
 
         for val in 0..8 {
             println!("0b{val:b}");
-            assert_eq!(e.can_always_unpack(val), true);
+            assert_eq!(e.can_unpack_mask(val), true);
         }
 
         for val in 0..8 {
             println!("base val: 0b{val:b}");
-            assert_eq!(e.can_always_unpack(0b1000 | val), false);
-            assert_eq!(e.can_always_unpack(0b110101000 | val), false);
+            assert_eq!(e.can_unpack_mask(0b1000 | val), false);
+            assert_eq!(e.can_unpack_mask(0b110101000 | val), false);
         }
+    }
+
+    #[test]
+    fn test_enum_min_bitwidth() {
+        let mut e = Enum {
+            entries: BTreeMap::from_iter(vec![0, 1, 2, 3, 4, 5, 6, 7].into_iter().map(|x| {
+                (
+                    format!("E{x}"),
+                    EnumEntry {
+                        value: x,
+                        ..Default::default()
+                    },
+                )
+            })),
+            ..Default::default()
+        };
+
+        assert_eq!(e.min_bitdwith(), 3);
+
+        e.entries.remove("E4").unwrap();
+
+        assert_eq!(e.min_bitdwith(), 3);
+
+        let e = Enum {
+            entries: BTreeMap::from([(
+                String::from("E0"),
+                EnumEntry {
+                    value: 0,
+                    ..Default::default()
+                },
+            )]),
+            ..Default::default()
+        };
+
+        assert_eq!(e.min_bitdwith(), 1);
+    }
+
+    #[test]
+    fn test_enum_can_unpack_min_bitwidth() {
+        let mut e = Enum {
+            entries: BTreeMap::from_iter(vec![0, 1, 2, 3, 4, 5, 6, 7].into_iter().map(|x| {
+                (
+                    format!("E{x}"),
+                    EnumEntry {
+                        value: x,
+                        ..Default::default()
+                    },
+                )
+            })),
+            ..Default::default()
+        };
+
+        assert_eq!(e.can_unpack_min_bitwidth(), true);
+
+        e.entries.remove("E4").unwrap();
+        assert_eq!(e.can_unpack_min_bitwidth(), false);
+
+        let e = Enum {
+            entries: BTreeMap::from([(
+                String::from("E0"),
+                EnumEntry {
+                    value: 0,
+                    ..Default::default()
+                },
+            )]),
+            ..Default::default()
+        };
+        assert_eq!(e.can_unpack_min_bitwidth(), false);
     }
 }
