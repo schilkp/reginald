@@ -84,7 +84,7 @@ fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, Error> {
     if !BITRANGE_RE.is_match(bitrange) {
         return Err(Error::ConversionError {
             bt: bt.to_string(),
-            msg: format!("Malformed bit range '{}'", bitrange),
+            msg: format!("Malformed bit range '{bitrange}'"),
         });
     };
 
@@ -93,7 +93,7 @@ fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, Error> {
     for limit in limit_strs {
         let limit: TypeBitwidth = limit.parse().map_err(|_| Error::ConversionError {
             bt: bt.to_owned(),
-            msg: format!("Malformed bit range '{}'", bitrange),
+            msg: format!("Malformed bit range '{bitrange}'"),
         })?;
 
         validate_bitpos(limit, bt)?;
@@ -195,7 +195,7 @@ fn convert_field_type_local_enum(
         entries: convert_enum_entries(local_enum, bt)?,
     };
 
-    validate_enum(&e, &bt)?;
+    validate_enum(&e, bt)?;
 
     Ok(FieldType::LocalEnum(e))
 }
@@ -207,7 +207,7 @@ fn convert_field_type_shared_enum(
 ) -> Result<FieldType, Error> {
     let shared_enum = shared_enums.get(name).ok_or(Error::ConversionError {
         bt: bt.to_string(),
-        msg: format!("Shared enum '{}' not found.", name),
+        msg: format!("Shared enum '{name}' not found."),
     })?;
     Ok(FieldType::SharedEnum(shared_enum.clone()))
 }

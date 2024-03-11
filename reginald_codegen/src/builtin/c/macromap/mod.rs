@@ -5,7 +5,7 @@ use clap::Parser;
 
 use crate::{
     error::Error,
-    regmap::bits::lsb_pos,
+    bits::lsb_pos,
     regmap::{Register, RegisterBlock, RegisterMap},
     utils::{filename, str_table},
 };
@@ -98,7 +98,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 
     if block.instances.len() > 1 && block.register_templates.len() > 1 {
         let macro_prefix = c_macro(&map.map_name);
-        let macro_block_name = c_macro(&block.name.to_owned());
+        let macro_block_name = c_macro(&block.name.clone());
 
         for instance in block.instances.values() {
             if let Some(adr) = &instance.adr {
@@ -119,7 +119,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
                     format!("#define {}_{}_OFFSET", macro_prefix, macro_template_name),
                     format!("(0x{:X}U)", template_offset),
                     format!("//!< Offset of {} register from {} block start", template_name, block.name),
-                ])
+                ]);
             }
         }
     }
@@ -141,7 +141,7 @@ fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template
 
     // Register section header:
     writeln!(out)?;
-    c_generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
+    c_generate_section_header_comment(out, &format!("{generic_template_name} Register"))?;
     if !template.docs.is_empty() {
         write!(out, "{}", template.docs.as_multiline("// "))?;
     }
@@ -156,7 +156,7 @@ fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template
             }
             if let Some(doc) = &field.docs.doc {
                 for line in doc.lines() {
-                    writeln!(out, "//      {}", line)?;
+                    writeln!(out, "//      {line}")?;
                 }
             }
         }
@@ -186,7 +186,7 @@ fn generate_register_defines(
                     format!("#define {}_{}", macro_prefix, c_macro(&instance_name)),
                     format!("(0x{:X}U)", template_offset + instance_adr),
                     format!("//!< {} register address", instance_name),
-                ])
+                ]);
             }
         }
     }
@@ -198,7 +198,7 @@ fn generate_register_defines(
             format!("#define {}__RESET", template_macro_prefix),
             format!("(0x{:X}U)", reset_val),
             format!("//!< {} register reset value", generic_template_name),
-        ])
+        ]);
     }
 
     //  Always write mask:

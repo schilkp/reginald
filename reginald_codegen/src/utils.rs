@@ -5,6 +5,14 @@ use std::usize;
 
 use crate::error::Error;
 
+/// Pad string 's' to length 'len' with characters char.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::utils::str_pad_to_length;
+/// let s = str_pad_to_length("Hi!", '_', 10);
+/// assert_eq!(s, String::from("Hi!_______"));
+/// ```
 pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     let mut s = s.to_string();
     while s.len() < len {
@@ -13,13 +21,26 @@ pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     s
 }
 
+/// Determine the width of each column from a list of rows.
+///
+/// Returns the vector `len`, where `len[i]` is the maximum length of
+/// the set of strings in position i in every row.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::utils::table_col_width;
+/// let t: Vec<Vec<String>> = vec![vec![":)".into(), "Loooooong".into(), "!".into()],
+///                                vec![                                           ],
+///                                vec!["?".into(),  "".into()                     ]];
+/// assert_eq!(table_col_width(&t), vec![2, 9, 1]);
+/// ```
 pub fn table_col_width(rows: &Vec<Vec<String>>) -> Vec<usize> {
     if rows.is_empty() {
         return vec![];
     }
 
     // Number of cols:
-    let max_cols = rows.iter().map(|row| row.len()).max().unwrap();
+    let max_cols = rows.iter().map(std::vec::Vec::len).max().unwrap();
 
     // Determine maximum width of all columns:
     let mut col_widths: Vec<usize> = vec![];
@@ -36,6 +57,23 @@ pub fn table_col_width(rows: &Vec<Vec<String>>) -> Vec<usize> {
     col_widths
 }
 
+/// Takes a list of strings and formats them into a left-aligned table. Columns
+/// are seperated by 'seperator', and every line is prefixed by 'prefix'. All
+/// trailing spaces are trimmed.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::utils::str_table;
+/// let rows: Vec<Vec<String>> = vec![vec![":)".into(), "Loooooong".into(), "!".into()],
+///                                   vec![                                           ],
+///                                   vec!["?".into(),  "".into()                     ]];
+///
+/// let should = "-> :) | Loooooong | !\n\
+///               ->\n\
+///               -> ?  |\n".to_string();
+///
+/// assert_eq!(str_table(&rows, "-> ", " | "), should);
+/// ```
 pub fn str_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) -> String {
     if rows.is_empty() {
         return String::from('\n');
@@ -47,20 +85,28 @@ pub fn str_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) -> Stri
     let mut result = String::new();
     for row in rows {
         let mut line = String::new();
+        line.push_str(prefix);
         for (col_idx, col) in row.iter().enumerate() {
-            if col_idx == 0 {
-                line.push_str(prefix);
-            } else {
+            if col_idx != 0 {
                 line.push_str(seperator);
             }
             write!(&mut line, "{col: <width$}", width = col_widths[col_idx]).unwrap();
         }
         result.push_str(line.trim_end());
-        result.push('\n')
+        result.push('\n');
     }
     result
 }
 
+/// Takes a list of numbers, and greedily collects each consecutive
+/// range into an inclusive range.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::utils::numbers_as_ranges;
+/// let ranges = numbers_as_ranges(vec![1,3,2,5,101,100]);
+/// assert_eq!(ranges, vec![1..=3, 5..=5, 100..=101]);
+/// ```
 pub fn numbers_as_ranges<T>(mut i: Vec<T>) -> Vec<RangeInclusive<T>>
 where
     T: Ord + From<u8> + Add<T, Output = T> + Eq + Copy,
@@ -98,9 +144,10 @@ where
     ranges
 }
 
+/// Attempt to extract the filename from a path.
 pub fn filename(s: &Path) -> Result<String, Error> {
     s.file_name()
-        .ok_or(Error::GeneratorError("".into()))
+        .ok_or(Error::GeneratorError(String::from("Could not extract filename from path")))
         .map(|x| x.to_string_lossy().to_string())
 }
 

@@ -53,10 +53,10 @@ enum Generator {
     CMacromap(c::macromap::GeneratorOpts),
     /// Markdown datasheet
     MdDatasheet,
-    /// Decode register dump
+    /// Markdown decode report of register dump
     MdRegdumpDecode(md::datasheet::regdump::GeneratorOpts),
-    /// Rust module with no dependency
-    RsNodeps(rs::nodeps::GeneratorOpts),
+    /// Rust module with register structs and no dependencies
+    RsStructNoDeps(rs::structs_no_deps::GeneratorOpts),
 }
 
 #[derive(Parser, Debug)]
@@ -93,7 +93,7 @@ fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
         Generator::CMacromap(opts) => c::macromap::generate(&mut out, &map, &gen.output, opts)?,
         Generator::MdDatasheet => md::datasheet::generate(&mut out, &map)?,
         Generator::MdRegdumpDecode(opts) => md::datasheet::regdump::generate(&mut out, &map, opts)?,
-        Generator::RsNodeps(opts) => rs::nodeps::generate(&mut out, &map, opts)?,
+        Generator::RsStructNoDeps(opts) => rs::structs_no_deps::generate(&mut out, &map, opts)?,
     };
 
     // Verify or write ouput:

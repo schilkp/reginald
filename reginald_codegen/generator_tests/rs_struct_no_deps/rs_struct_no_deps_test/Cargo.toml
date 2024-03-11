@@ -1,6 +1,8 @@
 [package]
-name = "reginald"
+name = "rs_struct_no_deps_test"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
+[workspace]

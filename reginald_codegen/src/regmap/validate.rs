@@ -1,10 +1,8 @@
 use std::collections::HashSet;
 
-use super::{
-    bits::{fits_into_bitwidth, mask_width, unpositioned_mask},
-    Docs, Enum, EnumEntry, Field, FieldType, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH,
-};
+use super::{Docs, Enum, EnumEntry, Field, FieldType, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH};
 use crate::error::Error;
+use crate::bits::{fits_into_bitwidth, mask_width, unpositioned_mask};
 use lazy_static::lazy_static;
 use regex::Regex;
 

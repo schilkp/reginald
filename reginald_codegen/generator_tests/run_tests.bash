@@ -21,6 +21,6 @@ bash ./c_funcpack/run_test.bash || echo_red "TEST FAIL"
 echo_green "DONE"
 
 echo
-echo_cyan "=== TESTING RS NODEPS==="
-bash ./rs_nodeps/run_test.bash || echo_red "TEST FAIL"
+echo_cyan "=== TESTING RS STRUCT NO DEPS==="
+bash ./rs_struct_no_deps/run_test.bash || echo_red "TEST FAIL"
 echo_green "DONE"

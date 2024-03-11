@@ -38,7 +38,7 @@ fn c_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, Error> {
 }
 
 fn c_generate_section_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Error> {
-    writeln!(out, "{}", str_pad_to_length(&format!("// ==== {} ", title), '=', 80))?;
+    writeln!(out, "{}", str_pad_to_length(&format!("// ==== {title} "), '=', 80))?;
     Ok(())
 }
 

@@ -1,7 +1,9 @@
 use std::fmt::Write;
 
+
+/// A wrapper around a 'write', that indents all lines to a set value.
 pub struct IndentWrite<'a> {
-    pub w: &'a mut dyn Write,
+    w: &'a mut dyn Write,
     indent: String,
     current_indent: usize,
     newline_buffered: bool,
@@ -10,13 +12,16 @@ pub struct IndentWrite<'a> {
 impl Write for IndentWrite<'_> {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         for c in s.chars() {
-            self.process_char(&c)?
+            self.process_char(&c)?;
         }
         Ok(())
     }
 }
 
 impl IndentWrite<'_> {
+    /// Wrap a given 'write' into an IndentWrite where each level of indent
+    /// consists of the string `indent`. The IndentWrite starts without 
+    /// any indentation.
     pub fn new<'a>(w: &'a mut dyn Write, indent: &str) -> IndentWrite<'a> {
         IndentWrite {
             w,
@@ -26,14 +31,14 @@ impl IndentWrite<'_> {
         }
     }
 
+    /// Increase the level of indentation by one.
     pub fn push_indent(&mut self) {
         self.current_indent += 1;
     }
 
+    /// Decrease the level of indentation by one.
     pub fn pop_indent(&mut self) {
-        if self.current_indent == 0 {
-            panic!("Cannot reduce indent below 0");
-        }
+        assert!(self.current_indent != 0, "Cannot reduce indent below 0");
         self.current_indent -= 1;
     }
 
@@ -58,13 +63,14 @@ impl IndentWrite<'_> {
                 self.w.write_char('\n')?;
                 self.newline_buffered = false;
                 for _ in 0..self.current_indent {
-                    self.w.write_str(&self.indent)?
+                    self.w.write_str(&self.indent)?;
                 }
                 self.w.write_char(*c)
             }
         }
     }
 
+    /// Flush any buffered trailing newlines.
     pub fn flush(&mut self) -> std::fmt::Result {
         if self.newline_buffered {
             self.w.write_char('\n')?;

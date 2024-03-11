@@ -5,19 +5,14 @@ Philipp Schilk
 
 ### TODOs:
 
-- Cleanup/Refactor genertors
-    - Move options/naming stuff into opts struct impl?
-
-- Implement some sort of caching/pre-cal layer for max-width, physical registers etc?
-    - Or just refactor generators to be struct with that stuff?
-
-- Implement std::fmt::write or std::io::write wrapper that handles indenting?
-    - Could be used in rs-nodeps
-
 - TEST NO-CONTINOUS FIELDS!
     - With enum!
 
-- RS Nodeps: options for what to derive for both struct & enum.
+- RS Nodeps:
+    - options for what to derive for both struct & enum.
+    - Rename to something "struct"
+
+- RS uint:
 
 ### RUST API NOTES:
 
@@ -62,6 +57,11 @@ https://github.com/ProfFan/dw3000-ng/blob/RUST/src/ll.rs
 https://github.com/jkelleyrtp/dw1000-rs
 rust embedded matrix
 
-Two traits:
-    - InfallibleRegister
-    - Register
+# Packed structs libs:
+
+### Packed Struct:
+    - https://docs.rs/packed_struct/latest/packed_struct/
+    - Strange API? What does read/write only do?
+
+### Bitfield struct:
+    - https://crates.io/crates/bitfield-struct

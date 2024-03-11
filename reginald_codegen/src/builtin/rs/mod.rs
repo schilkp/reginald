@@ -7,14 +7,14 @@ use crate::{
     regmap::{Docs, TypeBitwidth},
 };
 
-pub mod nodeps;
+pub mod structs_no_deps;
 
 fn rs_pascalcase(s: &str) -> String {
     let mut result = String::new();
     for part in rs_sanitize(s).to_lowercase().split('_') {
         let mut chars = part.chars();
         if let Some(f) = chars.next() {
-            result.push_str(&(f.to_uppercase().collect::<String>() + chars.as_str()))
+            result.push_str(&(f.to_uppercase().collect::<String>() + chars.as_str()));
         }
     }
     result

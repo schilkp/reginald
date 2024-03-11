@@ -6,13 +6,11 @@ use std::{
     rc::Rc,
 };
 
-use self::{
-    bits::{bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask},
-    convert::convert_map,
-};
-use crate::{error::Error, regmap::bits::lsb_pos, utils::numbers_as_ranges};
+use crate::bits::{bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask};
+use crate::{error::Error, bits::lsb_pos, utils::numbers_as_ranges};
 
-pub mod bits;
+use self::convert::convert_map;
+
 mod convert;
 mod listing;
 mod validate;
@@ -172,13 +170,13 @@ impl Enum {
 
     /// Minimum bitwidth required to represent all values in this enum.
     pub fn min_bitdwith(&self) -> TypeBitwidth {
-        return msb_pos(self.max_value()) + 1;
+        msb_pos(self.max_value()) + 1
     }
 
     /// Check if enum can repreent every possible value of a N-bit number, where N is the
     /// minimum bitwidth of this enum.
     pub fn can_unpack_min_bitwidth(&self) -> bool {
-        return self.can_unpack_mask(bitmask_from_width(self.min_bitdwith()));
+        self.can_unpack_mask(bitmask_from_width(self.min_bitdwith()))
     }
 
     pub fn max_value(&self) -> TypeValue {
@@ -196,7 +194,7 @@ impl Field {
         }
     }
 
-    pub fn get_enum<'a>(&'a self) -> Option<&'a Enum> {
+    pub fn get_enum(&self) -> Option<&Enum> {
         match &self.accepts {
             FieldType::UInt => None,
             FieldType::Bool => None,
@@ -341,7 +339,7 @@ impl Register {
 impl RegisterMap {
     pub fn from_file(path: &PathBuf) -> Result<Self, Error> {
         let inp = std::fs::File::open(path)?;
-        let ext = path.extension().and_then(|x| x.to_str()).map(|x| x.to_lowercase());
+        let ext = path.extension().and_then(|x| x.to_str()).map(str::to_lowercase);
         let listing = match ext {
             Some(ext) if ext == "yaml" || ext == "yml" => listing::RegisterMap::from_yaml(inp)?,
             Some(ext) if ext == "json" || ext == "hjson" => listing::RegisterMap::from_hjson(inp)?,
@@ -350,7 +348,7 @@ impl RegisterMap {
                 listing::RegisterMap::from_yaml(inp)?
             }
         };
-        convert_map(&listing, &Some(path.to_path_buf()))
+        convert_map(&listing, &Some(path.clone()))
     }
 
     pub fn from_yaml<R>(inp: R) -> Result<Self, Error>

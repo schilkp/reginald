@@ -1,9 +1,17 @@
 use std::ops::RangeInclusive;
 
+use crate::regmap::{TypeBitwidth, TypeValue, MAX_BITWIDTH};
 use crate::utils::numbers_as_ranges;
 
-use super::{TypeBitwidth, TypeValue, MAX_BITWIDTH};
-
+/// Generate a bitmask of specified width
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::bitmask_from_width;
+/// assert_eq!(bitmask_from_width(0), 0b00);
+/// assert_eq!(bitmask_from_width(1), 0b01);
+/// assert_eq!(bitmask_from_width(2), 0b11);
+/// ```
 pub fn bitmask_from_width(width: TypeBitwidth) -> TypeValue {
     if width == 0 {
         0
@@ -16,15 +24,53 @@ pub fn bitmask_from_width(width: TypeBitwidth) -> TypeValue {
     }
 }
 
+/// Generate a bitmask that covers the (inclusive) range of bits given as an
+/// argument.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::bitmask_from_range;
+/// assert_eq!(bitmask_from_range(&(0..=3)), 0b1111);
+/// assert_eq!(bitmask_from_range(&(1..=2)), 0b0110);
+/// assert_eq!(bitmask_from_range(&(3..=3)), 0b1000);
+/// ```
 pub fn bitmask_from_range(range: &RangeInclusive<TypeBitwidth>) -> TypeValue {
     let width = range.end() - range.start() + 1;
     bitmask_from_width(width) << range.start()
 }
 
+/// Checks if a given bitmask is contigous (All '1' bits, if any, are adjacent
+/// without any gaps)
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::bitmask_is_contigous;
+/// assert_eq!(bitmask_is_contigous(0b00000), true);
+/// assert_eq!(bitmask_is_contigous(0b00110), true);
+/// assert_eq!(bitmask_is_contigous(0b00111), true);
+/// assert_eq!(bitmask_is_contigous(0b01110), true);
+/// assert_eq!(bitmask_is_contigous(0b11101), false);
+/// ```
 pub fn bitmask_is_contigous(mask: TypeValue) -> bool {
-    bitmask_from_range(&(lsb_pos(mask)..=msb_pos(mask))) == mask
+    if mask == 0 {
+        true
+    } else {
+        bitmask_from_range(&(lsb_pos(mask)..=msb_pos(mask))) == mask
+    }
 }
 
+/// Determines the position of the most significant '1;
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::msb_pos;
+/// assert_eq!(msb_pos(0b00000), 0);
+/// assert_eq!(msb_pos(0b00001), 0);
+/// assert_eq!(msb_pos(0b00110), 2);
+/// assert_eq!(msb_pos(0b00111), 2);
+/// assert_eq!(msb_pos(0b01110), 3);
+/// assert_eq!(msb_pos(0b11101), 4);
+/// ```
 pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
     if val == 0 {
         0
@@ -33,6 +79,18 @@ pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
     }
 }
 
+/// Determines the position of the most significant '1;
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::lsb_pos;
+/// assert_eq!(lsb_pos(0b00000), 0);
+/// assert_eq!(lsb_pos(0b00001), 0);
+/// assert_eq!(lsb_pos(0b00110), 1);
+/// assert_eq!(lsb_pos(0b00111), 0);
+/// assert_eq!(lsb_pos(0b01110), 1);
+/// assert_eq!(lsb_pos(0b11100), 2);
+/// ```
 pub fn lsb_pos(val: TypeValue) -> TypeBitwidth {
     if val == 0 {
         0
@@ -48,22 +106,56 @@ pub fn lsb_pos(val: TypeValue) -> TypeBitwidth {
     }
 }
 
+/// Shifts a bit mask right, until the least significant bit that is '1' is at
+/// position 0.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::unpositioned_mask;
+/// assert_eq!(unpositioned_mask(0b00000), 0b0);
+/// assert_eq!(unpositioned_mask(0b00001), 0b1);
+/// assert_eq!(unpositioned_mask(0b00110), 0b11);
+/// assert_eq!(unpositioned_mask(0b10100), 0b101);
+/// ```
 pub fn unpositioned_mask(mask: TypeValue) -> TypeValue {
     mask >> lsb_pos(mask)
 }
 
+/// Determines the bit-width of  a mask:
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::mask_width;
+/// assert_eq!(mask_width(0b00000), 0);
+/// assert_eq!(mask_width(0b00001), 1);
+/// assert_eq!(mask_width(0b00110), 2);
+/// assert_eq!(mask_width(0b10100), 3);
+/// ```
 pub fn mask_width(mask: TypeValue) -> TypeBitwidth {
     if mask == 0 {
-        return 0;
+        0
     } else {
         msb_pos(mask) - lsb_pos(mask) + 1
     }
 }
 
+/// Check if a given value fits into a field of given width without truncation
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::fits_into_bitwidth;
+/// assert_eq!(fits_into_bitwidth(0b000000, 0), true);
+/// assert_eq!(fits_into_bitwidth(0b000001, 0), false);
+/// assert_eq!(fits_into_bitwidth(0b000001, 1), true);
+/// assert_eq!(fits_into_bitwidth(0b000001, 2), true);
+/// assert_eq!(fits_into_bitwidth(0b000100, 2), false);
+/// assert_eq!(fits_into_bitwidth(0b000100, 3), true);
+/// ```
 pub fn fits_into_bitwidth(val: TypeValue, bitwidth: TypeBitwidth) -> bool {
     (!bitmask_from_width(bitwidth)) & val == 0
 }
 
+/// Convert a mask to a vector of the positions of all bits that are set.
 pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
     let mut bits = vec![];
 
@@ -76,6 +168,8 @@ pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
     bits
 }
 
+/// Convert a bit mask to a list of inclusive ranges that cover all bits that
+/// are set.
 pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> {
     numbers_as_ranges(mask_to_bits(mask))
 }
