@@ -17,6 +17,8 @@ Philipp Schilk
 - TEST NO-CONTINOUS FIELDS!
     - With enum!
 
+- RS Nodeps: options for what to derive for both struct & enum.
+
 ### RUST API NOTES:
 
 bitfield-struct:

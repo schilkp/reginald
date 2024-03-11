@@ -18,5 +18,5 @@ cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_
 # Compile + Run test exe:
 echo "Testing..."
 cd rs_nodeps_test
-cargo --quiet --color always test rs_nodeps_test
+cargo --color always test
 echo_green "OK!"

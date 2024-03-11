@@ -128,6 +128,7 @@ impl Generator<'_> {
 
         writeln!(out)?;
         generate_doc_comment(out, &e.docs, indent)?;
+        writeln!(out, "{indent}#[derive(PartialEq, Debug)]")?;
         writeln!(out, "{indent}#[repr({uint_type})]")?;
         writeln!(out, "{indent}pub enum {} {{", rs_pascalcase(&e.name))?;
         for entry in e.entries.values() {
@@ -349,6 +350,7 @@ impl Generator<'_> {
             writeln!(out, "    ///")?;
             write!(out, "{}", block.docs.as_multiline("    /// "))?;
         }
+        writeln!(out, "    #[derive(PartialEq, Debug)]")?;
         writeln!(out, "    pub struct {} {{", rs_pascalcase(&template_name))?;
 
         for (idx, field) in template.fields.values().enumerate() {
