@@ -14,7 +14,7 @@ fn rs_pascalcase(s: &str) -> String {
     for part in rs_sanitize(s).to_lowercase().split('_') {
         let mut chars = part.chars();
         if let Some(f) = chars.next() {
-            result.push_str(&(f.to_uppercase().collect::<String>() + chars.as_str()))
+            result.push_str(&(f.to_uppercase().collect::<String>() + chars.as_str()));
         }
     }
     result

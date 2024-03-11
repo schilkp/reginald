@@ -127,7 +127,7 @@ fn generate_overview(
     ]);
     for adr in adrs {
         let (regs, val) = lookup_adr(registers, regdump, *adr);
-        let adr_str = format!("0x{:X}", adr);
+        let adr_str = format!("0x{adr:X}");
         let value_str = val.map(|x| format!("0x{x:X}")).unwrap_or_default();
 
         if regs.is_empty() {
@@ -162,7 +162,7 @@ fn adrs_of_interest(registers: &[PhysicalRegister], regdump: &RegDump) -> Vec<Ty
     }
 
     let mut adrs: Vec<TypeAdr> = adrs.into_iter().collect();
-    adrs.sort();
+    adrs.sort_unstable();
     adrs
 }
 

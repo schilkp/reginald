@@ -25,11 +25,11 @@ pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), Erro
 fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result<(), Error> {
     write!(out, "| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
-        let col = row.get(col_idx).map_or("".to_string(), |col| col.to_owned());
+        let col = row.get(col_idx).map_or(String::new(), std::borrow::ToOwned::to_owned);
         if col_idx != 0 {
             write!(out, " | ")?;
         }
-        write!(out, "{col: <width$}", width = width)?;
+        write!(out, "{col: <width$}")?;
     }
     writeln!(out, " |")?;
 

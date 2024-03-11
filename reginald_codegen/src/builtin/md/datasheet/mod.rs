@@ -58,7 +58,7 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
     let regs = map.physical_registers();
     for reg in &regs {
         let adr = if let Some(adr) = &reg.absolute_adr {
-            format!("0x{:X}", adr)
+            format!("0x{adr:X}")
         } else {
             "-".to_string()
         };
@@ -126,14 +126,14 @@ fn generate_register_infos(
                 }
             }
             crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
-                row_field.push(format!("Write '0b{:b}'", val));
+                row_field.push(format!("Write '0b{val:b}'"));
                 row_access.push("/".to_string());
             }
         }
 
         if let Some(value) = value {
             let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.start();
-            row_state.push(format!("**0b{:b}**", value_range));
+            row_state.push(format!("**0b{value_range:b}**"));
             row_decode.push(decode_bit_range(&value, range));
         }
     }
@@ -182,7 +182,7 @@ fn generate_register_infos(
     {
         writeln!(out, "  - In '{}' instance of '{}' block", instance.name, block.name)?;
         if let Some(offset) = offset_from_block_start {
-            writeln!(out, "    - Offset from block start: 0x{:X}", offset)?;
+            writeln!(out, "    - Offset from block start: 0x{offset:X}")?;
         }
         if let Some(instance_start) = instance.adr {
             writeln!(out, "    - Instance {} start address: 0x{:X}", instance.name, instance_start)?;
@@ -200,10 +200,10 @@ fn generate_register_infos(
         let access = if let Some(access) = &field.access {
             format!(" [{}]", access_string(access))
         } else {
-            "".to_string()
+            String::new()
         };
 
-        let value_string = value_field.map(|x| format!("0x{:X}", x)).unwrap_or_default();
+        let value_string = value_field.map(|x| format!("0x{x:X}")).unwrap_or_default();
 
         writeln!(out, "  - {}{}: {}", field.name, access, value_string)?;
         write!(out, "{}", field.docs.as_twoline("    - "))?;
@@ -257,5 +257,5 @@ fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
         _ => (),
     }
 
-    "".to_string()
+    String::new()
 }

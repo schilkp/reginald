@@ -5,6 +5,7 @@ use std::usize;
 
 use crate::error::Error;
 
+#[must_use]
 pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     let mut s = s.to_string();
     while s.len() < len {
@@ -13,13 +14,14 @@ pub fn str_pad_to_length(s: &str, pad_char: char, len: usize) -> String {
     s
 }
 
+#[must_use]
 pub fn table_col_width(rows: &Vec<Vec<String>>) -> Vec<usize> {
     if rows.is_empty() {
         return vec![];
     }
 
     // Number of cols:
-    let max_cols = rows.iter().map(|row| row.len()).max().unwrap();
+    let max_cols = rows.iter().map(std::vec::Vec::len).max().unwrap();
 
     // Determine maximum width of all columns:
     let mut col_widths: Vec<usize> = vec![];
@@ -36,6 +38,7 @@ pub fn table_col_width(rows: &Vec<Vec<String>>) -> Vec<usize> {
     col_widths
 }
 
+#[must_use]
 pub fn str_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) -> String {
     if rows.is_empty() {
         return String::from('\n');
@@ -56,11 +59,12 @@ pub fn str_table(rows: &Vec<Vec<String>>, prefix: &str, seperator: &str) -> Stri
             write!(&mut line, "{col: <width$}", width = col_widths[col_idx]).unwrap();
         }
         result.push_str(line.trim_end());
-        result.push('\n')
+        result.push('\n');
     }
     result
 }
 
+#[must_use]
 pub fn numbers_as_ranges<T>(mut i: Vec<T>) -> Vec<RangeInclusive<T>>
 where
     T: Ord + From<u8> + Add<T, Output = T> + Eq + Copy,
@@ -100,7 +104,7 @@ where
 
 pub fn filename(s: &Path) -> Result<String, Error> {
     s.file_name()
-        .ok_or(Error::GeneratorError("".into()))
+        .ok_or(Error::GeneratorError(String::new()))
         .map(|x| x.to_string_lossy().to_string())
 }
 

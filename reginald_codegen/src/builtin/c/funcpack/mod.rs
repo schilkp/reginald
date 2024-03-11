@@ -216,7 +216,7 @@ fn generate_enum(
 
     writeln!(out)?;
     c_generate_doxy_comment(out, &e.docs, "", None)?;
-    writeln!(out, "enum {}_{} {{", code_prefix, name)?;
+    writeln!(out, "enum {code_prefix}_{name} {{")?;
     for entry in e.entries.values() {
         c_generate_doxy_comment(out, &entry.docs, "  ", None)?;
         writeln!(out, "  {}_{}_{} = 0x{:X}U,", macro_prefix, c_macro(name), c_macro(&entry.name), entry.value)?;
@@ -244,10 +244,10 @@ fn generate_enum(
                     writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
                 }
                 (0, &end) => {
-                    writeln!(out, "  if (val <= 0x{:X}U) return true;", end)?;
+                    writeln!(out, "  if (val <= 0x{end:X}U) return true;")?;
                 }
                 (&start, &end) => {
-                    writeln!(out, "  if (0x{:X}U <= val && val <= 0x{:X}U) return true;", start, end)?;
+                    writeln!(out, "  if (0x{start:X}U <= val && val <= 0x{end:X}U) return true;")?;
                 }
             }
         }
@@ -263,7 +263,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
 
     if block.instances.len() > 1 && block.register_templates.len() > 1 {
         let macro_prefix = c_macro(&map.map_name);
-        let macro_block_name = c_macro(&block.name.to_owned());
+        let macro_block_name = c_macro(&block.name.clone());
 
         for instance in block.instances.values() {
             if let Some(adr) = &instance.adr {
@@ -284,7 +284,7 @@ fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block
                     format!("#define {}_{}_OFFSET", macro_prefix, macro_template_name),
                     format!("(0x{:X}U)", template_offset),
                     format!("//!< Offset of {} register from {} block start", template_name, block.name),
-                ])
+                ]);
             }
         }
     }
@@ -306,7 +306,7 @@ fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template
 
     // Register section header:
     writeln!(out)?;
-    c_generate_section_header_comment(out, &format!("{} Register", generic_template_name))?;
+    c_generate_section_header_comment(out, &format!("{generic_template_name} Register"))?;
     if !template.docs.is_empty() {
         write!(out, "{}", template.docs.as_multiline("// "))?;
     }
@@ -334,7 +334,7 @@ fn generate_register_defines(
                     format!("#define {}_{}", macro_prefix, c_macro(&instance_name)),
                     format!("(0x{:X}U)", template_offset + instance_adr),
                     format!("//!< {} register address", instance_name),
-                ])
+                ]);
             }
         }
     }
@@ -344,7 +344,7 @@ fn generate_register_defines(
             format!("#define {}_{}_RESET", macro_prefix, macro_reg_template),
             format!("(0x{:X}U)", reset_val),
             format!("//!< {} register reset value", generic_template_name),
-        ])
+        ]);
     }
 
     if let Some(always_write) = &template.always_write {

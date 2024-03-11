@@ -254,8 +254,8 @@ impl Generator<'_> {
 
         for (comment, constdef) in lines {
             writeln!(out)?;
-            writeln!(out, "{}", comment)?;
-            writeln!(out, "{}", constdef)?;
+            writeln!(out, "{comment}")?;
+            writeln!(out, "{constdef}")?;
         }
 
         Ok(())
@@ -356,8 +356,8 @@ impl Generator<'_> {
         }
         for (comment, constdef) in lines {
             writeln!(out)?;
-            writeln!(out, "{}", comment)?;
-            writeln!(out, "{}", constdef)?;
+            writeln!(out, "{comment}")?;
+            writeln!(out, "{constdef}")?;
         }
 
         Ok(())
@@ -373,7 +373,7 @@ impl Generator<'_> {
 
         writeln!(out)?;
 
-        writeln!(out, "/// {} register", template_name)?;
+        writeln!(out, "/// {template_name} register")?;
         if !block.docs.is_empty() {
             writeln!(out, "///")?;
             write!(out, "{}", block.docs.as_multiline("/// "))?;
@@ -455,16 +455,14 @@ impl Generator<'_> {
                 } else {
                     writeln!(out, "(({field_value}) as {enum_type}).{conversion},")?;
                 }
+            } else if matches!(field.accepts, FieldType::Bool) {
+                writeln!(out, "{field_value} != 0,")?;
             } else {
-                if matches!(field.accepts, FieldType::Bool) {
-                    writeln!(out, "{field_value} != 0,")?;
+                let field_type = self.register_struct_member_type(field)?;
+                if field_type == uint_type {
+                    writeln!(out, "{field_value},")?;
                 } else {
-                    let field_type = self.register_struct_member_type(field)?;
-                    if field_type == uint_type {
-                        writeln!(out, "{field_value},")?;
-                    } else {
-                        writeln!(out, "({field_value}) as {field_type},")?;
-                    }
+                    writeln!(out, "({field_value}) as {field_type},")?;
                 }
             }
         }
@@ -493,12 +491,10 @@ impl Generator<'_> {
                 } else {
                     format!("((value.{field_name} as {enum_type}) as {uint_type})")
                 }
+            } else if field_type == uint_type {
+                format!("value.{field_name}")
             } else {
-                if field_type == uint_type {
-                    format!("value.{field_name}")
-                } else {
-                    format!("(value.{field_name} as {uint_type})")
-                }
+                format!("(value.{field_name} as {uint_type})")
             };
             writeln!(out, "({value} & 0x{:X}) << {};", unpositioned_mask(field.mask), lsb_pos(field.mask),)?;
         }

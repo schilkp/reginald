@@ -10,7 +10,7 @@ pub struct IndentWrite<'a> {
 impl Write for IndentWrite<'_> {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         for c in s.chars() {
-            self.process_char(&c)?
+            self.process_char(&c)?;
         }
         Ok(())
     }
@@ -31,9 +31,7 @@ impl IndentWrite<'_> {
     }
 
     pub fn pop_indent(&mut self) {
-        if self.current_indent == 0 {
-            panic!("Cannot reduce indent below 0");
-        }
+        assert!(self.current_indent != 0, "Cannot reduce indent below 0");
         self.current_indent -= 1;
     }
 
@@ -58,7 +56,7 @@ impl IndentWrite<'_> {
                 self.w.write_char('\n')?;
                 self.newline_buffered = false;
                 for _ in 0..self.current_indent {
-                    self.w.write_str(&self.indent)?
+                    self.w.write_str(&self.indent)?;
                 }
                 self.w.write_char(*c)
             }
