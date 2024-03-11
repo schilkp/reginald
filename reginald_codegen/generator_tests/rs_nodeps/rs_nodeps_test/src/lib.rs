@@ -107,7 +107,6 @@ mod tests {
         assert!(err.contains("Stat unpack error"));
     }
 
-
     #[test]
     fn enum_validation() {
         use crate::out::*;

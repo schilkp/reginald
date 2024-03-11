@@ -1,7 +1,5 @@
 use std::fmt::Write;
 
-use clap::Parser;
-
 use crate::{
     error::Error,
     indent_write::IndentWrite,
@@ -11,6 +9,7 @@ use crate::{
     },
     utils::filename,
 };
+use clap::Parser;
 
 use super::{generate_doc_comment, rs_const, rs_fitting_unsigned_type, rs_pascalcase, rs_snakecase};
 

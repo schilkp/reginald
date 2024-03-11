@@ -1,4 +1,3 @@
-#![warn(clippy::pedantic)]
 pub mod builtin;
 pub mod error;
 pub mod indent_write;
