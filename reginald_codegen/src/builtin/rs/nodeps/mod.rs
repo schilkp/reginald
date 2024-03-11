@@ -4,6 +4,7 @@ use clap::Parser;
 
 use crate::{
     error::Error,
+    indent_write::IndentWrite,
     regmap::{
         bits::{bitmask_from_width, lsb_pos, mask_width, msb_pos, unpositioned_mask},
         Enum, Field, FieldType, Register, RegisterBlock, RegisterMap,
@@ -57,7 +58,10 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
         map,
     };
 
-    generator.generate(out)
+    let mut out = IndentWrite::new(out, "    ");
+    generator.generate(&mut out)?;
+    out.flush()?;
+    Ok(())
 }
 
 struct Generator<'a> {
@@ -67,7 +71,7 @@ struct Generator<'a> {
     address_type: String,
 }
 impl Generator<'_> {
-    fn generate(&self, out: &mut dyn Write) -> Result<(), Error> {
+    fn generate(&self, out: &mut IndentWrite) -> Result<(), Error> {
         self.generate_header(out)?;
 
         if !self.map.shared_enums.is_empty() {
@@ -86,7 +90,7 @@ impl Generator<'_> {
         Ok(())
     }
 
-    fn generate_header(&self, out: &mut dyn Write) -> Result<(), Error> {
+    fn generate_header(&self, out: &mut IndentWrite) -> Result<(), Error> {
         writeln!(out, "/// {} Registers", self.map.map_name)?;
         writeln!(out, "///")?;
         if let Some(input_file) = &self.map.from_file {
@@ -115,78 +119,78 @@ impl Generator<'_> {
         Ok(())
     }
 
-    fn generate_shared_enums(&self, out: &mut dyn Write) -> Result<(), Error> {
+    fn generate_shared_enums(&self, out: &mut IndentWrite) -> Result<(), Error> {
         for shared_enum in self.map.shared_enums.values() {
-            self.generate_enum(out, shared_enum, "")?;
+            self.generate_enum(out, shared_enum)?;
         }
 
         Ok(())
     }
 
-    fn generate_enum(&self, out: &mut dyn Write, e: &Enum, indent: &str) -> Result<(), Error> {
+    fn generate_enum(&self, out: &mut IndentWrite, e: &Enum) -> Result<(), Error> {
         let uint_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
 
         writeln!(out)?;
-        generate_doc_comment(out, &e.docs, indent)?;
-        writeln!(out, "{indent}#[derive(PartialEq, Debug)]")?;
-        writeln!(out, "{indent}#[repr({uint_type})]")?;
-        writeln!(out, "{indent}pub enum {} {{", rs_pascalcase(&e.name))?;
+        generate_doc_comment(out, &e.docs, "")?;
+        writeln!(out, "#[derive(PartialEq, Debug)]")?;
+        writeln!(out, "#[repr({uint_type})]")?;
+        writeln!(out, "pub enum {} {{", rs_pascalcase(&e.name))?;
         for entry in e.entries.values() {
-            generate_doc_comment(out, &entry.docs, &(indent.to_owned() + "    "))?;
-            writeln!(out, "{indent}    {} = 0x{:x},", rs_pascalcase(&entry.name), entry.value)?;
+            generate_doc_comment(out, &entry.docs, "    ")?;
+            writeln!(out, "    {} = 0x{:x},", rs_pascalcase(&entry.name), entry.value)?;
         }
-        writeln!(out, "{indent}}}")?;
+        writeln!(out, "}}")?;
 
-        self.generate_enum_impl(out, e, indent)?;
+        self.generate_enum_impl(out, e)?;
 
         Ok(())
     }
 
-    fn generate_enum_impl(&self, out: &mut dyn Write, e: &Enum, indent: &str) -> Result<(), Error> {
+    fn generate_enum_impl(&self, out: &mut IndentWrite, e: &Enum) -> Result<(), Error> {
         let uint_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
 
         if e.can_unpack_min_bitwidth() {
             // If the enum can represent every value from its minimal bitwidth,
             // implement a wrapping conversion.
             writeln!(out)?;
-            writeln!(out, "{indent}impl From<{uint_type}> for {} {{", rs_pascalcase(&e.name))?;
-            writeln!(out, "{indent}    fn from(value: {uint_type}) -> Self {{")?;
-            writeln!(out, "{indent}        match value & 0x{:X} {{", bitmask_from_width(e.min_bitdwith()))?;
+            writeln!(out, "impl From<{uint_type}> for {} {{", rs_pascalcase(&e.name))?;
+            writeln!(out, "    fn from(value: {uint_type}) -> Self {{")?;
+            writeln!(out, "        match value & 0x{:X} {{", bitmask_from_width(e.min_bitdwith()))?;
             for entry in e.entries.values() {
-                writeln!(out, "{indent}            0x{:X} => Self::{},", entry.value, rs_pascalcase(&entry.name))?;
+                writeln!(out, "            0x{:X} => Self::{},", entry.value, rs_pascalcase(&entry.name))?;
             }
-            writeln!(out, "{indent}            _ => unreachable!(),")?;
-            writeln!(out, "{indent}        }}")?;
-            writeln!(out, "{indent}    }}")?;
-            writeln!(out, "{indent}}}")?;
+            writeln!(out, "            _ => unreachable!(),")?;
+            writeln!(out, "        }}")?;
+            writeln!(out, "    }}")?;
+            writeln!(out, "}}")?;
         } else {
             writeln!(out)?;
-            writeln!(out, "{indent}impl TryFrom<{uint_type}> for {} {{", rs_pascalcase(&e.name))?;
+            writeln!(out, "impl TryFrom<{uint_type}> for {} {{", rs_pascalcase(&e.name))?;
             if self.opts.unpacking_error_msg {
-                writeln!(out, "{indent}    type Error = &'static str;")?;
+                writeln!(out, "    type Error = &'static str;")?;
             } else {
-                writeln!(out, "{indent}    type Error = ();")?;
+                writeln!(out, "    type Error = ();")?;
             }
             writeln!(out)?;
-            writeln!(out, "{indent}    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
-            writeln!(out, "{indent}        match value {{")?;
+            writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
+            writeln!(out, "        match value {{")?;
             for entry in e.entries.values() {
-                writeln!(out, "{indent}            0x{:X} => Ok(Self::{}),", entry.value, rs_pascalcase(&entry.name))?;
+                writeln!(out, "            0x{:X} => Ok(Self::{}),", entry.value, rs_pascalcase(&entry.name))?;
             }
             if self.opts.unpacking_error_msg {
-                writeln!(out, "{indent}            _ => Err(\"{} unpack error\"),", rs_pascalcase(&e.name))?;
+                writeln!(out, "            _ => Err(\"{} unpack error\"),", rs_pascalcase(&e.name))?;
             } else {
-                writeln!(out, "{indent}            _ => Err(()),")?;
+                writeln!(out, "            _ => Err(()),")?;
             }
-            writeln!(out, "{indent}        }}")?;
-            writeln!(out, "{indent}    }}")?;
-            writeln!(out, "{indent}}}")?;
+            writeln!(out, "        }}")?;
+            writeln!(out, "    }}")?;
+            writeln!(out, "}}")?;
         }
 
         Ok(())
     }
 
-    fn generate_register_block_module(&self, out: &mut dyn Write, block: &RegisterBlock) -> Result<(), Error> {
+    fn generate_register_block_module(&self, out: &mut IndentWrite, block: &RegisterBlock) -> Result<(), Error> {
         writeln!(out)?;
         if block.from_explicit_listing_block {
             writeln!(out, "/// {} register block", block.name)?;
@@ -199,6 +203,8 @@ impl Generator<'_> {
         }
         writeln!(out, "pub mod {} {{", rs_snakecase(&block.name))?;
 
+        out.push_indent();
+
         if block.instances.len() > 1 && block.register_templates.len() > 1 {
             self.generate_register_block_consts(out, block)?;
         }
@@ -207,11 +213,13 @@ impl Generator<'_> {
             self.generate_register(out, block, template)?;
         }
 
+        out.pop_indent();
+
         writeln!(out, "}}")?;
         Ok(())
     }
 
-    fn generate_register_block_consts(&self, out: &mut dyn Write, block: &RegisterBlock) -> Result<(), Error> {
+    fn generate_register_block_consts(&self, out: &mut IndentWrite, block: &RegisterBlock) -> Result<(), Error> {
         let mut lines: Vec<(String, String)> = vec![]; // Doc comment, const definition.
 
         if block.instances.len() > 1 && block.register_templates.len() > 1 {
@@ -231,26 +239,31 @@ impl Generator<'_> {
 
         for (comment, constdef) in lines {
             writeln!(out)?;
-            writeln!(out, "    {}", comment)?;
-            writeln!(out, "    {}", constdef)?;
+            writeln!(out, "{}", comment)?;
+            writeln!(out, "{}", constdef)?;
         }
 
         Ok(())
     }
 
-    fn generate_register(&self, out: &mut dyn Write, block: &RegisterBlock, template: &Register) -> Result<(), Error> {
+    fn generate_register(
+        &self,
+        out: &mut IndentWrite,
+        block: &RegisterBlock,
+        template: &Register,
+    ) -> Result<(), Error> {
         let template_name = template.name_in_block(block);
 
         if block.from_explicit_listing_block {
             writeln!(out)?;
-            writeln!(out, "    // ==== {template_name}: ====")?;
+            writeln!(out, "// ==== {template_name}: ====")?;
         }
 
         self.generate_register_consts(out, block, template)?;
 
         for field in template.fields.values() {
             if let FieldType::LocalEnum(local_enum) = &field.accepts {
-                self.generate_enum(out, local_enum, "    ")?;
+                self.generate_enum(out, local_enum)?;
             }
         }
 
@@ -264,7 +277,7 @@ impl Generator<'_> {
 
     fn generate_register_consts(
         &self,
-        out: &mut dyn Write,
+        out: &mut IndentWrite,
         block: &RegisterBlock,
         template: &Register,
     ) -> Result<(), Error> {
@@ -328,8 +341,8 @@ impl Generator<'_> {
         }
         for (comment, constdef) in lines {
             writeln!(out)?;
-            writeln!(out, "    {}", comment)?;
-            writeln!(out, "    {}", constdef)?;
+            writeln!(out, "{}", comment)?;
+            writeln!(out, "{}", constdef)?;
         }
 
         Ok(())
@@ -337,7 +350,7 @@ impl Generator<'_> {
 
     fn generate_register_struct(
         &self,
-        out: &mut dyn Write,
+        out: &mut IndentWrite,
         block: &RegisterBlock,
         template: &Register,
     ) -> Result<(), Error> {
@@ -345,13 +358,13 @@ impl Generator<'_> {
 
         writeln!(out)?;
 
-        writeln!(out, "    /// {} register", template_name)?;
+        writeln!(out, "/// {} register", template_name)?;
         if !block.docs.is_empty() {
-            writeln!(out, "    ///")?;
-            write!(out, "{}", block.docs.as_multiline("    /// "))?;
+            writeln!(out, "///")?;
+            write!(out, "{}", block.docs.as_multiline("/// "))?;
         }
-        writeln!(out, "    #[derive(PartialEq, Debug)]")?;
-        writeln!(out, "    pub struct {} {{", rs_pascalcase(&template_name))?;
+        writeln!(out, "#[derive(PartialEq, Debug)]")?;
+        writeln!(out, "pub struct {} {{", rs_pascalcase(&template_name))?;
 
         for (idx, field) in template.fields.values().enumerate() {
             if idx != 0 {
@@ -359,11 +372,11 @@ impl Generator<'_> {
             }
             let field_type = self.register_struct_member_type(field)?;
             let field_name = rs_snakecase(&field.name);
-            generate_doc_comment(out, &field.docs, "        ")?;
-            writeln!(out, "        pub {field_name}: {field_type},")?;
+            generate_doc_comment(out, &field.docs, "    ")?;
+            writeln!(out, "    pub {field_name}: {field_type},")?;
         }
 
-        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
 
         Ok(())
     }
@@ -379,7 +392,7 @@ impl Generator<'_> {
 
     fn generate_register_impl(
         &self,
-        out: &mut dyn Write,
+        out: &mut IndentWrite,
         block: &RegisterBlock,
         template: &Register,
     ) -> Result<(), Error> {
@@ -389,25 +402,25 @@ impl Generator<'_> {
 
         if template.can_always_unpack() {
             writeln!(out)?;
-            writeln!(out, "    impl From<{uint_type}> for {struct_name} {{",)?;
-            writeln!(out, "        fn from(value: {uint_type}) -> Self {{")?;
-            writeln!(out, "            Self {{")?;
+            writeln!(out, "impl From<{uint_type}> for {struct_name} {{",)?;
+            writeln!(out, "    fn from(value: {uint_type}) -> Self {{")?;
+            writeln!(out, "        Self {{")?;
         } else {
             writeln!(out)?;
-            writeln!(out, "    impl TryFrom<{uint_type}> for {struct_name} {{",)?;
+            writeln!(out, "impl TryFrom<{uint_type}> for {struct_name} {{",)?;
             if self.opts.unpacking_error_msg {
-                writeln!(out, "        type Error = &'static str;")?;
+                writeln!(out, "    type Error = &'static str;")?;
             } else {
-                writeln!(out, "        type Error = ();")?;
+                writeln!(out, "    type Error = ();")?;
             }
-            writeln!(out, "        fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
-            writeln!(out, "            Ok(Self {{")?;
+            writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
+            writeln!(out, "        Ok(Self {{")?;
         }
 
         for field in template.fields.values() {
             let field_name = rs_snakecase(&field.name);
             let field_value = format!("(value & 0x{:X}) >> {}", field.mask, lsb_pos(field.mask));
-            write!(out, "                ")?;
+            write!(out, "            ")?;
             write!(out, "{field_name}: ")?;
             if let Some(e) = field.get_enum() {
                 let enum_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
@@ -436,21 +449,21 @@ impl Generator<'_> {
         }
 
         if template.can_always_unpack() {
-            writeln!(out, "            }}")?;
+            writeln!(out, "        }}")?;
         } else {
-            writeln!(out, "            }})")?;
+            writeln!(out, "        }})")?;
         }
-        writeln!(out, "        }}")?;
         writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
 
         writeln!(out)?;
-        writeln!(out, "    impl From<{}> for {uint_type} {{", rs_pascalcase(&template_name))?;
-        writeln!(out, "        fn from(value: {}) -> Self {{", rs_pascalcase(&template_name))?;
+        writeln!(out, "impl From<{}> for {uint_type} {{", rs_pascalcase(&template_name))?;
+        writeln!(out, "    fn from(value: {}) -> Self {{", rs_pascalcase(&template_name))?;
         for field in template.fields.values() {
             let field_name = rs_snakecase(&field.name);
             let field_type = self.register_struct_member_type(field)?;
 
-            write!(out, "            ")?;
+            write!(out, "        ")?;
             write!(out, "let {field_name}: Self = ")?;
             let value = if let Some(e) = field.get_enum() {
                 let enum_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
@@ -468,7 +481,7 @@ impl Generator<'_> {
             };
             writeln!(out, "({value} & 0x{:X}) << {};", unpositioned_mask(field.mask), lsb_pos(field.mask),)?;
         }
-        write!(out, "            ")?;
+        write!(out, "        ")?;
         for (idx, field) in template.fields.values().enumerate() {
             if idx != 0 {
                 write!(out, " | ")?;
@@ -480,8 +493,8 @@ impl Generator<'_> {
         }
         writeln!(out)?;
 
-        writeln!(out, "        }}")?;
         writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
 
         Ok(())
     }
