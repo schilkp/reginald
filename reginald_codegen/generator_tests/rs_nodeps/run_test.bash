@@ -12,8 +12,14 @@ cd "${0%/*}"
 rm -rf rs_nodeps_test/src/out.rs
 
 # Run reginald:
-echo "Generating..."
+echo "Generating (default)..."
 cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out.rs rs-nodeps
+
+echo "Generating (unpacking error msgs)..."
+cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out_errormsgs.rs rs-nodeps --unpacking-error-msg=true
+
+echo "Generating (no register block mods)..."
+cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out_noregblockmods.rs rs-nodeps --register-block-mods=false
 
 # Compile + Run test exe:
 echo "Testing..."

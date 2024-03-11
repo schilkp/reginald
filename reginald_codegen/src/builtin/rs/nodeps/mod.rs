@@ -34,6 +34,17 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(default_value = "false"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub unpacking_error_msg: bool,
+
+    /// Wrap each register block into its own module.
+    ///
+    /// Prevents possible name collisions between registers, but makes
+    /// accessing registers a little annoying. If disabling this does
+    /// not cause naming conflicts for a given map, doing so is recommend.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub register_block_mods: bool,
 }
 
 // ====== Generator ============================================================
@@ -201,9 +212,11 @@ impl Generator<'_> {
             writeln!(out, "///")?;
             write!(out, "{}", block.docs.as_multiline("/// "))?;
         }
-        writeln!(out, "pub mod {} {{", rs_snakecase(&block.name))?;
 
-        out.push_indent();
+        if self.opts.register_block_mods {
+            writeln!(out, "pub mod {} {{", rs_snakecase(&block.name))?;
+            out.push_indent();
+        }
 
         if block.instances.len() > 1 && block.register_templates.len() > 1 {
             self.generate_register_block_consts(out, block)?;
@@ -213,9 +226,11 @@ impl Generator<'_> {
             self.generate_register(out, block, template)?;
         }
 
-        out.pop_indent();
+        if self.opts.register_block_mods {
+            out.pop_indent();
+            writeln!(out, "}}")?;
+        }
 
-        writeln!(out, "}}")?;
         Ok(())
     }
 
@@ -384,7 +399,13 @@ impl Generator<'_> {
     fn register_struct_member_type(&self, field: &Field) -> Result<String, Error> {
         match &field.accepts {
             FieldType::LocalEnum(local_enum) => Ok(rs_pascalcase(&local_enum.name)),
-            FieldType::SharedEnum(shared_enum) => Ok(format!("super::{}", rs_pascalcase(&shared_enum.name))),
+            FieldType::SharedEnum(shared_enum) => {
+                if self.opts.register_block_mods {
+                    Ok(format!("super::{}", rs_pascalcase(&shared_enum.name)))
+                } else {
+                    Ok(rs_pascalcase(&shared_enum.name))
+                }
+            }
             FieldType::UInt => rs_fitting_unsigned_type(mask_width(field.mask)),
             FieldType::Bool => Ok("bool".to_string()),
         }
