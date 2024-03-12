@@ -3,12 +3,9 @@ pub mod regdump;
 use std::fmt::Write;
 
 use crate::{
+    bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, msb_pos},
     error::Error,
-    regmap::{
-        access_string,
-        bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, msb_pos},
-        FieldType, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue,
-    },
+    regmap::{access_string, FieldType, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue},
     utils::filename,
 };
 

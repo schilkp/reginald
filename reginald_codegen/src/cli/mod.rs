@@ -53,7 +53,7 @@ enum Generator {
     CMacromap(c::macromap::GeneratorOpts),
     /// Markdown datasheet
     MdDatasheet,
-    /// Decode register dump
+    /// Markdown decode report of register dump
     MdRegdumpDecode(md::datasheet::regdump::GeneratorOpts),
     /// Rust module with no dependency
     RsNodeps(rs::nodeps::GeneratorOpts),

@@ -1,12 +1,10 @@
 use std::fmt::Write;
 
 use crate::{
+    bits::{bitmask_from_width, lsb_pos, mask_width, msb_pos, unpositioned_mask},
     error::Error,
     indent_write::IndentWrite,
-    regmap::{
-        bits::{bitmask_from_width, lsb_pos, mask_width, msb_pos, unpositioned_mask},
-        Enum, Field, FieldType, Register, RegisterBlock, RegisterMap,
-    },
+    regmap::{Enum, Field, FieldType, Register, RegisterBlock, RegisterMap},
     utils::filename,
 };
 use clap::Parser;
@@ -604,7 +602,7 @@ impl Generator<'_> {
             }
         }
 
-        // Or all fields and always write fields together:
+        // Bitwise-Or all fields and always write fields together:
         write!(out, "        ")?;
         for (idx, field) in template.fields.values().enumerate() {
             if idx != 0 {

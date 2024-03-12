@@ -6,13 +6,11 @@ use std::{
     rc::Rc,
 };
 
-use self::{
-    bits::{bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask},
-    convert::convert_map,
-};
-use crate::{error::Error, regmap::bits::lsb_pos, utils::numbers_as_ranges};
+use crate::bits::{bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask};
+use crate::{error::Error, bits::lsb_pos, utils::numbers_as_ranges};
 
-pub mod bits;
+use self::convert::convert_map;
+
 mod convert;
 mod listing;
 mod validate;

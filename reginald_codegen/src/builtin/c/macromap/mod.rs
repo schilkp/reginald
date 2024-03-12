@@ -5,7 +5,7 @@ use clap::Parser;
 
 use crate::{
     error::Error,
-    regmap::bits::lsb_pos,
+    bits::lsb_pos,
     regmap::{Register, RegisterBlock, RegisterMap},
     utils::{filename, str_table},
 };
