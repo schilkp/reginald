@@ -137,7 +137,7 @@ impl Generator<'_> {
         }
 
         // Indicate which generator was used:
-        writeln!(out, "/// Generator: rs-nodeps")?;
+        writeln!(out, "/// Generator: rs-struct-no-deps")?;
 
         // Map top-level documentation:
         if !self.map.docs.is_empty() {

@@ -5,9 +5,6 @@ Philipp Schilk
 
 ### TODOs:
 
-- Cleanup/Refactor generators
-    - Move options/naming stuff into opts struct impl?
-
 - TEST NO-CONTINOUS FIELDS!
     - With enum!
 
