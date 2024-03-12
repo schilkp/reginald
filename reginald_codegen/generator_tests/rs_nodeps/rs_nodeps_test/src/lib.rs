@@ -1,4 +1,3 @@
-#![warn(clippy::pedantic)]
 #![no_std]
 
 pub mod out;

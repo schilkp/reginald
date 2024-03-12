@@ -13,13 +13,13 @@ rm -rf rs_nodeps_test/src/out.rs
 
 # Run reginald:
 echo "Generating (default)..."
-cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out.rs rs-nodeps
+cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out.rs rs-nodeps --enum-derive=Debug --enum-derive=PartialEq --struct-derive=Debug
 
 echo "Generating (unpacking error msgs)..."
-cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out_errormsgs.rs rs-nodeps --unpacking-error-msg=true
+cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out_errormsgs.rs rs-nodeps --unpacking-error-msg=true --enum-derive=Debug --enum-derive=PartialEq --struct-derive=Debug
 
 echo "Generating (no register block mods)..."
-cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out_noregblockmods.rs rs-nodeps --register-block-mods=false
+cargo run --quiet --color always -p "reginald_codegen" -- gen -i map.yaml -o rs_nodeps_test/src/out_noregblockmods.rs rs-nodeps --register-block-mods=false --enum-derive=Debug --enum-derive=PartialEq --struct-derive=Debug
 
 # Compile + Run test exe:
 echo "Testing..."

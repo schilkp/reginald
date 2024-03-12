@@ -114,12 +114,10 @@ pub struct RegisterMap {
 }
 
 impl Docs {
-    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.brief.is_none() && self.doc.is_none()
     }
 
-    #[must_use]
     pub fn as_multiline(&self, prefix: &str) -> String {
         let mut out = String::new();
         if let Some(brief) = &self.brief {
@@ -138,7 +136,6 @@ impl Docs {
         out
     }
 
-    #[must_use]
     pub fn as_twoline(&self, prefix: &str) -> String {
         let mut out = String::new();
         if let Some(brief) = &self.brief {
@@ -161,7 +158,6 @@ impl Docs {
 
 impl Enum {
     /// Check if enum can represent every possible value that fits into 'mask'
-    #[must_use]
     pub fn can_unpack_mask(&self, unpos_mask: TypeValue) -> bool {
         // All enum values that fit into the mask:
         let enum_vals: HashSet<u64> =
@@ -175,26 +171,22 @@ impl Enum {
     }
 
     /// Minimum bitwidth required to represent all values in this enum.
-    #[must_use]
     pub fn min_bitdwith(&self) -> TypeBitwidth {
         msb_pos(self.max_value()) + 1
     }
 
     /// Check if enum can repreent every possible value of a N-bit number, where N is the
     /// minimum bitwidth of this enum.
-    #[must_use]
     pub fn can_unpack_min_bitwidth(&self) -> bool {
         self.can_unpack_mask(bitmask_from_width(self.min_bitdwith()))
     }
 
-    #[must_use]
     pub fn max_value(&self) -> TypeValue {
         self.entries.values().map(|x| x.value).max().unwrap_or(0)
     }
 }
 
 impl Field {
-    #[must_use]
     pub fn accepts_enum(&self) -> bool {
         match &self.accepts {
             FieldType::UInt => false,
@@ -204,7 +196,6 @@ impl Field {
         }
     }
 
-    #[must_use]
     pub fn get_enum(&self) -> Option<&Enum> {
         match &self.accepts {
             FieldType::UInt => None,
@@ -214,7 +205,6 @@ impl Field {
         }
     }
 
-    #[must_use]
     pub fn enum_entries(&self) -> Option<impl Iterator<Item = &EnumEntry>> {
         match &self.accepts {
             FieldType::UInt => None,
@@ -224,7 +214,6 @@ impl Field {
         }
     }
 
-    #[must_use]
     pub fn can_always_unpack(&self) -> bool {
         match &self.accepts {
             FieldType::UInt => true,
@@ -255,7 +244,6 @@ pub struct RegisterBitrange<'a> {
 }
 
 impl Register {
-    #[must_use]
     pub fn split_to_bitranges(&self) -> Vec<RegisterBitrange> {
         let mut result = vec![];
 
@@ -300,7 +288,6 @@ impl Register {
         result
     }
 
-    #[must_use]
     pub fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&Field> {
         for field in self.fields.values() {
             if (1 << bitpos) & field.mask != 0 {
@@ -311,7 +298,6 @@ impl Register {
         self.fields.values().find(|&field| (1 << bitpos) & field.mask != 0)
     }
 
-    #[must_use]
     pub fn always_write_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<TypeValue> {
         if let Some(AlwaysWrite { mask, value }) = self.always_write {
             if (1 << bitpos) & mask != 0 {
@@ -322,12 +308,10 @@ impl Register {
         None
     }
 
-    #[must_use]
     pub fn empty_at_bitpos(&self, bitpos: TypeBitwidth) -> bool {
         self.always_write_at_bitpos(bitpos).is_none() && self.field_at_bitpos(bitpos).is_none()
     }
 
-    #[must_use]
     pub fn can_always_unpack(&self) -> bool {
         for field in self.fields.values() {
             if !field.can_always_unpack() {
@@ -337,7 +321,6 @@ impl Register {
         true
     }
 
-    #[must_use]
     pub fn name_in_block(&self, block: &RegisterBlock) -> String {
         if self.name.is_empty() {
             String::from(&block.name)
@@ -346,7 +329,6 @@ impl Register {
         }
     }
 
-    #[must_use]
     pub fn name_in_instance(&self, instance: &Instance) -> String {
         if self.name.is_empty() {
             String::from(&instance.name)
@@ -395,7 +377,6 @@ impl RegisterMap {
         Self::from_hjson(inp.as_bytes())
     }
 
-    #[must_use]
     pub fn max_register_width(&self) -> TypeBitwidth {
         let mut max_width = 0;
         for block in self.register_blocks.values() {
@@ -427,7 +408,6 @@ pub struct PhysicalRegister<'a> {
 }
 
 impl RegisterMap {
-    #[must_use]
     pub fn physical_registers(&self) -> Vec<PhysicalRegister> {
         let mut result = vec![];
         for block in self.register_blocks.values() {
@@ -464,7 +444,6 @@ impl RegisterMap {
     }
 }
 
-#[must_use]
 pub fn access_string(v: &Access) -> String {
     let mut result = String::new();
     for i in v {

@@ -4,7 +4,6 @@ use crate::utils::numbers_as_ranges;
 
 use super::{TypeBitwidth, TypeValue, MAX_BITWIDTH};
 
-#[must_use]
 pub fn bitmask_from_width(width: TypeBitwidth) -> TypeValue {
     if width == 0 {
         0
@@ -17,18 +16,15 @@ pub fn bitmask_from_width(width: TypeBitwidth) -> TypeValue {
     }
 }
 
-#[must_use]
 pub fn bitmask_from_range(range: &RangeInclusive<TypeBitwidth>) -> TypeValue {
     let width = range.end() - range.start() + 1;
     bitmask_from_width(width) << range.start()
 }
 
-#[must_use]
 pub fn bitmask_is_contigous(mask: TypeValue) -> bool {
     bitmask_from_range(&(lsb_pos(mask)..=msb_pos(mask))) == mask
 }
 
-#[must_use]
 pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
     if val == 0 {
         0
@@ -37,7 +33,6 @@ pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
     }
 }
 
-#[must_use]
 pub fn lsb_pos(val: TypeValue) -> TypeBitwidth {
     if val == 0 {
         0
@@ -53,12 +48,10 @@ pub fn lsb_pos(val: TypeValue) -> TypeBitwidth {
     }
 }
 
-#[must_use]
 pub fn unpositioned_mask(mask: TypeValue) -> TypeValue {
     mask >> lsb_pos(mask)
 }
 
-#[must_use]
 pub fn mask_width(mask: TypeValue) -> TypeBitwidth {
     if mask == 0 {
         0
@@ -67,12 +60,10 @@ pub fn mask_width(mask: TypeValue) -> TypeBitwidth {
     }
 }
 
-#[must_use]
 pub fn fits_into_bitwidth(val: TypeValue, bitwidth: TypeBitwidth) -> bool {
     (!bitmask_from_width(bitwidth)) & val == 0
 }
 
-#[must_use]
 pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
     let mut bits = vec![];
 
@@ -85,7 +76,6 @@ pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
     bits
 }
 
-#[must_use]
 pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> {
     numbers_as_ranges(mask_to_bits(mask))
 }
