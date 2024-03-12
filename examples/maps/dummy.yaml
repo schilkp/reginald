@@ -20,8 +20,7 @@ registers:
     doc: More extensive documentation.
     bitwidth: 8
     always_write:
-      mask: 0b00110000
-      val:  0b00010000
+      - { bits: ["4-5"], val: 0x1 }
     fields:
       FIELD1:
         bits: [7,6]

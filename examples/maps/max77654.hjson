@@ -81,10 +81,9 @@
         adr: 4,
         reset_val: 0,
         brief: "Global Interrupt flag register 1.",
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           LDO1_F: {
             bits: [6],
@@ -250,10 +249,9 @@
         adr: 8,
         reset_val: 127,
         brief: "Interrupt Masking 1",
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           LDO1_M: {
             bits: [6],
@@ -534,10 +532,9 @@
             adr: 0,
             reset_val: 1,
             brief: "GPIO Configuration",
-            always_write: {
-              mask: 192,
-              val: 0
-            },
+            always_write: [
+              { bits: ["7-6"], val: 0 }
+            ],
             fields: {
               ALT: {
                 bits: [5],
@@ -628,10 +625,9 @@
         adr: 23,
         reset_val: 48,
         brief: "Watchdog timer configurtion.",
-        always_write: {
-          mask: 192,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-6"], val: 0 }
+        ],
         fields: {
           WDT_PER: {
             bits: [5, 4],
@@ -700,10 +696,9 @@
         adr: 1,
         reset_val: 0,
         brief: "Charger Interrupt flag register",
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           SYS_CNFG_I: {
             bits: [6],
@@ -746,10 +741,9 @@
         adr: 2,
         reset_val: 0,
         brief: "Charger status register A.",
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           VCHGIN_MIN_STAT: {
             bits: [6],
@@ -913,10 +907,9 @@
         adr: 7,
         reset_val: 0,
         brief: "Charger Interrupt masking",
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           SYS_CNFG_I: {
             bits: [6],
@@ -1532,10 +1525,9 @@
         adr: 38,
         reset_val: 0,
         brief: "Charger Config register G.",
-        always_write: {
-          mask: 1,
-          val: 0
-        },
+        always_write: [
+          { bits: [0], val: 0 }
+        ],
         fields: {
           CHG_CV: {
             bits: ["2-7"],
@@ -1560,10 +1552,9 @@
         adr: 39,
         reset_val: 0,
         brief: "Charger Config register H.",
-        always_write: {
-          mask: 3,
-          val: 0
-        },
+        always_write: [
+          { bits: ["1-0"], val: 0 }
+        ],
         fields: {
           CHG_CV_JEITA: {
             bits: ["2-7"],
@@ -1719,10 +1710,9 @@
             adr: 1,
             reset_val: 0,
             brief: "SBB Config B.",
-            always_write: {
-              mask: 128,
-              val: 0
-            },
+            always_write: [
+              { bits: [7], val: 0 }
+            ],
             fields: {
               SBB_OP_MODE: {
                 bits: [6],
@@ -1836,10 +1826,9 @@
             adr: 0,
             reset_val: 0,
             brief: "LDO Config A.",
-            always_write: {
-              mask: 128,
-              val: 0
-            },
+            always_write: [
+              { bits: [7], val: 0 }
+            ],
             fields: {
               TV_LDO: {
                 bits: ["0-6"],
