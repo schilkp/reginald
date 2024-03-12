@@ -4,8 +4,8 @@ use std::{fmt::Write, path::Path};
 use clap::Parser;
 
 use crate::{
-    error::Error,
     bits::lsb_pos,
+    error::Error,
     regmap::{Register, RegisterBlock, RegisterMap},
     utils::{filename, str_table},
 };

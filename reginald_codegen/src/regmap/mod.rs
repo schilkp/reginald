@@ -6,8 +6,10 @@ use std::{
     rc::Rc,
 };
 
-use crate::bits::{bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask};
-use crate::{error::Error, bits::lsb_pos, utils::numbers_as_ranges};
+use crate::bits::{
+    bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask,
+};
+use crate::{bits::lsb_pos, error::Error, utils::numbers_as_ranges};
 
 use self::convert::convert_map;
 
@@ -333,6 +335,10 @@ impl Register {
         } else {
             format!("{}_{}", instance.name, self.name)
         }
+    }
+
+    pub fn width_bytes(&self) -> TypeBitwidth {
+        (self.bitwidth + 7) / 8
     }
 }
 

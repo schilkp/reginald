@@ -8,11 +8,29 @@ Philipp Schilk
 - TEST NO-CONTINOUS FIELDS!
     - With enum!
 
-- RS Nodeps:
-    - options for what to derive for both struct & enum.
-    - Rename to something "struct"
+- TEST VALIDATION: FIELD MUCH LARGER THAN ENUM 
 
-- RS uint:
+- TEST: OVERVWRITE PRESERVES? (Funcpack)
+    - With enum!
+
+- RS uint geenerator?
+
+- funcpack: enable splitting into header + c
+    - Disable comments?
+    - Support no static/inline
+    - Support only generation of function protos.
+    - Disable include guard
+
+- No limit on max reg size?
+    - YAML/Json limits -> Allow int & string in 'type value' fields?
+    - What 'bigint' crate?
+        - Probably rework convert/regmap + generators first?
+
+- Generators really should default/support? to uint8 arrays?
+
+- Allow fields that are registers? ?!
+
+- change c-funcpack field_enum_prefix default but issue warning?
 
 ### RUST API NOTES:
 

@@ -31,6 +31,10 @@ struct CommandGenerate {
     /// Output file path
     #[arg(short)]
     output: PathBuf,
+    
+    /// Overwrite map name
+    #[arg(long)]
+    overwrite_map_name: Option<String>,
 
     /// Verify that existing output file is up-to-date
     ///
@@ -84,7 +88,11 @@ pub fn cli_main() -> ExitCode {
 
 fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
     // Read input map:
-    let map = RegisterMap::from_file(&gen.input)?;
+    let mut map = RegisterMap::from_file(&gen.input)?;
+    
+    if let Some(name) = &gen.overwrite_map_name {
+        map.map_name = name.to_string();
+    }
 
     // Generate output:
     let mut out = String::new();
