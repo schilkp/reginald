@@ -7,8 +7,8 @@ registers:
     adr: 0x1
     reset_val: 0x0
     always_write:
-      mask: 0x73
-      val: 0x0
+      - { bits: ["0-1"], val: 0 }
+      - { bits: ["4-6"], val: 0 }
     fields:
       SW_POR:
         bits: [2]
@@ -24,8 +24,7 @@ registers:
     adr: 0x2
     reset_val: 0x23
     always_write:
-      mask: 0x1f
-      val: 0x3
+      - { bits: ["4-0"], val: 0x3 }
     fields:
       IBHR_POR_EN:
         bits: [5]
@@ -41,8 +40,7 @@ registers:
     adr: 0x3
     reset_val: 0x0
     always_write:
-      mask: 0x02
-      val: 0
+      - { bits: [1], val: 0x0 }
     fields:
       I2C_I3C_DISABLE:
         bits: [0]
@@ -102,8 +100,8 @@ registers:
     adr: 0x8
     reset_val: 0x0
     always_write:
-      mask: 0x28
-      val: 0x0
+      - { bits: [3], val: 0x0 }
+      - { bits: [5], val: 0x0 }
     fields:
       XL_DUALC_BATCH_FROM_FSM:
         bits: [0]
@@ -138,8 +136,7 @@ registers:
     adr: 0x0A
     reset_val: 0x0
     always_write:
-      mask: 0x08
-      val: 0x0
+      - { bits: [3], val: 0 }
     fields:
       FIFO_MODE:
         bits: [2-0]
@@ -181,8 +178,8 @@ registers:
     adr: 0x0B
     reset_val: 0x0
     always_write:
-      mask: 0x98
-      val: 0x0
+      - { bits: ["3-4"], val: 0 }
+      - { bits: [7], val: 0 }
     fields:
       CNT_BDR_TH:
         bits: [1-0]
@@ -206,8 +203,8 @@ registers:
     adr: 0x0D
     reset_val: 0x0
     always_write:
-      mask: 0x84
-      val: 0x0
+      - { bits: [2], val: 0 }
+      - { bits: [7], val: 0 }
     fields:
       INT1_DRDY_XL:
         bits: [0]
@@ -232,8 +229,7 @@ registers:
     adr: 0x0E
     reset_val: 0x0
     always_write:
-      mask: 0x04
-      val: 0x0
+      - { bits: [2], val: 0 }
     fields:
       INT2_DRDY_XL:
         bits: [0]
@@ -269,8 +265,7 @@ registers:
     adr: 0x10
     reset_val: 0x0
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       ODR_XL:
         bits: [3-0]
@@ -339,8 +334,7 @@ registers:
     adr: 0x11
     reset_val: 0x0
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       ODR_G:
         bits: [3-0]
@@ -400,8 +394,8 @@ registers:
     adr: 0x12
     reset_val: 0x44
     always_write:
-      mask: 0x3a
-      val: 0x0
+      - { bits: [1], val: 0 }
+      - { bits: ["3-5"], val: 0 }
     fields:
       SW_RESET:
         bits: [0]
@@ -420,8 +414,7 @@ registers:
     adr: 0x13
     reset_val: 0x0
     always_write:
-      mask: 0xE0
-      val: 0x0
+      - { bits: ["7-5"], val: 0 }
     fields:
       DRDY_PULSED:
         bits: [1]
@@ -447,8 +440,7 @@ registers:
     adr: 0x14
     reset_val: 0x0
     always_write:
-      mask: 0xF8
-      val: 0x0
+      - { bits: ["7-3"], val: 0 }
     fields:
       INT_EN_I3C:
         bits: [0]
@@ -461,8 +453,7 @@ registers:
     adr: 0x15
     reset_val: 0x0
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       FS_G:
         bits: [3-0]
@@ -508,8 +499,7 @@ registers:
     adr: 0x16
     reset_val: 0x0
     always_write:
-      mask: 0x2
-      val: 0x0
+      - { bits: [1], val: 0x0 }
     fields:
       LPF1_G_EN:
         bits: [0]
@@ -548,8 +538,7 @@ registers:
     adr: 0x17
     reset_val: 0x0
     always_write:
-      mask: 0x4
-      val: 0x0
+      - { bits: [2], val: 0 }
     fields:
       FS_XL:
         bits: [1-0]
@@ -582,8 +571,7 @@ registers:
     adr: 0x18
     reset_val: 0x0
     always_write:
-      mask: 0x4
-      val: 0x0
+      - { bits: [2], val: 0 }
     fields:
       USR_OFF_ON_OUT:
         bits: [0]
@@ -619,8 +607,7 @@ registers:
     adr: 0x19
     reset_val: 0x0
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       ST_XL:
         bits: [1-0]
@@ -641,8 +628,8 @@ registers:
   CTRL_STATUS: !Register
     adr: 0x1A
     always_write:
-      mask: 0xFB
-      val: 0x0
+      - { bits: ["7-3"], val: 0 }
+      - { bits: ["0-1"], val: 0 }
     fields:
       FSM_WR_CTRL_STATUS:
         bits: [2]
@@ -658,8 +645,7 @@ registers:
   FIFO_STATUS2: !Register
     adr: 0x1C
     always_write:
-      mask: 0x6
-      val: 0x0
+      - { bits: ["2-1"], val: 0 }
     fields:
       DIFF_FIFO:
         bits: [0]
@@ -683,8 +669,8 @@ registers:
   ALL_INT_SRC: !Register
     adr: 0x1D
     always_write:
-      mask: 0x48
-      val: 0x0
+      - { bits: [3], val: 0 }
+      - { bits: [6], val: 0 }
     fields:
       FF_IA:
         bits: [0]
@@ -708,8 +694,7 @@ registers:
   STATUS_REG: !Register
     adr: 0x1E
     always_write:
-      mask: 0x70
-      val: 0x0
+      - { bits: ["4-6"], val: 0 }
     fields:
       XLDA:
         bits: [0]
@@ -912,8 +897,7 @@ registers:
   WAKE_UP_SRC: !Register
     adr: 0x45
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       X_WU:
         bits: [0]
@@ -940,8 +924,7 @@ registers:
   TAP_SRC: !Register
     adr: 0x46
     always_write:
-      mask: 0x10
-      val: 0x0
+      - { bits: [4], val: 0 }
     fields:
       X_TAP:
         bits: [0]
@@ -968,8 +951,7 @@ registers:
   D6D_SRC: !Register
     adr: 0x47
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       ZL:
         bits: [0]
@@ -996,8 +978,8 @@ registers:
   EMB_FUNC_STATUS_MAINPAGE: !Register
     adr: 0x49
     always_write:
-      mask: 0x47
-      val: 0x0
+      - { bits: ["0-2"], val: 0 }
+      - { bits: [6], val: 0 }
     fields:
       IS_STEP_DET:
         bits: [3]
@@ -1043,8 +1025,7 @@ registers:
   MLC_STATUS_MAINPAGE: !Register
     adr: 0x4B
     always_write:
-      mask: 0xF0
-      val: 0x0
+      - { bits: ["7-4"], val: 0 }
     fields:
       IS_MLC1:
         bits: [0]
@@ -1070,8 +1051,8 @@ registers:
     adr: 0x50
     reset_val: 0x0
     always_write:
-      mask: 0x34
-      val: 0x0
+      - { bits: [2], val: 0 }
+      - { bits: ["4-5"], val: 0 }
     fields:
       INACT_EN:
         bits: [1-0]
@@ -1107,8 +1088,7 @@ registers:
     adr: 0x55
     reset_val: 0x0
     always_write:
-      mask: 0xc0
-      val: 0x0
+      - { bits: ["7-6"], val: 0 }
     fields:
       INACT_THS:
         bits: [5-0]
@@ -1118,8 +1098,7 @@ registers:
     adr: 0x56
     reset_val: 0x0
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       LIR:
         bits: [0]
@@ -1158,8 +1137,7 @@ registers:
     adr: 0x58
     reset_val: 0x0
     always_write:
-      mask: 0xe0
-      val: 0x0
+      - { bits: ["7-5"], val: 0 }
     fields:
       TAP_THS_Y:
         bits: [4-0]
@@ -1169,8 +1147,7 @@ registers:
     adr: 0x59
     reset_val: 0x0
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       TAP_THS_X:
         bits: [4-0]
@@ -1211,8 +1188,7 @@ registers:
     adr: 0x5C
     reset_val: 0x0
     always_write:
-      mask: 0x10
-      val: 0x0
+      - { bits: [4], val: 0 }
     fields:
       SLEEP_DUR:
         bits: [3-0]
@@ -1239,8 +1215,7 @@ registers:
     adr: 0x5E
     reset_val: 0x0
     always_write:
-      mask: 0x01
-      val: 0x0
+      - { bits: [0], val: 0 }
     fields:
       INT1_EMB_FUNC:
         bits: [1]
@@ -1297,8 +1272,8 @@ registers:
     adr: 0x63
     reset_val: 0x0
     always_write:
-      mask: 0xc7
-      val: 0x0
+      - { bits: ["0-2"], val: 0 }
+      - { bits: ["7-6"], val: 0 }
     fields:
       EMB_FUNC_DISABLE:
         bits: [3]
@@ -1314,8 +1289,8 @@ registers:
     adr: 0x6C
     reset_val: 0x80
     always_write:
-      mask: 0x88
-      val: 0x80
+      - { bits: [7], val: 1 }
+      - { bits: [3], val: 0 }
     fields:
       TDM_WCLK_BCLK_SEL:
         bits: [0]
@@ -1353,8 +1328,7 @@ registers:
     adr: 0x6D
     reset_val: 0xE0
     always_write:
-      mask: 0x07
-      val: 0x0
+      - { bits: ["0-2"], val: 0 }
     fields:
       TDM_AXES_ORD_SEL:
         bits: [4-3]
@@ -1384,8 +1358,8 @@ registers:
     adr: 0x6E
     reset_val: 0x1
     always_write:
-      mask: 0xf4
-      val: 0x0
+      - { bits: ["7-4"], val: 0 }
+      - { bits: [2], val: 0 }
     fields:
       TDM_FS_XL:
         bits: [1-0]
@@ -1432,8 +1406,7 @@ registers:
   FIFO_DATA_OUT_TAG: !Register
     adr: 0x78
     always_write:
-      mask: 0x01
-      val: 0x0
+      - { bits: [0], val: 0 }
     fields:
       TAG_CNT:
         bits: [2-1]

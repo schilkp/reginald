@@ -54,8 +54,7 @@ registers:
     reset_val: 0x00
     brief: Global Interrupt flag register 1.
     always_write:
-        mask: 0x80
-        val: 0
+      - { bits: [7], val: 0 }
     fields:
       LDO1_F:
         bits: [6]
@@ -179,8 +178,7 @@ registers:
     reset_val: 0x7F
     brief: Interrupt Masking 1
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       LDO1_M:
         bits: [6]
@@ -365,8 +363,7 @@ registers:
         reset_val: 0x01
         brief: GPIO Configuration
         always_write:
-          mask: 0xC0
-          val: 0
+          - { bits: ["7-6"], val: 0 }
         fields:
           ALT:
             bits: [5]
@@ -426,8 +423,7 @@ registers:
     reset_val: 0x30
     brief: Watchdog timer configurtion.
     always_write:
-      mask: 0xC0
-      val: 0x0
+      - { bits: ["7-6"], val: 0 }
     fields:
       WDT_PER:
         bits: [5, 4]
@@ -472,8 +468,7 @@ registers:
     reset_val: 0x00
     brief: Charger Interrupt flag register
     always_write:
-      mask: 0x80
-      val: 0x00
+      - { bits: [7], val: 0 }
     fields:
       SYS_CNFG_I:
         bits: [6]
@@ -506,8 +501,7 @@ registers:
     reset_val: 0x00
     brief: Charger status register A.
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       VCHGIN_MIN_STAT:
         bits: [6]
@@ -623,8 +617,7 @@ registers:
     reset_val: 0x00
     brief: Charger Interrupt masking
     always_write:
-      mask: 0x80
-      val: 0x0
+      - { bits: [7], val: 0 }
     fields:
       SYS_CNFG_I:
         bits: [6]
@@ -1041,8 +1034,7 @@ registers:
     reset_val: 0x00
     brief: Charger Config register G.
     always_write:
-      mask: 0x1
-      val: 0x0
+      - { bits: [0], val: 0 }
     fields:
       CHG_CV:
         bits: [2-7]
@@ -1060,8 +1052,7 @@ registers:
     reset_val: 0x00
     brief: Charger Config register H.
     always_write:
-      mask: 0x3
-      val: 0x0
+      - { bits: ["1-0"], val: 0 }
     fields:
       CHG_CV_JEITA:
         bits: [2-7]
@@ -1173,8 +1164,7 @@ registers:
         reset_val: 0x00
         brief: SBB Config B.
         always_write:
-          mask: 0x80
-          val: 0x0
+          - { bits: [7], val: 0 }
         fields:
           SBB_OP_MODE:
             bits: [6]
@@ -1249,8 +1239,7 @@ registers:
         reset_val: 0x00
         brief: LDO Config A.
         always_write:
-          mask: 0x80
-          val: 0x00
+          - { bits: [7], val: 0 }
         fields:
           TV_LDO:
             bits: [0-6]

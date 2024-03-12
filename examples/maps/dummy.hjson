@@ -23,10 +23,9 @@
         brief: "Status.",
         doc: "More extensive documentation.",
         bitwidth: 8,
-        always_write: {
-          mask: 48,
-          val: 16
-        },
+        always_write: [
+          { bits: ["4-5"], val: 1 }
+        ],
         fields: {
           FIELD1: {
             bits: [7, 6],

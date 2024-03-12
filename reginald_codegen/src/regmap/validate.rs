@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
 use super::{Docs, Enum, EnumEntry, Field, FieldType, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH};
-use crate::error::Error;
 use crate::bits::{fits_into_bitwidth, mask_width, unpositioned_mask};
+use crate::error::Error;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -209,18 +209,6 @@ pub fn validate_register_template(template: Register, bt: &str) -> Result<Regist
             });
         }
 
-        // Validate that always write mask covers value:
-        let overshoot = (!always_write.mask) & always_write.value;
-        if overshoot != 0 {
-            return Err(Error::ConversionError {
-                bt: bt.to_owned() + ".always_write",
-                msg: format!(
-                    "Always-write mask 0x{:x} does not cover value 0x{:x} (mask: 0x{:x})!",
-                    always_write.mask, always_write.value, overshoot
-                ),
-            });
-        }
-
         // Validate that always write mask does not overlap with registers:
         let overlap = always_write.mask & occupied_mask;
         if overlap != 0 {
@@ -370,9 +358,7 @@ mod tests {
         registers:
             REG: !Register
                 always_write:
-                    mask: 0x100
-                    val: 0x100
-
+                    - { bits: [8], val: 1 }
         ";
         let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
         println!("{}", err);
@@ -384,13 +370,12 @@ mod tests {
         registers:
             REG: !Register
                 always_write:
-                    mask: 0x01
-                    val: 0x10
+                    - { bits: [1], val: 0x10 }
 
         ";
         let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
         println!("{}", err);
-        assert!(format!("{}", err).contains("does not cover"));
+        assert!(format!("{}", err).contains("does not fit into specified bits/mask"));
 
         let yaml = "
         map_name: DummyChip
@@ -398,8 +383,7 @@ mod tests {
         registers:
             REG: !Register
                 always_write:
-                    mask: 0x01
-                    val: 0x00
+                    - { bits: [0], val : 0x0 }
                 fields:
                     A:
                         bits: [\"7-0\"]

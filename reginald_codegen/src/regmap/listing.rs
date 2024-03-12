@@ -58,7 +58,7 @@ pub struct Field {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct AlwaysWrite {
-    pub mask: TypeValue,
+    pub bits: Bits,
     pub val: TypeValue,
 }
 
@@ -70,7 +70,8 @@ pub struct Register {
     pub adr: Option<TypeAdr>,
     pub bitwidth: Option<TypeBitwidth>,
     pub reset_val: Option<TypeValue>,
-    pub always_write: Option<AlwaysWrite>,
+    #[serde(default = "Vec::new")]
+    pub always_write: Vec<AlwaysWrite>,
     pub doc: Option<String>,
     pub brief: Option<String>,
 }

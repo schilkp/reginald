@@ -1,4 +1,9 @@
-use crate::{error::Error, regmap::validate::validate_docs, regmap::AccessMode};
+use crate::{
+    bits::{lsb_pos, unpositioned_mask},
+    error::Error,
+    regmap::validate::validate_docs,
+    regmap::AccessMode,
+};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
@@ -34,11 +39,43 @@ pub fn convert_map(m: &listing::RegisterMap, input_file: &Option<PathBuf>) -> Re
     })
 }
 
-fn convert_always_write(always_write: &Option<listing::AlwaysWrite>, _bt: &str) -> Option<AlwaysWrite> {
-    always_write.as_ref().map(|always_write| AlwaysWrite {
-        mask: always_write.mask,
-        value: always_write.val,
-    })
+fn convert_always_write(always_write: &Vec<listing::AlwaysWrite>, bt: &str) -> Result<Option<AlwaysWrite>, Error> {
+    let bt = bt.to_owned() + ".always_write";
+
+    let mut mask_accum: TypeValue = 0;
+    let mut val_accum: TypeValue = 0;
+
+    for element in always_write {
+        let bits = convert_bits(&element.bits, &bt)?;
+
+        if bits & mask_accum != 0 {
+            return Err(Error::ConversionError {
+                bt,
+                msg: format!("Always-write specifications may not overlap. (mask: 0x{:x})", mask_accum & bits,),
+            });
+        }
+
+        let unpos_mask = unpositioned_mask(bits);
+
+        if element.val & !unpos_mask != 0 {
+            return Err(Error::ConversionError {
+                bt,
+                msg: format!("Always-write value does not fit into specified bits/mask."),
+            });
+        }
+
+        mask_accum |= bits;
+        val_accum |= element.val << lsb_pos(bits);
+    }
+
+    if mask_accum != 0 {
+        Ok(Some(AlwaysWrite {
+            mask: mask_accum,
+            value: val_accum,
+        }))
+    } else {
+        Ok(None)
+    }
 }
 
 fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, Error> {
@@ -308,7 +345,7 @@ fn convert_register(
         from_explicit_listing_block: false,
         adr: Some(0), // Offset
         reset_val: reg.reset_val,
-        always_write: convert_always_write(&reg.always_write, &bt),
+        always_write: convert_always_write(&reg.always_write, &bt)?,
         fields: convert_fields(reg, shared_enums, &bt)?,
         docs: docs.clone(),
     };
@@ -348,7 +385,7 @@ fn convert_register_block_templates(
             from_explicit_listing_block: true,
             adr: template.adr,
             reset_val: template.reset_val,
-            always_write: convert_always_write(&template.always_write, &bt),
+            always_write: convert_always_write(&template.always_write, &bt)?,
             fields: convert_fields(template, shared_enums, &bt)?,
             docs: convert_docs(&template.brief, &template.doc, &bt)?,
         };

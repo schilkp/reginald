@@ -8,10 +8,10 @@
       Register: {
         adr: 1,
         reset_val: 0,
-        always_write: {
-          mask: 115,
-          val: 0
-        },
+        always_write: [
+          { bits: ["0-1"], val: 0 },
+          { bits: ["4-6"], val: 0 }
+        ]
         fields: {
           SW_POR: {
             bits: [2]
@@ -33,10 +33,9 @@
       Register: {
         adr: 2,
         reset_val: 35,
-        always_write: {
-          mask: 31,
-          val: 3
-        },
+        always_write: [
+            { bits: ["4-0"], val: 3 }
+        ],
         fields: {
           IBHR_POR_EN: {
             bits: [5]
@@ -58,10 +57,9 @@
       Register: {
         adr: 3,
         reset_val: 0,
-        always_write: {
-          mask: 2,
-          val: 0
-        },
+        always_write: [
+          { bits: [1], val: 0 },
+        ],
         fields: {
           I2C_I3C_DISABLE: {
             bits: [0]
@@ -151,10 +149,10 @@
       Register: {
         adr: 8,
         reset_val: 0,
-        always_write: {
-          mask: 40,
-          val: 0
-        },
+        always_write: [
+          { bits: [3], val: 0 },
+          { bits: [5], val: 0 }
+        ],
         fields: {
           XL_DUALC_BATCH_FROM_FSM: {
             bits: [0]
@@ -207,10 +205,9 @@
       Register: {
         adr: 10,
         reset_val: 0,
-        always_write: {
-          mask: 8,
-          val: 0
-        },
+        always_write: [
+          { bits: [3], val: 0 }
+        ],
         fields: {
           FIFO_MODE: {
             bits: ["2-0"]
@@ -271,10 +268,10 @@
       Register: {
         adr: 11,
         reset_val: 0,
-        always_write: {
-          mask: 152,
-          val: 0
-        },
+        always_write: [
+          { bits: ["3-4"], val: 0 },
+          { bits: [7], val: 0 }
+        ],
         fields: {
           CNT_BDR_TH: {
             bits: ["1-0"]
@@ -309,10 +306,10 @@
       Register: {
         adr: 13,
         reset_val: 0,
-        always_write: {
-          mask: 132,
-          val: 0
-        },
+        always_write: [
+          { bits: [2], val: 0 },
+          { bits: [7], val: 0 }
+        ],
         fields: {
           INT1_DRDY_XL: {
             bits: [0]
@@ -346,10 +343,9 @@
       Register: {
         adr: 14,
         reset_val: 0,
-        always_write: {
-          mask: 4,
-          val: 0
-        },
+        always_write: [
+          { bits: [2], val: 0 }
+        ],
         fields: {
           INT2_DRDY_XL: {
             bits: [0]
@@ -400,10 +396,9 @@
       Register: {
         adr: 16,
         reset_val: 0,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           ODR_XL: {
             bits: ["3-0"]
@@ -501,10 +496,9 @@
       Register: {
         adr: 17,
         reset_val: 0,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           ODR_G: {
             bits: ["3-0"]
@@ -590,10 +584,10 @@
       Register: {
         adr: 18,
         reset_val: 68,
-        always_write: {
-          mask: 58,
-          val: 0
-        },
+        always_write: [
+          { bits: [1], val: 0 },
+          { bits: ["3-5"], val: 0 }
+        ],
         fields: {
           SW_RESET: {
             bits: [0]
@@ -619,10 +613,9 @@
       Register: {
         adr: 19,
         reset_val: 0,
-        always_write: {
-          mask: 224,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-5"], val: 0 }
+        ],
         fields: {
           DRDY_PULSED: {
             bits: [1]
@@ -660,10 +653,9 @@
       Register: {
         adr: 20,
         reset_val: 0,
-        always_write: {
-          mask: 248,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-3"], val: 0 }
+        ],
         fields: {
           INT_EN_I3C: {
             bits: [0]
@@ -681,10 +673,9 @@
       Register: {
         adr: 21,
         reset_val: 0,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           FS_G: {
             bits: ["3-0"]
@@ -746,10 +737,9 @@
       Register: {
         adr: 22,
         reset_val: 0,
-        always_write: {
-          mask: 2,
-          val: 0
-        },
+        always_write: [
+          { bits: [1], val: 0 }
+        ],
         fields: {
           LPF1_G_EN: {
             bits: [0]
@@ -804,10 +794,9 @@
       Register: {
         adr: 23,
         reset_val: 0,
-        always_write: {
-          mask: 4,
-          val: 0
-        },
+        always_write: [
+          { bits: [2], val: 0 }
+        ],
         fields: {
           FS_XL: {
             bits: ["1-0"]
@@ -854,10 +843,9 @@
       Register: {
         adr: 24,
         reset_val: 0,
-        always_write: {
-          mask: 4,
-          val: 0
-        },
+        always_write: [
+          { bits: [2], val: 0 }
+        ],
         fields: {
           USR_OFF_ON_OUT: {
             bits: [0]
@@ -908,10 +896,9 @@
       Register: {
         adr: 25,
         reset_val: 0,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           ST_XL: {
             bits: ["1-0"]
@@ -940,10 +927,10 @@
     CTRL_STATUS: {
       Register: {
         adr: 26,
-        always_write: {
-          mask: 251,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-3"], val: 0 }
+          { bits: ["0-1"], val: 0 }
+        ],
         fields: {
           FSM_WR_CTRL_STATUS: {
             bits: [2]
@@ -968,10 +955,9 @@
     FIFO_STATUS2: {
       Register: {
         adr: 28,
-        always_write: {
-          mask: 6,
-          val: 0
-        },
+        always_write: [
+          { bits: ["2-1"], val: 0 }
+        ],
         fields: {
           DIFF_FIFO: {
             bits: [0]
@@ -1004,10 +990,10 @@
     ALL_INT_SRC: {
       Register: {
         adr: 29,
-        always_write: {
-          mask: 72,
-          val: 0
-        },
+        always_write: [
+          { bits: [3], val: 0 },
+          { bits: [6], val: 0 }
+        ],
         fields: {
           FF_IA: {
             bits: [0]
@@ -1040,10 +1026,9 @@
     STATUS_REG: {
       Register: {
         adr: 30,
-        always_write: {
-          mask: 112,
-          val: 0
-        },
+        always_write: [
+          { bits: ["4-6"], val: 0 }
+        ],
         fields: {
           XLDA: {
             bits: [0]
@@ -1384,10 +1369,9 @@
     WAKE_UP_SRC: {
       Register: {
         adr: 69,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           X_WU: {
             bits: [0]
@@ -1424,10 +1408,9 @@
     TAP_SRC: {
       Register: {
         adr: 70,
-        always_write: {
-          mask: 16,
-          val: 0
-        },
+        always_write: [
+          { bits: [4], val: 0 }
+        ],
         fields: {
           X_TAP: {
             bits: [0]
@@ -1464,10 +1447,9 @@
     D6D_SRC: {
       Register: {
         adr: 71,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           ZL: {
             bits: [0]
@@ -1504,10 +1486,10 @@
     EMB_FUNC_STATUS_MAINPAGE: {
       Register: {
         adr: 73,
-        always_write: {
-          mask: 71,
-          val: 0
-        },
+        always_write: [
+          { bits: ["0-2"], val: 0 }
+          { bits: [6], val: 0 }
+        ],
         fields: {
           IS_STEP_DET: {
             bits: [3]
@@ -1572,10 +1554,9 @@
     MLC_STATUS_MAINPAGE: {
       Register: {
         adr: 75,
-        always_write: {
-          mask: 240,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-4"], val: 0 }
+        ],
         fields: {
           IS_MLC1: {
             bits: [0]
@@ -1613,10 +1594,10 @@
       Register: {
         adr: 80,
         reset_val: 0,
-        always_write: {
-          mask: 52,
-          val: 0
-        },
+        always_write: [
+          { bits: [2], val: 0 },
+          { bits: ["4-5"], val: 0 }
+        ],
         fields: {
           INACT_EN: {
             bits: ["1-0"]
@@ -1667,10 +1648,9 @@
       Register: {
         adr: 85,
         reset_val: 0,
-        always_write: {
-          mask: 192,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-6"], val: 0 }
+        ],
         fields: {
           INACT_THS: {
             bits: ["5-0"]
@@ -1684,10 +1664,9 @@
       Register: {
         adr: 86,
         reset_val: 0,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           LIR: {
             bits: [0]
@@ -1742,10 +1721,9 @@
       Register: {
         adr: 88,
         reset_val: 0,
-        always_write: {
-          mask: 224,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-5"], val: 0 }
+        ],
         fields: {
           TAP_THS_Y: {
             bits: ["4-0"]
@@ -1759,10 +1737,9 @@
       Register: {
         adr: 89,
         reset_val: 0,
-        always_write: {
-          mask: 128,
-          val: 0
-        },
+        always_write: [
+          { bits: [7], val: 0 }
+        ],
         fields: {
           TAP_THS_X: {
             bits: ["4-0"]
@@ -1822,10 +1799,9 @@
       Register: {
         adr: 92,
         reset_val: 0,
-        always_write: {
-          mask: 16,
-          val: 0
-        },
+        always_write: [
+          { bits: [4], val: 0 }
+        ],
         fields: {
           SLEEP_DUR: {
             bits: ["3-0"]
@@ -1864,10 +1840,9 @@
       Register: {
         adr: 94,
         reset_val: 0,
-        always_write: {
-          mask: 1,
-          val: 0
-        },
+        always_write: [
+          { bits: [0], val: 0 }
+        ],
         fields: {
           INT1_EMB_FUNC: {
             bits: [1]
@@ -1946,10 +1921,10 @@
       Register: {
         adr: 99,
         reset_val: 0,
-        always_write: {
-          mask: 199,
-          val: 0
-        },
+        always_write: [
+          { bits: ["0-2"], val: 0 }
+          { bits: ["7-6"], val: 0 }
+        ],
         fields: {
           EMB_FUNC_DISABLE: {
             bits: [3]
@@ -1971,10 +1946,10 @@
       Register: {
         adr: 108,
         reset_val: 128,
-        always_write: {
-          mask: 136,
-          val: 128
-        },
+        always_write: [
+          { bits: [7], val: 1 },
+          { bits: [3], val: 0 }
+        ],
         fields: {
           TDM_WCLK_BCLK_SEL: {
             bits: [0]
@@ -2030,10 +2005,9 @@
       Register: {
         adr: 109,
         reset_val: 224,
-        always_write: {
-          mask: 7,
-          val: 0
-        },
+        always_write: [
+          { bits: ["0-2"], val: 0 }
+        ],
         fields: {
           TDM_AXES_ORD_SEL: {
             bits: ["4-3"]
@@ -2076,10 +2050,10 @@
       Register: {
         adr: 110,
         reset_val: 1,
-        always_write: {
-          mask: 244,
-          val: 0
-        },
+        always_write: [
+          { bits: ["7-4"], val: 0 }
+          { bits: [2], val: 0 }
+        ],
         fields: {
           TDM_FS_XL: {
             bits: ["1-0"]
@@ -2152,10 +2126,9 @@
     FIFO_DATA_OUT_TAG: {
       Register: {
         adr: 120,
-        always_write: {
-          mask: 1,
-          val: 0
-        },
+        always_write: [
+          { bits: [0], val: 0 }
+        ],
         fields: {
           TAG_CNT: {
             bits: ["2-1"]
