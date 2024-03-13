@@ -1,6 +1,5 @@
 use std::fmt::Write;
 
-
 /// A wrapper around a 'write', that indents all lines to a set value.
 pub struct IndentWrite<'a> {
     w: &'a mut dyn Write,
@@ -20,7 +19,7 @@ impl Write for IndentWrite<'_> {
 
 impl IndentWrite<'_> {
     /// Wrap a given 'write' into an IndentWrite where each level of indent
-    /// consists of the string `indent`. The IndentWrite starts without 
+    /// consists of the string `indent`. The IndentWrite starts without
     /// any indentation.
     pub fn new<'a>(w: &'a mut dyn Write, indent: &str) -> IndentWrite<'a> {
         IndentWrite {
