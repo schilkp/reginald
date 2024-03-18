@@ -1,0 +1,43 @@
+use core::{convert::Infallible, usize};
+
+pub trait ToBytes<const N: usize> {
+    fn to_le_bytes(&self) -> [u8; N];
+    fn to_be_bytes(&self) -> [u8; N] {
+        let mut val = self.to_le_bytes();
+        val.reverse();
+        val
+    }
+}
+
+pub trait TryFromBytes<const N: usize>: Sized {
+    type Error;
+
+    fn try_from_le_bytes(val: [u8; N]) -> Result<Self, Self::Error>;
+    fn try_from_be_bytes(val: [u8; N]) -> Result<Self, Self::Error> {
+        let mut val = val;
+        val.reverse();
+        Self::try_from_le_bytes(val)
+    }
+}
+
+pub trait FromBytes<const N: usize>: Sized {
+    fn from_le_bytes(val: [u8; N]) -> Self;
+    fn from_be_bytes(val: [u8; N]) -> Self {
+        let mut val = val;
+        val.reverse();
+        Self::from_le_bytes(val)
+    }
+}
+
+impl<const N: usize, T> TryFromBytes<N> for T
+where
+    T: FromBytes<N>,
+{
+    type Error = Infallible;
+    fn try_from_le_bytes(val: [u8; N]) -> Result<Self, Self::Error> {
+        Ok(Self::from_le_bytes(val))
+    }
+    fn try_from_be_bytes(val: [u8; N]) -> Result<Self, Self::Error> {
+        Ok(Self::from_be_bytes(val))
+    }
+}

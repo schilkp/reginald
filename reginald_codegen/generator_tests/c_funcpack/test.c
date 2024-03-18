@@ -120,7 +120,7 @@ void test_basic_reg2(void) {
 void test_basic_reg3(void) {
 
   // Packing:
-  struct chip_reg3 reg = {.field0 = 0xFFF, .field1 = 0x1F};
+  struct chip_reg3 reg = {.field0 = 0xCBF, .field1 = 0x1F};
 
   uint8_t packed_reg[8];
 
@@ -131,8 +131,8 @@ void test_basic_reg3(void) {
 #endif
 
   uint8_t expected_packed_reg[8] = {
-      [0] = (0xFF), // Field 0
-      [1] = (0x0F), // Field 0
+      [0] = (0xBF), // Field 0
+      [1] = (0x0C), // Field 0
       [7] = (0x1F), // Field 1
   };
   correct_endianess(expected_packed_reg, 8);
@@ -150,7 +150,7 @@ void test_basic_reg3(void) {
   correct_endianess(packed_reg, 8);
 
   reg = chip_reg3_unpack(packed_reg);
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xFFF, reg.field0, "(field0)");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xCBF, reg.field0, "(field0)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x1F, reg.field1, "(field1)");
 
   // Try unpacking:
@@ -160,7 +160,7 @@ void test_basic_reg3(void) {
   TEST_ASSERT_EQUAL(CHIP_TRY_UNPACK(packed_reg, &reg), 0);
 #endif
 
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xFFF, reg.field0, "(field0)");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xCBF, reg.field0, "(field0)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x1F, reg.field1, "(field1)");
 }
 

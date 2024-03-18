@@ -60,7 +60,7 @@ fn convert_always_write(always_write: &Vec<listing::AlwaysWrite>, bt: &str) -> R
         if element.val & !unpos_mask != 0 {
             return Err(Error::ConversionError {
                 bt,
-                msg: format!("Always-write value does not fit into specified bits/mask."),
+                msg: "Always-write value does not fit into specified bits/mask.".to_string(),
             });
         }
 

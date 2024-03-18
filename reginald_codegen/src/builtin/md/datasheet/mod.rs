@@ -131,7 +131,7 @@ fn generate_register_infos(
         if let Some(value) = value {
             let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.start();
             row_state.push(format!("**0b{value_range:b}**"));
-            row_decode.push(decode_bit_range(&value, range));
+            row_decode.push(decode_bit_range(value, range));
         }
     }
 
@@ -224,34 +224,26 @@ fn generate_register_infos(
     Ok(())
 }
 
-fn decode_bit_range(value: &TypeValue, range: &RegisterBitrange) -> String {
+fn decode_bit_range(value: TypeValue, range: &RegisterBitrange) -> String {
     let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.end();
 
     match range.content {
         crate::regmap::RegisterBitrangeContent::Field { field, .. } => {
             let field_value = (value & field.mask) >> lsb_pos(field.mask);
             if let Some(mut enum_entries) = field.enum_entries() {
-                if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
-                    return format!("**{}**", entry.name);
+                return if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
+                    format!("**{}**", entry.name)
                 } else {
-                    return "**UNKNOWN**".to_string();
-                }
+                    "**UNKNOWN**".to_string()
+                };
             } else if matches!(field.accepts, FieldType::Bool) {
-                if field_value == 0 {
-                    return "**false**".to_string();
-                } else {
-                    return "**true**".to_string();
-                }
+                return if field_value == 0 { "**false**" } else { "**true**" }.into();
             }
         }
         crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
-            if value_range == val {
-                return "**OK**".to_string();
-            } else {
-                return "**ERROR**".to_string();
-            }
+            return if value_range == val { "**OK**" } else { "**ERROR**" }.into()
         }
-        _ => (),
+        crate::regmap::RegisterBitrangeContent::Empty => (),
     }
 
     String::new()

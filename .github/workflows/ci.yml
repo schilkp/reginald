@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [ "schilkp/rust" ]
+
+jobs:
+  cargo-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build
+        run: cargo build
+      - name: Cargo Test
+        run: cargo test --all
+
+  fmt_clippy_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+      - name: Lint
+        run: cargo clippy --all-features -- -D warnings
+      - name: Format
+        run: cargo fmt -- --check
+
+  generator-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - uses: carlosperate/arm-none-eabi-gcc-action@v1
+      - name: Build
+        run: cargo build
+      - name: Run Generator tests.
+        run: bash ${{github.workspace}}/reginald_codegen/generator_tests/run_tests.bash

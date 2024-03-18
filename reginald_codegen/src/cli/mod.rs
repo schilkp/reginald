@@ -1,3 +1,5 @@
+#![allow(clippy::large_enum_variant)]
+
 mod diff;
 
 use std::fs;
@@ -17,6 +19,7 @@ use reginald_codegen::regmap::RegisterMap;
 enum Cli {
     Gen(CommandGenerate),
     Completion(CommandCompletion),
+    Tool(CommandTool),
 }
 
 #[derive(Parser, Debug)]
@@ -31,7 +34,7 @@ struct CommandGenerate {
     /// Output file path
     #[arg(short)]
     output: PathBuf,
-    
+
     /// Overwrite map name
     #[arg(long)]
     overwrite_map_name: Option<String>,
@@ -60,7 +63,7 @@ enum Generator {
     /// Markdown decode report of register dump
     MdRegdumpDecode(md::datasheet::regdump::GeneratorOpts),
     /// Rust module with register structs and no dependencies
-    RsStructNoDeps(rs::structs_no_deps::GeneratorOpts),
+    RsStructs(rs::structs::GeneratorOpts),
 }
 
 #[derive(Parser, Debug)]
@@ -69,12 +72,27 @@ struct CommandCompletion {
     shell: clap_complete::Shell,
 }
 
+#[derive(Parser, Debug)]
+#[command(about = "Built-in tools and utilities.")]
+#[command(subcommand_value_name = "TOOL")]
+#[command(subcommand_help_heading = "Tools")]
+struct CommandTool {
+    #[command(subcommand)]
+    tool: Tool,
+}
+
+#[derive(Parser, Debug)]
+enum Tool {
+    RsStructsTraits,
+}
+
 pub fn cli_main() -> ExitCode {
     let cli = Cli::parse();
 
     let err = match cli {
         Cli::Gen(gen) => cmd_generate(gen),
         Cli::Completion(c) => cmd_completion(c),
+        Cli::Tool(_) => todo!(),
     };
 
     match err {
@@ -89,7 +107,7 @@ pub fn cli_main() -> ExitCode {
 fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
     // Read input map:
     let mut map = RegisterMap::from_file(&gen.input)?;
-    
+
     if let Some(name) = &gen.overwrite_map_name {
         map.map_name = name.to_string();
     }
@@ -101,7 +119,7 @@ fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
         Generator::CMacromap(opts) => c::macromap::generate(&mut out, &map, &gen.output, opts)?,
         Generator::MdDatasheet => md::datasheet::generate(&mut out, &map)?,
         Generator::MdRegdumpDecode(opts) => md::datasheet::regdump::generate(&mut out, &map, opts)?,
-        Generator::RsStructNoDeps(opts) => rs::structs_no_deps::generate(&mut out, &map, opts)?,
+        Generator::RsStructs(opts) => rs::structs::generate(&mut out, &map, opts)?,
     };
 
     // Verify or write ouput:

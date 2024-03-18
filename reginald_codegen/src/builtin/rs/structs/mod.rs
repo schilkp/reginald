@@ -1,11 +1,13 @@
 use std::fmt::Write;
 
 use crate::{
-    bits::{bitmask_from_width, lsb_pos, mask_width, msb_pos, unpositioned_mask},
+    bits::{bitmask_from_width, mask_width, msb_pos},
     error::Error,
     indent_write::IndentWrite,
-    regmap::{Enum, Field, FieldType, Register, RegisterBlock, RegisterMap},
-    utils::filename,
+    regmap::{Enum, Field, FieldType, Register, RegisterBlock, RegisterMap, TypeBitwidth, TypeValue},
+    utils::{
+        byte_to_field_transform, field_to_byte_transform, filename, remove_wrapping_parens, Endianess, ShiftDirection,
+    },
 };
 use clap::Parser;
 
@@ -38,6 +40,7 @@ pub struct GeneratorOpts {
     /// accessing registers a little annoying. If disabling this does
     /// not cause naming conflicts for a given map, doing so is recommend.
     #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(value_name = "DERIVE"))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
     #[cfg_attr(feature = "cli", arg(default_value = "true"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
@@ -53,11 +56,48 @@ pub struct GeneratorOpts {
 
     /// Trait to derive on all enums.
     ///
+    /// May be given multiple times. Note: All enums always derive
+    /// the "Clone" and "Copy" traits.
+    #[cfg_attr(feature = "cli", arg(long = "enum-derive"))]
+    #[cfg_attr(feature = "cli", arg(value_name = "DERIVE"))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub raw_enum_derive: Vec<String>,
+
+    /// Module should be 'use'ed at the top of the generated module.
+    ///
     /// May be given multiple times.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub enum_derive: Vec<String>,
+    pub add_use: Vec<String>,
+
+    /// Use an external definition of the `ToBytes`/`FromBytes`/`TryFromBytes` traits,
+    ///
+    /// No trait definition are generated, and implementations of the traits refeer
+    /// to `[prefix]ToBytes`, `[prefix]FromBytes`, and `[prefix]TryFromBytes`,
+    /// where `[preifx]` is the value given to this flag.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub external_traits: Option<String>,
+
+    /// Generate `Default` implementations for all register structs, using the reset
+    /// value - if given.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_defaults: bool, // TODO
+
+    /// Generate `From/TryFrom/From` implementations that convert a register
+    /// to/from the smallest rust unsigned integer value wide enough to hold the
+    /// register, if one exists.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub generate_uint_conversion: bool, // TODO
 }
 
 // ====== Generator ============================================================
@@ -80,9 +120,13 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
     // Wrap output in IndentWrite which handles (nested) indentation of lines:
     let mut out = IndentWrite::new(out, "    ");
 
+    let mut enum_derives: Vec<String> = vec!["Clone".into(), "Copy".into()];
+    enum_derives.extend(opts.raw_enum_derive.clone());
+
     // Generate
     let generator = Generator {
         opts: opts.clone(),
+        enum_derives,
         address_type,
         map,
     };
@@ -96,6 +140,7 @@ struct Generator<'a> {
     opts: GeneratorOpts,
     map: &'a RegisterMap,
     address_type: String,
+    enum_derives: Vec<String>,
 }
 
 impl Generator<'_> {
@@ -103,6 +148,10 @@ impl Generator<'_> {
     fn generate(&self, out: &mut IndentWrite) -> Result<(), Error> {
         // File header/preamble:
         self.generate_header(out)?;
+
+        if self.opts.external_traits.is_none() {
+            self.generate_traits(out)?;
+        }
 
         // Shared enums:
         if !self.map.shared_enums.is_empty() {
@@ -125,36 +174,46 @@ impl Generator<'_> {
 
     /// Generate file header
     fn generate_header(&self, out: &mut IndentWrite) -> Result<(), Error> {
+        writeln!(out, "#![allow(clippy::unnecessary_cast)]")?;
+        writeln!(out)?;
+
         // Top doc comment:
-        writeln!(out, "/// {} Registers", self.map.map_name)?;
-        writeln!(out, "///")?;
+        writeln!(out, "//! `{}` Registers", self.map.map_name)?;
+        writeln!(out, "//!")?;
 
         // Generated-with-reginald note, including original file name if known:
         if let Some(input_file) = &self.map.from_file {
-            writeln!(out, "/// Generated using reginald from {}.", filename(input_file)?)?;
+            writeln!(out, "//! Generated using reginald from `{}`.", filename(input_file)?)?;
         } else {
-            writeln!(out, "/// Generated using reginald.")?;
+            writeln!(out, "//! Generated using reginald.")?;
         }
 
         // Indicate which generator was used:
-        writeln!(out, "/// Generator: rs-struct-no-deps")?;
+        writeln!(out, "//! Generator: rs-structs")?;
 
         // Map top-level documentation:
         if !self.map.docs.is_empty() {
-            writeln!(out, "///")?;
-            write!(out, "{}", self.map.docs.as_multiline("/// "))?;
+            writeln!(out, "//!")?;
+            write!(out, "{}", self.map.docs.as_multiline("//! "))?;
         }
 
         // Map author and note:
         if let Some(author) = &self.map.author {
-            writeln!(out, "/// ")?;
-            writeln!(out, "/// Listing file author: {author}")?;
+            writeln!(out, "//! ")?;
+            writeln!(out, "//! Listing file author: {author}")?;
         }
         if let Some(note) = &self.map.note {
-            writeln!(out, "///")?;
-            writeln!(out, "/// Listing file note:")?;
+            writeln!(out, "//!")?;
+            writeln!(out, "//! Listing file note:")?;
             for line in note.lines() {
-                writeln!(out, "///   {line}")?;
+                writeln!(out, "//!   {line}")?;
+            }
+        }
+
+        if !self.opts.add_use.is_empty() {
+            writeln!(out)?;
+            for add_use in &self.opts.add_use {
+                writeln!(out, "use {add_use};")?;
             }
         }
 
@@ -170,10 +229,8 @@ impl Generator<'_> {
         generate_doc_comment(out, &e.docs, "")?;
 
         // Enum derives:
-        if !self.opts.enum_derive.is_empty() {
-            let derives = self.opts.enum_derive.join(", ");
-            writeln!(out, "#[derive({derives})]")?;
-        }
+        let derives = self.enum_derives.join(", ");
+        writeln!(out, "#[derive({derives})]")?;
 
         // Enum proper:
         writeln!(out, "#[repr({uint_type})]")?;
@@ -255,9 +312,9 @@ impl Generator<'_> {
         // individual listing or register block in the listing.
         writeln!(out)?;
         if block.from_explicit_listing_block {
-            writeln!(out, "{header_comment} {} register block", block.name)?;
+            writeln!(out, "{header_comment} `{}` register block", block.name)?;
         } else {
-            writeln!(out, "{header_comment} {} register", block.name)?;
+            writeln!(out, "{header_comment} `{}` register", block.name)?;
         }
         if !block.docs.is_empty() {
             writeln!(out, "{header_comment}")?;
@@ -300,7 +357,7 @@ impl Generator<'_> {
                     let instance_name_const = rs_const(&instance.name);
                     let address_type = &self.address_type;
                     writeln!(out)?;
-                    writeln!(out, "/// Start of {block_name} instance {instance_name}")?;
+                    writeln!(out, "/// Start of `{block_name}` instance `{instance_name}`")?;
                     writeln!(out, "pub const {instance_name_const}_INSTANCE: {address_type} = 0x{adr:x};")?;
                 }
             }
@@ -335,7 +392,8 @@ impl Generator<'_> {
         // Register struct + conversion impls:
         if !template.fields.is_empty() {
             self.generate_register_struct(out, block, template)?;
-            self.generate_register_impl(out, block, template)?;
+            self.generate_register_to_bytes(out, block, template)?;
+            self.generate_register_from_bytes(out, block, template)?;
         }
 
         Ok(())
@@ -352,13 +410,14 @@ impl Generator<'_> {
         let reg_name_generic = template.name_in_block(block);
         let reg_name_generic_const = rs_const(&reg_name_generic);
         let address_type = &self.address_type;
-        let register_uint = rs_fitting_unsigned_type(template.bitwidth)?;
+
+        let byte_array = format!("[u8; {}]", template.width_bytes());
 
         // Offset of register from register block start (if 'interesting' because there are multiple templates).
         if block.instances.len() > 1 && block.register_templates.len() > 1 {
             if let Some(template_offset) = template.adr {
                 writeln!(out)?;
-                writeln!(out, "/// Offset of {template_name} register from {block_name} block start")?;
+                writeln!(out, "/// Offset of `{template_name}` register from `{block_name}` block start")?;
                 writeln!(out, "pub const {reg_name_generic_const}_OFFSET: {address_type} = 0x{template_offset:x};")?;
             }
         }
@@ -370,7 +429,7 @@ impl Generator<'_> {
                 if let Some(instance_adr) = &instance.adr {
                     let adr = instance_adr + template_offset;
                     writeln!(out)?;
-                    writeln!(out, "/// {instance_name} register address")?;
+                    writeln!(out, "/// `{instance_name}` register address")?;
                     writeln!(out, "pub const {reg_name_generic_const}_ADDRESS: {address_type} = 0x{adr:x};")?;
                 }
             }
@@ -378,21 +437,30 @@ impl Generator<'_> {
 
         // Reset val.
         if let Some(reset_val) = &template.reset_val {
+            let val = to_array_literal(Endianess::Little, *reset_val, template.width_bytes());
             writeln!(out)?;
-            writeln!(out, "/// {reg_name_generic} reset value")?;
-            writeln!(out, "pub const {reg_name_generic_const}_RESET: {register_uint} = 0x{reset_val:x};")?;
+            writeln!(out, "/// `{reg_name_generic}` little-endian reset value")?;
+            writeln!(out, "pub const {reg_name_generic_const}_RESET_LE: {byte_array} = {val};")?;
+
+            let val = to_array_literal(Endianess::Big, *reset_val, template.width_bytes());
+            writeln!(out)?;
+            writeln!(out, "/// `{reg_name_generic}` big-endian reset value")?;
+            writeln!(out, "pub const {reg_name_generic_const}_RESET_BE: {byte_array} = {val};")?;
         }
 
         // Always write information.
         if let Some(always_write) = &template.always_write {
-            let mask = &always_write.mask;
             let value = &always_write.value;
+
+            let val = to_array_literal(Endianess::Little, *value, template.width_bytes());
             writeln!(out)?;
-            writeln!(out, "/// {reg_name_generic} always write mask")?;
-            writeln!(out, "pub const {reg_name_generic_const}_ALWAYSWRITE_MASK: {register_uint} = 0x{mask:x};")?;
+            writeln!(out, "/// `{reg_name_generic}` little-endian always write value")?;
+            writeln!(out, "pub const {reg_name_generic_const}_ALWAYSWRITE_VALUE_LE: {byte_array} = {val};")?;
+
+            let val = to_array_literal(Endianess::Big, *value, template.width_bytes());
             writeln!(out)?;
-            writeln!(out, "/// {reg_name_generic} always write value")?;
-            writeln!(out, "pub const {reg_name_generic_const}_ALWAYSWRITE_VALUE: {register_uint} = 0x{value:x};")?;
+            writeln!(out, "/// `{reg_name_generic}` big-endian always write value")?;
+            writeln!(out, "pub const {reg_name_generic_const}_ALWAYSWRITE_VALUE_BE: {byte_array} = {val};")?;
         }
 
         Ok(())
@@ -408,7 +476,7 @@ impl Generator<'_> {
 
         // Struct doc comment:
         writeln!(out)?;
-        writeln!(out, "/// {reg_name_generic} register")?;
+        writeln!(out, "/// `{reg_name_generic}` register")?;
         if !block.docs.is_empty() {
             writeln!(out, "///")?;
             write!(out, "{}", block.docs.as_multiline("/// "))?;
@@ -416,20 +484,16 @@ impl Generator<'_> {
 
         // Register derives:
         if !self.opts.struct_derive.is_empty() {
-            let derives = self.opts.enum_derive.join(", ");
+            let derives = self.opts.struct_derive.join(", ");
             writeln!(out, "#[derive({derives})]")?;
         }
 
         // Struct proper:
         writeln!(out, "pub struct {} {{", rs_pascalcase(&reg_name_generic))?;
 
-        for (idx, field) in template.fields.values().enumerate() {
+        for field in template.fields.values() {
             let field_type = self.register_struct_member_type(field)?;
             let field_name = rs_snakecase(&field.name);
-
-            if idx != 0 {
-                writeln!(out)?;
-            }
             generate_doc_comment(out, &field.docs, "    ")?;
             writeln!(out, "    pub {field_name}: {field_type},")?;
         }
@@ -457,167 +521,243 @@ impl Generator<'_> {
         }
     }
 
-    /// Generate register conversion functions
-    fn generate_register_impl(
+    const CONVERSION_TRAITS: &'static str = include_str!("traits.txt");
+
+    fn generate_traits(&self, out: &mut IndentWrite) -> Result<(), Error> {
+        writeln!(out)?;
+        writeln!(out, "// ==== Traits: ====")?;
+        writeln!(out)?;
+        write!(out, "{}", Self::CONVERSION_TRAITS)?;
+        Ok(())
+    }
+
+    fn generate_register_to_bytes(
         &self,
         out: &mut IndentWrite,
         block: &RegisterBlock,
         template: &Register,
     ) -> Result<(), Error> {
-        let uint_type = rs_fitting_unsigned_type(template.bitwidth)?;
         let reg_name_generic = template.name_in_block(block);
         let reg_name_generic_const = rs_const(&reg_name_generic);
         let struct_name = rs_pascalcase(&reg_name_generic);
+        let width_bytes = template.width_bytes();
 
-        // IMPL 1: Uint -> Register
+        let trait_prefix = self.trait_prefix();
 
+        // Impl block and function signature:
         writeln!(out)?;
+        writeln!(out, "impl {trait_prefix}ToBytes<{width_bytes}> for {struct_name} {{")?;
+        writeln!(out, "    fn to_le_bytes(&self) -> [u8; {width_bytes}] {{")?;
+        writeln!(out, "        #![allow(clippy::cast_possible_truncation)]")?;
+        out.increase_indent(2);
 
-        if template.can_always_unpack() {
-            // If the register can always be unpacked, generate a 'From' impl.
-            writeln!(out, "impl From<{uint_type}> for {struct_name} {{")?;
+        // Variable to hold result:
+        writeln!(out, "let mut val: [u8; {width_bytes}] = [0; {width_bytes}];")?;
 
-            writeln!(out, "    fn from(value: {uint_type}) -> Self {{")?;
-            writeln!(out, "        Self {{")?;
-        } else {
-            // Otherwise, generate a try-from impl with the correct error type.
-            writeln!(out, "impl TryFrom<{uint_type}> for {struct_name} {{")?;
-            if self.opts.unpacking_error_msg {
-                writeln!(out, "    type Error = &'static str;")?;
-            } else {
-                writeln!(out, "    type Error = ();")?;
-            }
-
-            writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
-            writeln!(out, "        Ok(Self {{")?;
+        // Apply always-write value (if any):
+        if template.always_write.is_some() {
+            let val_const = format!("{reg_name_generic_const}_ALWAYSWRITE_VALUE_LE");
+            writeln!(out, "for i in 0..{width_bytes} {{")?;
+            writeln!(out, "    val[i] |= {val_const}[i];")?;
+            writeln!(out, "}}")?;
         }
 
+        // Insert each field:
         for field in template.fields.values() {
-            // Name of field in register:
             let field_name = rs_snakecase(&field.name);
-
-            // Operation to extract field value from uint:
-            let field_value = if lsb_pos(field.mask) == 0 {
-                format!("value & 0x{:X}", field.mask)
-            } else {
-                format!("(value & 0x{:X}) >> {}", field.mask, lsb_pos(field.mask))
-            };
-
-            // Appropriate struct member init for each field, depending on type:
-            write!(out, "            ")?;
-            write!(out, "{field_name}: ")?;
-
-            if let Some(e) = field.get_enum() {
-                // Enum.
-                // Uint type the enum from/tryfrom impls use:
-                let enum_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
-
-                // Conversion function to use, depending on if enum can always unpack:
-                let conversion = if field.can_always_unpack() {
-                    "into()"
-                } else {
-                    // Fallible conversion. If any field can only be converted using a 'try_from',
-                    // we must be inside a 'try_from' and can use the question mark operator.
-                    "try_into()?"
+            for byte in 0..width_bytes {
+                let Some(transform) = field_to_byte_transform(Endianess::Little, field.mask, byte, width_bytes) else {
+                    // This field is not present in this byte.
+                    continue;
                 };
 
-                // Convert enum to uint.
-                if enum_type == uint_type {
-                    // Enum from/try from use the same type as the register, so we can convert
-                    // directly.
-                    writeln!(out, "({field_value}).{conversion},")?;
+                // Convert the field to some unsigned integer that can be shifted:
+                let field_value = match &field.accepts {
+                    FieldType::UInt => format!("self.{field_name}"),
+                    FieldType::Bool => format!("u8::from(self.{field_name})"),
+                    FieldType::LocalEnum(e) => {
+                        let enum_uint = rs_fitting_unsigned_type(e.min_bitdwith())?;
+                        format!("(self.{field_name} as {enum_uint})")
+                    }
+                    FieldType::SharedEnum(e) => {
+                        let enum_uint = rs_fitting_unsigned_type(e.min_bitdwith())?;
+                        format!("(self.{field_name} as {enum_uint})")
+                    }
+                };
+
+                // The byte of interest:
+                let field_byte = match &transform.shift {
+                    Some((ShiftDirection::Left, amnt)) => format!("({field_value} << {amnt})"),
+                    Some((ShiftDirection::Right, amnt)) => format!("({field_value} >> {amnt})"),
+                    None => field_value,
+                };
+
+                let masked_field_byte = if transform.mask == 0xFF {
+                    field_byte
                 } else {
-                    // Enum from/try from use a different type from the register, so we first
-                    // covnert to that type.
-                    writeln!(out, "(({field_value}) as {enum_type}).{conversion},")?;
-                }
-            } else if matches!(field.accepts, FieldType::Bool) {
-                // direct bool conversion.
-                writeln!(out, "{field_value} != 0,")?;
-            } else {
-                // Uint field. Convert if field uses a different uint type than the
-                // complete register:
-                let field_type = self.register_struct_member_type(field)?;
-                if field_type == uint_type {
-                    writeln!(out, "{field_value},")?;
-                } else {
-                    writeln!(out, "({field_value}) as {field_type},")?;
-                }
+                    format!("({field_byte} & 0x{:X})", transform.mask)
+                };
+
+                writeln!(out, "val[{byte}] |= {masked_field_byte} as u8;")?;
             }
         }
 
-        // Complete Struct initialiser. Try-from needs an extra bracket, because struct initialiser is
-        // wrapped in an Ok()
-        if template.can_always_unpack() {
-            writeln!(out, "        }}")?;
-        } else {
-            writeln!(out, "        }})")?;
-        }
+        // Return result:
+        writeln!(out, "val")?;
 
-        writeln!(out, "    }}")?;
-        writeln!(out, "}}")?;
-
-        // IMPL 2: Register -> Uint
-
-        writeln!(out)?;
-        writeln!(out, "impl From<{struct_name}> for {uint_type} {{")?;
-        writeln!(out, "    fn from(value: {struct_name}) -> Self {{")?;
-
-        // Convert each field to its (positioned) binary value:
-        for field in template.fields.values() {
-            let field_name = rs_snakecase(&field.name);
-            let field_type = self.register_struct_member_type(field)?;
-
-            // Binary value of field, unshifted:
-            let value = if let Some(e) = field.get_enum() {
-                // Enum.
-
-                // Type used for enum repr:
-                let enum_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
-
-                // Convert enum to uint:
-                if enum_type == uint_type {
-                    // If enum repr matches register uint, convert directly:
-                    format!("(value.{field_name} as {enum_type})")
-                } else {
-                    // If enum repr uses a different type, convert to that first, then to the register
-                    // uint. (Enum 'as' convertion only works into enum's repr type)
-                    format!("((value.{field_name} as {enum_type}) as {uint_type})")
-                }
-            } else if field_type == uint_type {
-                // Field has same type as output, take as-is:
-                format!("value.{field_name}")
-            } else {
-                // Field is bool or different uart, convert:
-                format!("(value.{field_name} as {uint_type})")
-            };
-
-            // Shift, store in temporary var:
-            let mask = unpositioned_mask(field.mask);
-            let shift = lsb_pos(field.mask);
-            if shift == 0 {
-                writeln!(out, "        let {field_name}: Self = {value} & 0x{mask:X};")?;
-            } else {
-                writeln!(out, "        let {field_name}: Self = ({value} & 0x{mask:X}) << {shift};")?;
-            }
-        }
-
-        // Bitwise-Or all fields and always write fields together:
-        write!(out, "        ")?;
-        for (idx, field) in template.fields.values().enumerate() {
-            if idx != 0 {
-                write!(out, " | ")?;
-            }
-            write!(out, "{}", rs_snakecase(&field.name))?;
-        }
-        if template.always_write.is_some() {
-            write!(out, " | {reg_name_generic_const}_ALWAYSWRITE_VALUE")?;
-        }
-        writeln!(out)?;
-
+        // End of impl block/signature:
+        out.decrease_indent(2);
         writeln!(out, "    }}")?;
         writeln!(out, "}}")?;
 
         Ok(())
     }
+
+    fn generate_register_from_bytes(
+        &self,
+        out: &mut IndentWrite,
+        block: &RegisterBlock,
+        template: &Register,
+    ) -> Result<(), Error> {
+        let reg_name_generic = template.name_in_block(block);
+        let struct_name = rs_pascalcase(&reg_name_generic);
+        let width_bytes = template.width_bytes();
+
+        // If registers are in modules, trait must be explicitly used:
+        let trait_prefix = self.trait_prefix();
+
+        let error_type = if self.opts.unpacking_error_msg {
+            "&'static str"
+        } else {
+            "()"
+        };
+
+        // Impl block and function signature:
+        // Depending on if the bytes-to-register conversion can fail, we either
+        // generate an 'FromBytes' or 'TryFromBytes' impl.
+        if template.can_always_unpack() {
+            writeln!(out)?;
+            writeln!(out, "impl {trait_prefix}FromBytes<{width_bytes}> for {struct_name} {{")?;
+            writeln!(out, "    fn from_le_bytes(val: [u8; {width_bytes}]) -> Self {{")?;
+        } else {
+            writeln!(out)?;
+            writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {struct_name} {{")?;
+            writeln!(out, "    type Error = {error_type};")?;
+            writeln!(out, "    fn try_from_le_bytes(val: [u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
+        }
+        out.increase_indent(2);
+
+        for field in template.fields.values() {
+            let field_name = rs_snakecase(&field.name);
+
+            let field_raw_type = match &field.accepts {
+                FieldType::UInt => self.register_struct_member_type(field)?,
+                FieldType::Bool => "u8".to_string(),
+                FieldType::LocalEnum(e) => rs_fitting_unsigned_type(e.min_bitdwith())?,
+                FieldType::SharedEnum(e) => rs_fitting_unsigned_type(e.min_bitdwith())?,
+            };
+
+            let mut unpacked_value_parts: Vec<String> = vec![];
+
+            for byte in 0..width_bytes {
+                let Some(transform) = byte_to_field_transform(Endianess::Little, field.mask, byte, width_bytes) else {
+                    continue;
+                };
+
+                let casted_value = if field_raw_type == "u8" {
+                    format!("val[{byte}]")
+                } else {
+                    format!("{field_raw_type}::from(val[{byte}])")
+                };
+
+                let masked = if transform.mask == 0xFF {
+                    casted_value
+                } else {
+                    format!("({casted_value} & 0x{:X})", transform.mask)
+                };
+
+                match &transform.shift {
+                    Some((ShiftDirection::Left, amnt)) => unpacked_value_parts.push(format!("{masked} << {amnt}")),
+                    Some((ShiftDirection::Right, amnt)) => unpacked_value_parts.push(format!("{masked} >> {amnt}")),
+                    None => unpacked_value_parts.push(masked),
+                };
+            }
+            assert!(!unpacked_value_parts.is_empty());
+
+            let unpacked_value = remove_wrapping_parens(&unpacked_value_parts.join(" | "));
+
+            write!(out, "let {field_name} = ")?;
+            if field.get_enum().is_some() {
+                // Conversion function to use, depending on if enum can always unpack:
+                let conversion = if field.can_always_unpack() {
+                    "into()"
+                } else {
+                    "try_into()?"
+                };
+
+                // Convert enum to uint.
+                writeln!(out, "({unpacked_value}).{conversion};")?;
+            } else {
+                match field.accepts {
+                    FieldType::UInt => writeln!(out, "{unpacked_value};")?,
+                    FieldType::Bool => writeln!(out, "({unpacked_value}) != 0;")?,
+                    FieldType::LocalEnum(_) | FieldType::SharedEnum(_) => unreachable!(),
+                }
+            }
+        }
+
+        if template.can_always_unpack() {
+            writeln!(out, "Self {{")?;
+        } else {
+            writeln!(out, "Ok(Self {{")?;
+        }
+
+        for field in template.fields.values() {
+            let field_name = rs_snakecase(&field.name);
+            writeln!(out, "  {field_name},")?;
+        }
+
+        if template.can_always_unpack() {
+            writeln!(out, "}}")?;
+        } else {
+            writeln!(out, "}})")?;
+        }
+
+        out.decrease_indent(2);
+        // Close function and impl:
+        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
+        Ok(())
+    }
+
+    fn trait_prefix(&self) -> String {
+        // Decide trait prefix. If an external override is given, use that.
+        // Otherwise, use the local definition. In this case, if the register-related
+        // content is wrapped in a struct, the traits are defined in the parent
+        // scope.
+        self.opts.external_traits.as_ref().cloned().unwrap_or(
+            // Local trait definition
+            if self.opts.register_block_mods {
+                String::from("super::")
+            } else {
+                String::new()
+            },
+        )
+    }
+}
+
+/// Convert a value to an array literal of given endianess
+fn to_array_literal(endian: Endianess, val: TypeValue, width_bytes: TypeBitwidth) -> String {
+    let mut bytes: Vec<String> = vec![];
+
+    for i in 0..width_bytes {
+        let byte = format!("0x{:X}", ((val >> (8 * i)) & 0xFF) as u8);
+        bytes.push(byte);
+    }
+
+    if matches!(endian, Endianess::Big) {
+        bytes.reverse();
+    }
+
+    format!("[{}]", bytes.join(", "))
 }

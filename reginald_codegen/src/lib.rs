@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 pub mod bits;
 pub mod builtin;
 pub mod error;
