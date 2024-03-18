@@ -3,5 +3,7 @@
 resolver = "2"
 
 members = [
-    "reginald_codegen"
+    "reginald_codegen",
+    "reginald",
 ]
+

@@ -99,9 +99,8 @@ pub fn lsb_pos(val: TypeValue) -> TypeBitwidth {
         loop {
             if val & (1 << i) != 0 {
                 return i;
-            } else {
-                i += 1;
             }
+            i += 1;
         }
     }
 }

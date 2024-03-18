@@ -6,6 +6,18 @@ registers:
   REG1: !Register
     adr: 0x00
     reset_val: 0x00
+    bitwidth: 8
+    fields:
+      FIELD1:
+        bits: ["2-5"]
+        accepts: !UInt
+      FIELD0:
+        bits: [0]
+        accepts: !Bool
+
+  REG2: !Register
+    adr: 0x00
+    reset_val: 0x0043
     bitwidth: 16
     always_write:
       - { bits: ["4-5"], val: 0x1 }
@@ -28,35 +40,26 @@ registers:
         bits: ["8-12"]
         access: [R]
 
-  REG2: !Register
-    adr: 0x00
-    reset_val: 0x00
-    bitwidth: 8
-    fields:
-      FIELD0:
-        bits: [0]
-        accepts: !Bool
-
   REG3: !Register
-    adr: 0x00
-    fields:
-      FIELD0:
-        bits: ["0-3"]
-
-  REG4: !Register
-    adr: 0x10
-    reset_val: 0x00
-    bitwidth: 8
-
-  BIGREG: !Register
     adr: 0x10
     bitwidth: 64
-    reset_val: 0x00
     fields:
       FIELD0:
         bits: ["0-15"]
       FIELD1:
         bits: ["63-56"]
+
+  REG_EMPTY: !Register
+    adr: 0x10
+    reset_val: 0x00
+    bitwidth: 8
+
+  REG5: !Register
+    bitwidth: 24
+    fields:
+      FIELD0:
+        bits: ["0-15"]
+
 
 enums:
   STAT:

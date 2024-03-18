@@ -7,7 +7,7 @@ use crate::{
     regmap::{Docs, TypeBitwidth},
 };
 
-pub mod structs_no_deps;
+pub mod structs;
 
 fn rs_pascalcase(s: &str) -> String {
     let mut result = String::new();

@@ -14,6 +14,8 @@ use crate::regmap::{TypeBitwidth, TypeValue};
 /// Example:
 /// ```rust
 /// # use reginald_codegen::utils::str_pad_to_length;
+/// let s = str_pad_to_length("Hi!", ' ', 5);
+/// assert_eq!(s, String::from("Hi!  "));
 /// let s = str_pad_to_length("Hi!", '_', 10);
 /// assert_eq!(s, String::from("Hi!_______"));
 /// ```
@@ -155,7 +157,7 @@ pub fn filename(s: &Path) -> Result<String, Error> {
         .map(|x| x.to_string_lossy().to_string())
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Endianess {
     Little,
@@ -176,17 +178,16 @@ pub fn grab_byte(endian: Endianess, val: TypeValue, byte_pos: TypeBitwidth, widt
         Endianess::Little => byte_pos,
         Endianess::Big => width_bytes - byte_pos - 1,
     };
-    let val = ((val >> (le_byte_pos * 8)) & 0xff) as u8;
-    val
+    ((val >> (le_byte_pos * 8)) & 0xff) as u8
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ShiftDirection {
     Left,
     Right,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Transform {
     pub shift: Option<(ShiftDirection, TypeBitwidth)>,
     pub mask: u8,
@@ -194,9 +195,9 @@ pub struct Transform {
 
 /// Determine the transform required to put a field's value into a byte array.
 ///
-/// Given a register of width packed_width_bytes, and a field that exists at
-/// the bits field_mask, this function determines if the byte at position
-/// packed_byte_pos contains any part of the given field, and if so determines
+/// Given a register of width `packed_width_bytes`, and a field that exists at
+/// the bits `field_mask`, this function determines if the byte at position
+/// `packed_byte_pos` contains any part of the given field, and if so determines
 /// the required transform to extract that part of the field and put it into the
 /// correct position. The byte position is interpreted with respect to the
 /// endianess given in 'endian'.
@@ -242,9 +243,9 @@ pub fn field_to_byte_transform(
 /// Determine the transform required to extract piece of a field from a byte
 /// of a register.
 ///
-/// Given a register of width packed_width_bytes, and a field that exists at
-/// the bits field_mask, this function determines if the byte at position
-/// packed_byte_pos contains any part of the given field, and if so determines
+/// Given a register of width `packed_width_bytes`, and a field that exists at
+/// the bits `field_mask`, this function determines if the byte at position
+/// `packed_byte_pos` contains any part of the given field, and if so determines
 /// the required transform to determine that part of the field from the byte.
 /// The byte position is interpreted with respect to the endianess given in 'endian'.
 ///
@@ -266,6 +267,51 @@ pub fn byte_to_field_transform(
     });
 
     Some(Transform { shift, mask: t.mask })
+}
+
+/// Remove any parenthesis that enclose the complete string.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::utils::remove_wrapping_parens;
+/// assert_eq!("Hi!".to_string(), remove_wrapping_parens(" (  ( Hi!))"));
+/// assert_eq!("(not)(these)".to_string(), remove_wrapping_parens("(not)(these)"));
+/// ```
+pub fn remove_wrapping_parens(inp: &str) -> String {
+    // Check if the chars at the first and last character match.
+    // i.e. "(abc)" => yes
+    // i.e. "()abc()" => no
+    fn braces_are_related(s: &str) -> bool {
+        let mut braces_cnt: usize = 0;
+
+        let num_chars = s.chars().count();
+        for (idx, char) in s.chars().enumerate() {
+            if idx == 0 || idx == num_chars - 1 {
+                continue;
+            }
+
+            match char {
+                '(' => braces_cnt += 1,
+                ')' => {
+                    if braces_cnt == 0 {
+                        return false;
+                    }
+                    braces_cnt -= 1;
+                }
+                _ => (),
+            };
+        }
+
+        braces_cnt == 0
+    }
+
+    let mut s = String::from(inp.trim());
+    while s.starts_with('(') && s.ends_with(')') && braces_are_related(&s) {
+        s.remove(0);
+        s.pop();
+        s = s.trim().into();
+    }
+    s
 }
 
 #[cfg(test)]

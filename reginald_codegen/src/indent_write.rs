@@ -1,6 +1,6 @@
-use std::fmt::Write;
+use std::{fmt::Write, usize};
 
-/// A wrapper around a 'write', that indents all lines to a set value.
+/// A wrapper around a `write`, that indents all lines to a set value.
 pub struct IndentWrite<'a> {
     w: &'a mut dyn Write,
     indent: String,
@@ -11,15 +11,15 @@ pub struct IndentWrite<'a> {
 impl Write for IndentWrite<'_> {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         for c in s.chars() {
-            self.process_char(&c)?;
+            self.process_char(c)?;
         }
         Ok(())
     }
 }
 
 impl IndentWrite<'_> {
-    /// Wrap a given 'write' into an IndentWrite where each level of indent
-    /// consists of the string `indent`. The IndentWrite starts without
+    /// Wrap a given `write` into an `IndentWrite` where each level of indent
+    /// consists of the string `indent`. The `IndentWrite` starts without
     /// any indentation.
     pub fn new<'a>(w: &'a mut dyn Write, indent: &str) -> IndentWrite<'a> {
         IndentWrite {
@@ -30,18 +30,28 @@ impl IndentWrite<'_> {
         }
     }
 
+    /// Increase the level of indentation.
+    pub fn increase_indent(&mut self, n: usize) {
+        self.current_indent += n;
+    }
+
     /// Increase the level of indentation by one.
     pub fn push_indent(&mut self) {
-        self.current_indent += 1;
+        self.increase_indent(1);
+    }
+
+    /// Decrease the level of indentation.
+    pub fn decrease_indent(&mut self, n: usize) {
+        assert!(self.current_indent >= n, "Cannot reduce indent below 0");
+        self.current_indent -= n;
     }
 
     /// Decrease the level of indentation by one.
     pub fn pop_indent(&mut self) {
-        assert!(self.current_indent != 0, "Cannot reduce indent below 0");
-        self.current_indent -= 1;
+        self.decrease_indent(1);
     }
 
-    fn process_char(&mut self, c: &char) -> std::fmt::Result {
+    fn process_char(&mut self, c: char) -> std::fmt::Result {
         match (self.newline_buffered, c) {
             (false, '\n') => {
                 // Buffer newline;
@@ -50,7 +60,7 @@ impl IndentWrite<'_> {
             }
             (false, c) => {
                 // Write-through character:
-                self.w.write_char(*c)
+                self.w.write_char(c)
             }
             (true, '\n') => {
                 // Empty newline. Write-through empty newline without
@@ -64,7 +74,7 @@ impl IndentWrite<'_> {
                 for _ in 0..self.current_indent {
                     self.w.write_str(&self.indent)?;
                 }
-                self.w.write_char(*c)
+                self.w.write_char(c)
             }
         }
     }

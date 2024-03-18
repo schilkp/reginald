@@ -17,7 +17,7 @@ use super::{c_code, c_fitting_unsigned_type, c_generate_doxy_comment, c_generate
 
 // ====== Generator Opts =======================================================
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Element {
     Enums,
@@ -175,7 +175,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
             generate_register_funcs(&mut out_buf, &inp, block, template)?;
             if !out_buf.is_empty() {
                 generate_register_header(out, block, template)?;
-                write!(out, "{}", out_buf)?;
+                out.write_str(&out_buf)?;
             }
         }
     }
@@ -748,6 +748,25 @@ fn generate_register_func_unpack(
             FieldType::LocalEnum(e) => format!("({})", c_fitting_unsigned_type(e.min_bitdwith())?),
             FieldType::SharedEnum(e) => format!("({})", c_fitting_unsigned_type(e.min_bitdwith())?),
         };
+        let mut unpacked_value: Vec<String> = vec![];
+
+        for byte in 0..width_bytes {
+            let Some(transform) = byte_to_field_transform(inp.opts.endian, field.mask, byte, width_bytes) else {
+                continue;
+            };
+
+            let masked = format!("({pre_cast}(val[{byte}] & 0x{:X}U))", transform.mask);
+
+            match &transform.shift {
+                Some((ShiftDirection::Left, amnt)) => unpacked_value.push(format!("({masked} << {amnt})")),
+                Some((ShiftDirection::Right, amnt)) => unpacked_value.push(format!("({masked} >> {amnt})")),
+                None => unpacked_value.push(masked),
+            };
+        }
+        assert!(!unpacked_value.is_empty());
+
+        let unpacked_value = unpacked_value.join(" | ");
+
         let post_cast = match &field.accepts {
             FieldType::UInt => format!("({})", c_fitting_unsigned_type(mask_width(field.mask))?),
             FieldType::Bool => String::from("(bool)"),
@@ -767,24 +786,7 @@ fn generate_register_func_unpack(
             }
         };
 
-        let mut unpacked_value: Vec<String> = vec![];
-
-        for byte in 0..width_bytes {
-            let Some(transform) = byte_to_field_transform(inp.opts.endian, field.mask, byte, width_bytes) else {
-                continue;
-            };
-
-            let masked = format!("({pre_cast}(val[{byte}] & 0x{:X}U))", transform.mask);
-
-            match &transform.shift {
-                Some((ShiftDirection::Left, amnt)) => unpacked_value.push(format!("({masked} << {amnt})")),
-                Some((ShiftDirection::Right, amnt)) => unpacked_value.push(format!("({masked} >> {amnt})")),
-                None => unpacked_value.push(masked),
-            };
-        }
-
-        let unpacked_value = format!("{post_cast}({})", unpacked_value.join(" | "));
-        assert!(!unpacked_value.is_empty());
+        let unpacked_value = format!("{post_cast}({unpacked_value})");
 
         if try_unpack {
             if let Some(e) = field.get_enum() {
@@ -900,16 +902,14 @@ fn generate_footer(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
 
 /// Generate multi-line macro with allgined newline-escape slashes:
 fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Result<(), Error> {
-    if lines.is_empty() {
-        Ok(())
-    } else {
+    if !lines.is_empty() {
         let last_line = lines.pop().unwrap();
         for line in lines {
             writeln!(out, "{}\\", str_pad_to_length(&line, ' ', 99))?;
         }
         writeln!(out, "{last_line}")?;
-        Ok(())
     }
+    Ok(())
 }
 
 fn generate_doxy_comment(

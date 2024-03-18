@@ -118,13 +118,13 @@ pub fn validate_field_type(field: &Field, bt: &str) -> Result<(), Error> {
     match &field.accepts {
         FieldType::UInt => Ok(()),
         FieldType::Bool => {
-            if mask_width(field.mask) != 1 {
+            if mask_width(field.mask) == 1 {
+                Ok(())
+            } else {
                 Err(Error::ConversionError {
                     bt: bt.to_owned() + ".accepts",
                     msg: format!("Field {} accepts a boolean but is more than one bit wide!", field.name),
                 })
-            } else {
-                Ok(())
             }
         }
         FieldType::LocalEnum(field_enum) => validate_field_enum(field, field_enum.entries.values(), bt),

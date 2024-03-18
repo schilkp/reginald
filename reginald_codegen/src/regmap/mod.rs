@@ -160,8 +160,12 @@ impl Enum {
     /// Check if enum can represent every possible value that fits into 'mask'
     pub fn can_unpack_mask(&self, unpos_mask: TypeValue) -> bool {
         // All enum values that fit into the mask:
-        let enum_vals: HashSet<u64> =
-            HashSet::from_iter(self.entries.values().map(|x| x.value).filter(|x| x & !unpos_mask == 0));
+        let enum_vals: HashSet<u64> = self
+            .entries
+            .values()
+            .map(|x| x.value)
+            .filter(|x| x & !unpos_mask == 0)
+            .collect();
 
         // Number of values the mask can represent:
         let mask_bit_count = mask_to_bits(unpos_mask).len();
@@ -184,22 +188,33 @@ impl Enum {
     pub fn max_value(&self) -> TypeValue {
         self.entries.values().map(|x| x.value).max().unwrap_or(0)
     }
+
+    pub fn decode(&self, val: TypeValue) -> Result<String, Error> {
+        self.entries
+            .values()
+            .find(|x| x.value == val)
+            .map(|x| x.name.clone())
+            .ok_or(Error::GeneratorError(format!("Enum '{}' cannot represent value 0x{:X}.", self.name, val)))
+    }
+}
+
+pub enum DecodedField {
+    UInt(TypeValue),
+    Bool(bool),
+    EnumEntry(String),
 }
 
 impl Field {
     pub fn accepts_enum(&self) -> bool {
         match &self.accepts {
-            FieldType::UInt => false,
-            FieldType::Bool => false,
-            FieldType::LocalEnum(_) => true,
-            FieldType::SharedEnum(_) => true,
+            FieldType::UInt | FieldType::Bool => false,
+            FieldType::LocalEnum(_) | FieldType::SharedEnum(_) => true,
         }
     }
 
     pub fn get_enum(&self) -> Option<&Enum> {
         match &self.accepts {
-            FieldType::UInt => None,
-            FieldType::Bool => None,
+            FieldType::UInt | FieldType::Bool => None,
             FieldType::LocalEnum(e) => Some(e),
             FieldType::SharedEnum(e) => Some(e),
         }
@@ -207,8 +222,7 @@ impl Field {
 
     pub fn enum_entries(&self) -> Option<impl Iterator<Item = &EnumEntry>> {
         match &self.accepts {
-            FieldType::UInt => None,
-            FieldType::Bool => None,
+            FieldType::UInt | FieldType::Bool => None,
             FieldType::LocalEnum(local_enum) => Some(local_enum.entries.values()),
             FieldType::SharedEnum(shared_enum) => Some(shared_enum.entries.values()),
         }
@@ -216,10 +230,23 @@ impl Field {
 
     pub fn can_always_unpack(&self) -> bool {
         match &self.accepts {
-            FieldType::UInt => true,
-            FieldType::Bool => true,
+            FieldType::UInt | FieldType::Bool => true,
             FieldType::LocalEnum(local_enum) => local_enum.can_unpack_mask(unpositioned_mask(self.mask)),
             FieldType::SharedEnum(shared_enum) => shared_enum.can_unpack_mask(unpositioned_mask(self.mask)),
+        }
+    }
+
+    pub fn decode_unpositioned_value(&self, val: TypeValue) -> Result<DecodedField, Error> {
+        self.decode_value(val >> (lsb_pos(self.mask)))
+    }
+
+    pub fn decode_value(&self, val: TypeValue) -> Result<DecodedField, Error> {
+        let val = val & unpositioned_mask(self.mask);
+        match &self.accepts {
+            FieldType::UInt => Ok(DecodedField::UInt(val)),
+            FieldType::Bool => Ok(DecodedField::Bool(val != 0)),
+            FieldType::LocalEnum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
+            FieldType::SharedEnum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
         }
     }
 }
