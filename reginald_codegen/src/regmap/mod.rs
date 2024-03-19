@@ -188,6 +188,20 @@ impl Enum {
     pub fn max_value(&self) -> TypeValue {
         self.entries.values().map(|x| x.value).max().unwrap_or(0)
     }
+
+    pub fn decode(&self, val: TypeValue) -> Result<String, Error> {
+        self.entries
+            .values()
+            .find(|x| x.value == val)
+            .map(|x| x.name.clone())
+            .ok_or(Error::GeneratorError(format!("Enum '{}' cannot represent value 0x{:X}.", self.name, val)))
+    }
+}
+
+pub enum DecodedField {
+    UInt(TypeValue),
+    Bool(bool),
+    EnumEntry(String),
 }
 
 impl Field {
@@ -219,6 +233,20 @@ impl Field {
             FieldType::UInt | FieldType::Bool => true,
             FieldType::LocalEnum(local_enum) => local_enum.can_unpack_mask(unpositioned_mask(self.mask)),
             FieldType::SharedEnum(shared_enum) => shared_enum.can_unpack_mask(unpositioned_mask(self.mask)),
+        }
+    }
+
+    pub fn decode_unpositioned_value(&self, val: TypeValue) -> Result<DecodedField, Error> {
+        self.decode_value(val >> (lsb_pos(self.mask)))
+    }
+
+    pub fn decode_value(&self, val: TypeValue) -> Result<DecodedField, Error> {
+        let val = val & unpositioned_mask(self.mask);
+        match &self.accepts {
+            FieldType::UInt => Ok(DecodedField::UInt(val)),
+            FieldType::Bool => Ok(DecodedField::Bool(val != 0)),
+            FieldType::LocalEnum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
+            FieldType::SharedEnum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
         }
     }
 }

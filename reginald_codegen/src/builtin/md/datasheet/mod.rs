@@ -5,7 +5,7 @@ use std::fmt::Write;
 use crate::{
     bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, msb_pos},
     error::Error,
-    regmap::{access_string, FieldType, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue},
+    regmap::{access_string, DecodedField, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue},
     utils::filename,
 };
 
@@ -230,15 +230,12 @@ fn decode_bit_range(value: TypeValue, range: &RegisterBitrange) -> String {
     match range.content {
         crate::regmap::RegisterBitrangeContent::Field { field, .. } => {
             let field_value = (value & field.mask) >> lsb_pos(field.mask);
-            if let Some(mut enum_entries) = field.enum_entries() {
-                return if let Some(entry) = enum_entries.find(|x| x.value == field_value) {
-                    format!("**{}**", entry.name)
-                } else {
-                    "**UNKNOWN**".to_string()
-                };
-            } else if matches!(field.accepts, FieldType::Bool) {
-                return if field_value == 0 { "**false**" } else { "**true**" }.into();
-            }
+            return match field.decode_value(field_value) {
+                Ok(DecodedField::UInt(_)) => String::new(),
+                Ok(DecodedField::Bool(b)) => if b { "true" } else { "false" }.to_string(),
+                Ok(DecodedField::EnumEntry(e)) => format!("**{e}**"),
+                Err(_) => "**ERROR**".to_string(),
+            };
         }
         crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
             return if value_range == val { "**OK**" } else { "**ERROR**" }.into()

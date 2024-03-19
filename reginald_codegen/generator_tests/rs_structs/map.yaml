@@ -17,7 +17,7 @@ registers:
 
   REG2: !Register
     adr: 0x00
-    reset_val: 0x00
+    reset_val: 0x0043
     bitwidth: 16
     always_write:
       - { bits: ["4-5"], val: 0x1 }
@@ -43,7 +43,6 @@ registers:
   REG3: !Register
     adr: 0x10
     bitwidth: 64
-    reset_val: 0x00
     fields:
       FIELD0:
         bits: ["0-15"]
@@ -54,6 +53,13 @@ registers:
     adr: 0x10
     reset_val: 0x00
     bitwidth: 8
+
+  REG5: !Register
+    bitwidth: 24
+    fields:
+      FIELD0:
+        bits: ["0-15"]
+
 
 enums:
   STAT:

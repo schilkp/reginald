@@ -88,7 +88,7 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
     #[cfg_attr(feature = "cli", arg(default_value = "true"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub generate_defaults: bool, // TODO
+    pub generate_defaults: bool,
 
     /// Generate `From/TryFrom/From` implementations that convert a register
     /// to/from the smallest rust unsigned integer value wide enough to hold the
@@ -97,7 +97,7 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
     #[cfg_attr(feature = "cli", arg(default_value = "true"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub generate_uint_conversion: bool, // TODO
+    pub generate_uint_conversion: bool,
 }
 
 // ====== Generator ============================================================
@@ -175,7 +175,6 @@ impl Generator<'_> {
     /// Generate file header
     fn generate_header(&self, out: &mut IndentWrite) -> Result<(), Error> {
         writeln!(out, "#![allow(clippy::unnecessary_cast)]")?;
-        writeln!(out)?;
 
         // Top doc comment:
         writeln!(out, "//! `{}` Registers", self.map.map_name)?;
@@ -392,8 +391,14 @@ impl Generator<'_> {
         // Register struct + conversion impls:
         if !template.fields.is_empty() {
             self.generate_register_struct(out, block, template)?;
+            if self.opts.generate_defaults {
+                self.generate_register_default(out, block, template)?;
+            }
             self.generate_register_to_bytes(out, block, template)?;
             self.generate_register_from_bytes(out, block, template)?;
+            if self.opts.generate_uint_conversion {
+                self.generate_uint_conversion_funcs(out, block, template)?;
+            }
         }
 
         Ok(())
@@ -521,6 +526,60 @@ impl Generator<'_> {
         }
     }
 
+    fn generate_register_default(
+        &self,
+        out: &mut IndentWrite,
+        block: &RegisterBlock,
+        template: &Register,
+    ) -> Result<(), Error> {
+        let Some(reset_val) = template.reset_val else {
+            return Ok(());
+        };
+
+        let reg_name_generic = template.name_in_block(block);
+        let struct_name = rs_pascalcase(&reg_name_generic);
+
+        writeln!(out)?;
+        writeln!(out, "/// Register state at reset.")?;
+        writeln!(out, "#[allow(clippy::derivable_impls)]")?;
+        writeln!(out, "impl Default for {struct_name} {{")?;
+        writeln!(out, "    fn default() -> Self {{")?;
+        writeln!(out, "        Self {{")?;
+        out.increase_indent(3);
+
+        for field in template.fields.values() {
+            let field_name = rs_snakecase(&field.name);
+
+            // Attempt to decode field:
+            let decoded_value = field.decode_unpositioned_value(reset_val).map_err(|x|
+                match x {
+                    Error::GeneratorError(x) => Error::GeneratorError(format!("Register {reg_name_generic}: Generating struct default impls from reset values requires that the register can represent that value: {x}")),
+                    x => x,
+                }
+
+            )?;
+
+            let decoded_value = match decoded_value {
+                crate::regmap::DecodedField::UInt(v) => format!("0x{v:X}"),
+                crate::regmap::DecodedField::Bool(b) => if b { "true" } else { "false" }.to_string(),
+                crate::regmap::DecodedField::EnumEntry(e) => {
+                    let enum_name = self.register_struct_member_type(field)?;
+                    let entry_name = rs_pascalcase(&e);
+                    format!("{enum_name}::{entry_name}")
+                }
+            };
+
+            writeln!(out, "{field_name}: {decoded_value},")?;
+        }
+
+        out.decrease_indent(3);
+        writeln!(out, "        }}")?;
+        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
+
+        Ok(())
+    }
+
     const CONVERSION_TRAITS: &'static str = include_str!("traits.txt");
 
     fn generate_traits(&self, out: &mut IndentWrite) -> Result<(), Error> {
@@ -547,8 +606,8 @@ impl Generator<'_> {
         // Impl block and function signature:
         writeln!(out)?;
         writeln!(out, "impl {trait_prefix}ToBytes<{width_bytes}> for {struct_name} {{")?;
+        writeln!(out, "    #[allow(clippy::cast_possible_truncation)]")?;
         writeln!(out, "    fn to_le_bytes(&self) -> [u8; {width_bytes}] {{")?;
-        writeln!(out, "        #![allow(clippy::cast_possible_truncation)]")?;
         out.increase_indent(2);
 
         // Variable to hold result:
@@ -639,13 +698,15 @@ impl Generator<'_> {
             writeln!(out)?;
             writeln!(out, "impl {trait_prefix}FromBytes<{width_bytes}> for {struct_name} {{")?;
             writeln!(out, "    fn from_le_bytes(val: [u8; {width_bytes}]) -> Self {{")?;
+            writeln!(out, "        Self {{")?;
         } else {
             writeln!(out)?;
             writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {struct_name} {{")?;
             writeln!(out, "    type Error = {error_type};")?;
             writeln!(out, "    fn try_from_le_bytes(val: [u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
+            writeln!(out, "        Ok(Self {{")?;
         }
-        out.increase_indent(2);
+        out.increase_indent(3);
 
         for field in template.fields.values() {
             let field_name = rs_snakecase(&field.name);
@@ -686,8 +747,7 @@ impl Generator<'_> {
 
             let unpacked_value = remove_wrapping_parens(&unpacked_value_parts.join(" | "));
 
-            write!(out, "let {field_name} = ")?;
-            if field.get_enum().is_some() {
+            let converted_value = if field.get_enum().is_some() {
                 // Conversion function to use, depending on if enum can always unpack:
                 let conversion = if field.can_always_unpack() {
                     "into()"
@@ -696,37 +756,111 @@ impl Generator<'_> {
                 };
 
                 // Convert enum to uint.
-                writeln!(out, "({unpacked_value}).{conversion};")?;
+                format!("({unpacked_value}).{conversion}")
             } else {
                 match field.accepts {
-                    FieldType::UInt => writeln!(out, "{unpacked_value};")?,
-                    FieldType::Bool => writeln!(out, "({unpacked_value}) != 0;")?,
+                    FieldType::UInt => unpacked_value,
+                    FieldType::Bool => format!("({unpacked_value}) != 0"),
                     FieldType::LocalEnum(_) | FieldType::SharedEnum(_) => unreachable!(),
                 }
-            }
+            };
+
+            writeln!(out, "{field_name}: {converted_value},")?;
         }
 
+        out.decrease_indent(3);
+        // Close struct, function and impl:
         if template.can_always_unpack() {
-            writeln!(out, "Self {{")?;
+            writeln!(out, "        }}")?;
         } else {
-            writeln!(out, "Ok(Self {{")?;
+            writeln!(out, "        }})")?;
         }
+        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
+        Ok(())
+    }
 
-        for field in template.fields.values() {
-            let field_name = rs_snakecase(&field.name);
-            writeln!(out, "  {field_name},")?;
+    fn generate_uint_conversion_funcs(
+        &self,
+        out: &mut IndentWrite,
+        block: &RegisterBlock,
+        template: &Register,
+    ) -> Result<(), Error> {
+        let reg_name_generic = template.name_in_block(block);
+        let struct_name = rs_pascalcase(&reg_name_generic);
+        let trait_prefix = self.trait_prefix();
+        let (uint_type, uint_width_bytes) = match template.width_bytes() {
+            1 => ("u8", 1),
+            2 => ("u16", 2),
+            3..=4 => ("u32", 4),
+            5..=8 => ("u64", 8),
+            9..=16 => ("u128", 16),
+            _ => return Ok(()),
+        };
+
+        // Struct -> Bytes:
+
+        writeln!(out)?;
+        writeln!(out, "impl From<&{struct_name}> for {uint_type} {{")?;
+        writeln!(out, "    fn from(value: &{struct_name}) -> Self {{")?;
+        out.increase_indent(2);
+
+        if !trait_prefix.is_empty() {
+            writeln!(out, "use {trait_prefix}ToBytes;")?;
         }
-
-        if template.can_always_unpack() {
-            writeln!(out, "}}")?;
+        if uint_width_bytes == template.width_bytes() {
+            writeln!(out, "Self::from_le_bytes(value.to_le_bytes())")?;
         } else {
-            writeln!(out, "}})")?;
+            writeln!(out, "let mut bytes = [0; {uint_width_bytes}];")?;
+            writeln!(out, "bytes[0..{}].copy_from_slice(&value.to_le_bytes());", template.width_bytes())?;
+            writeln!(out, "Self::from_le_bytes(bytes)")?;
         }
 
         out.decrease_indent(2);
-        // Close function and impl:
         writeln!(out, "    }}")?;
         writeln!(out, "}}")?;
+
+        // Bytes -> Struct:
+
+        if template.can_always_unpack() {
+            writeln!(out)?;
+            writeln!(out, "impl From<{uint_type}> for {struct_name} {{")?;
+            writeln!(out, "    fn from(value: {uint_type}) -> Self {{")?;
+            if !trait_prefix.is_empty() {
+                writeln!(out, "        use {trait_prefix}FromBytes;")?;
+            }
+            if uint_width_bytes == template.width_bytes() {
+                writeln!(out, "        Self::from_le_bytes(value.to_le_bytes())")?;
+            } else {
+                writeln!(out, "        let mut bytes = [0; {}];", template.width_bytes())?;
+                writeln!(out, "        bytes.copy_from_slice(&(value.to_le_bytes()[0..{}]));", template.width_bytes())?;
+                writeln!(out, "        Self::from_le_bytes(bytes)")?;
+            }
+            writeln!(out, "    }}")?;
+            writeln!(out, "}}")?;
+        } else {
+            writeln!(out)?;
+            writeln!(out, "impl TryFrom<{uint_type}> for {struct_name} {{")?;
+            if self.opts.unpacking_error_msg {
+                writeln!(out, "    type Error = &'static str;")?;
+            } else {
+                writeln!(out, "    type Error = ();")?;
+            }
+            writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
+            if !trait_prefix.is_empty() {
+                writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
+            }
+            if uint_width_bytes == template.width_bytes() {
+                writeln!(out, "        Self::try_from_le_bytes(value.to_le_bytes())")?;
+            } else {
+                writeln!(out, "        let mut bytes = [0; {}];", template.width_bytes())?;
+                writeln!(out, "        bytes.copy_from_slice(&(value.to_le_bytes()[0..{}]));", template.width_bytes())?;
+                writeln!(out, "        Self::try_from_le_bytes(bytes)")?;
+            }
+            writeln!(out, "    }}")?;
+            writeln!(out, "}}")?;
+        }
+
         Ok(())
     }
 
