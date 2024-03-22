@@ -1,75 +1,63 @@
 {
-  map_name: "MAX77654",
-  default_register_bitwidth: 8,
+  name: "MAX77654",
+  defaults: {
+    layout_bitwidth: 8,
+  }
   registers: {
     INT_GLBL0: {
       Register: {
         adr: 0,
         reset_val: 0,
-        brief: "Global Interrupt flag register 0.",
-        fields: {
-          DOD0_R: {
-            bits: [7],
-            access: ["R"],
-            brief: "LDO Dropout Detector Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          DOD1_R: {
-            bits: [6],
-            access: ["R"],
-            brief: "LDO Dropout Detector Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          TJAL2_R: {
-            bits: [5],
-            access: ["R"],
-            brief: "Thermal Alarm 2 Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          TJAL1_R: {
-            bits: [4],
-            access: ["R"],
-            brief: "Thermal Alarm 1 Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          nEN_R: {
-            bits: [3],
-            access: ["R"],
-            brief: "nEN Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          nEN_F: {
-            bits: [2],
-            access: ["R"],
-            brief: "nEN Falling Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          GPI0_R: {
-            bits: [1],
-            access: ["R"],
-            brief: "GPI0 Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          GPI0_F: {
-            bits: [0],
-            access: ["R"],
-            brief: "GPI0 Falling Interrupt",
-            accepts: {
-              SharedEnum: "EN"
+        doc: "Global Interrupt flag register 0.",
+        layout: {
+          Layout: {
+            DOD0_R: {
+              bits: [7],
+              // access: ["R"],
+              doc: "LDO Dropout Detector Rising Interrupt",
+              accepts: Bool
+            },
+            DOD1_R: {
+              bits: [6],
+              // access: ["R"],
+              doc: "LDO Dropout Detector Rising Interrupt",
+              accepts: Bool
+            },
+            TJAL2_R: {
+              bits: [5],
+              // access: ["R"],
+              doc: "Thermal Alarm 2 Rising Interrupt",
+              accepts: Bool
+            },
+            TJAL1_R: {
+              bits: [4],
+              // access: ["R"],
+              doc: "Thermal Alarm 1 Rising Interrupt",
+              accepts: Bool
+            },
+            nEN_R: {
+              bits: [3],
+              // access: ["R"],
+              doc: "nEN Rising Interrupt",
+              accepts: Bool
+            },
+            nEN_F: {
+              bits: [2],
+              // access: ["R"],
+              doc: "nEN Falling Interrupt",
+              accepts: Bool
+            },
+            GPI0_R: {
+              bits: [1],
+              // access: ["R"],
+              doc: "GPI0 Rising Interrupt",
+              accepts: Bool
+            },
+            GPI0_F: {
+              bits: [0],
+              // access: ["R"],
+              doc: "GPI0 Falling Interrupt",
+              accepts: Bool
             }
           }
         }
@@ -80,62 +68,53 @@
       Register: {
         adr: 4,
         reset_val: 0,
-        brief: "Global Interrupt flag register 1.",
-        always_write: [
-          { bits: [7], val: 0 }
-        ],
-        fields: {
-          LDO1_F: {
-            bits: [6],
-            access: ["R"],
-            brief: "LDO1 Fault Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          LDO0_F: {
-            bits: [5],
-            brief: "LDO0 Fault Interrupt",
-            access: ["R"],
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          SBB_TO: {
-            bits: [4],
-            access: ["R"],
-            brief: "SBB Timeout"
-          },
-          GPI2_R: {
-            bits: [3],
-            access: ["R"],
-            brief: "GPI Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          GPI2_F: {
-            bits: [2],
-            access: ["R"],
-            brief: "GPI Falling Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          GPI1_R: {
-            bits: [1],
-            access: ["R"],
-            brief: "GPI Rising Interrupt",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          GPI1_F: {
-            bits: [0],
-            access: ["R"],
-            brief: "GPI Falling Interrupt",
-            accepts: {
-              SharedEnum: "EN"
+        doc: "Global Interrupt flag register 1.",
+        layout: {
+          Layout: {
+            RESERVED: {
+              bits: [7],
+              accepts: { Fixed: 0 }
+            },
+            LDO1_F: {
+              bits: [6],
+              // access: ["R"],
+              doc: "LDO1 Fault Interrupt",
+              accepts: Bool
+            },
+            LDO0_F: {
+              bits: [5],
+              doc: "LDO0 Fault Interrupt",
+              // access: ["R"],
+              accepts: Bool
+            },
+            SBB_TO: {
+              bits: [4],
+              // access: ["R"],
+              doc: "SBB Timeout"
+            },
+            GPI2_R: {
+              bits: [3],
+              // access: ["R"],
+              doc: "GPI Rising Interrupt",
+              accepts: Bool
+            },
+            GPI2_F: {
+              bits: [2],
+              // access: ["R"],
+              doc: "GPI Falling Interrupt",
+              accepts: Bool
+            },
+            GPI1_R: {
+              bits: [1],
+              // access: ["R"],
+              doc: "GPI Rising Interrupt",
+              accepts: Bool
+            },
+            GPI1_F: {
+              bits: [0],
+              // access: ["R"],
+              doc: "GPI Falling Interrupt",
+              accepts: Bool
             }
           }
         }
@@ -146,49 +125,59 @@
       Register: {
         adr: 5,
         reset_val: 0,
-        brief: "Fault Status Register",
-        fields: {
-          WDT_RST: {
-            bits: [7],
-            access: ["R"],
-            brief: "Watchdog Timer Reset Flag",
-            doc: "This bit sets when the watchdog timer expires and causes a power-reset (WDT_MODE = 1)."
-          },
-          WDT_OFF: {
-            bits: [6],
-            access: ["R"],
-            brief: "Watchdog Timer OFF Flag",
-            doc: "This bit sets when the watchdog timer expires and causes a power-off (WDT_MODE = 0)."
-          },
-          SFT_CRST_F: {
-            bits: [5],
-            access: ["R"],
-            brief: "Software Cold Reset Flag"
-          },
-          SFT_OFF_F: {
-            bits: [4],
-            access: ["R"],
-            brief: "Software OFF Flag"
-          },
-          MRST: {
-            bits: [3],
-            access: ["R"],
-            brief: "Manual Reset Timer"
-          },
-          SYSUVLO: {
-            bits: [2],
-            access: ["R"],
-            brief: "SYS Domain Undervoltage Lockout"
-          },
-          SYSOVLO: {
-            bits: [1],
-            access: ["R"],
-            brief: "SYS Domain Overvoltage Lockout"
-          },
-          TOVLD: {
-            bits: [0],
-            access: ["R"],
-            brief: "Thermal Overload"
+        doc: "Fault Status Register",
+        layout: {
+          Layout: {
+            WDT_RST: {
+              bits: [7],
+              // access: ["R"],
+              doc:
+                '''
+                Watchdog Timer Reset Flag
+
+                This bit sets when the watchdog timer expires and causes a power-reset (WDT_MODE = 1).
+                '''
+            },
+            WDT_OFF: {
+              bits: [6],
+              // access: ["R"],
+              doc:
+                '''
+                Watchdog Timer OFF Flag
+
+                This bit sets when the watchdog timer expires and causes a power-off (WDT_MODE = 0).
+                '''
+            },
+            SFT_CRST_F: {
+              bits: [5],
+              // access: ["R"],
+              doc: "Software Cold Reset Flag"
+            },
+            SFT_OFF_F: {
+              bits: [4],
+              // access: ["R"],
+              doc: "Software OFF Flag"
+            },
+            MRST: {
+              bits: [3],
+              // access: ["R"],
+              doc: "Manual Reset Timer"
+            },
+            SYSUVLO: {
+              bits: [2],
+              // access: ["R"],
+              doc: "SYS Domain Undervoltage Lockout"
+            },
+            SYSOVLO: {
+              bits: [1],
+              // access: ["R"],
+              doc: "SYS Domain Overvoltage Lockout"
+            },
+            TOVLD: {
+              bits: [0],
+              // access: ["R"],
+              doc: "Thermal Overload"
+            }
           }
         }
       }
@@ -198,47 +187,49 @@
       Register: {
         adr: 6,
         reset_val: 0,
-        brief: "Global Status",
-        fields: {
-          DIDM: {
-            bits: [7],
-            access: ["R"],
-            brief: "Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)"
-          },
-          BOK: {
-            bits: [6],
-            access: ["R"],
-            brief: "Main Bias OK"
-          },
-          DOD0_S: {
-            bits: [5],
-            access: ["R"],
-            brief: "LDO0 in dropout"
-          },
-          DOD1_S: {
-            bits: [4],
-            access: ["R"],
-            brief: "LDO1 in dropout"
-          },
-          TJAL2_S: {
-            bits: [3],
-            access: ["R"],
-            brief: "Thermal Alarm 2 active"
-          },
-          TJAL1_S: {
-            bits: [2],
-            access: ["R"],
-            brief: "Thermal Alarm 1 active"
-          },
-          STAT_EN: {
-            bits: [1],
-            access: ["R"],
-            brief: "Debounced Status for the nEN Input"
-          },
-          STAT_IRQ: {
-            bits: [0],
-            access: ["R"],
-            brief: "nIRQ active"
+        doc: "Global Status",
+        layout: {
+          Layout: {
+            DIDM: {
+              bits: [7],
+              // access: ["R"],
+              doc: "Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)"
+            },
+            BOK: {
+              bits: [6],
+              // access: ["R"],
+              doc: "Main Bias OK"
+            },
+            DOD0_S: {
+              bits: [5],
+              // access: ["R"],
+              doc: "LDO0 in dropout"
+            },
+            DOD1_S: {
+              bits: [4],
+              // access: ["R"],
+              doc: "LDO1 in dropout"
+            },
+            TJAL2_S: {
+              bits: [3],
+              // access: ["R"],
+              doc: "Thermal Alarm 2 active"
+            },
+            TJAL1_S: {
+              bits: [2],
+              // access: ["R"],
+              doc: "Thermal Alarm 1 active"
+            },
+            STAT_EN: {
+              bits: [1],
+              // access: ["R"],
+              doc: "Debounced Status for the nEN Input"
+            },
+            STAT_IRQ: {
+              bits: [0],
+              // access: ["R"],
+              doc: "nIRQ active"
+            }
           }
         }
       }
@@ -248,65 +239,68 @@
       Register: {
         adr: 8,
         reset_val: 127,
-        brief: "Interrupt Masking 1",
-        always_write: [
-          { bits: [7], val: 0 }
-        ],
-        fields: {
-          LDO1_M: {
-            bits: [6],
-            access: ["R", "W"],
-            brief: "LDO1 Fault Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          LDO0_M: {
-            bits: [5],
-            access: ["R", "W"],
-            brief: "LDO0 Fault Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          SBB_TO_M: {
-            bits: [4],
-            access: ["R", "W"],
-            brief: "SBB Timeout Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          GPI2_RM: {
-            bits: [3],
-            access: ["R", "W"],
-            brief: "GPI Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          GPI2_FM: {
-            bits: [2],
-            access: ["R", "W"],
-            brief: "GPI Falling Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          GPI1_RM: {
-            bits: [1],
-            access: ["R", "W"],
-            brief: "GPI Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          GPI1_FM: {
-            bits: [0],
-            access: ["R", "W"],
-            brief: "GPI Falling Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
+        doc: "Interrupt Masking 1",
+        layout: {
+          Layout: {
+            RESERVED: {
+              bits: [7],
+              accepts: { Fixed: 0 }
+            },
+            LDO1_M: {
+              bits: [6],
+              // access: ["R", "W"],
+              doc: "LDO1 Fault Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            LDO0_M: {
+              bits: [5],
+              // access: ["R", "W"],
+              doc: "LDO0 Fault Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            SBB_TO_M: {
+              bits: [4],
+              // access: ["R", "W"],
+              doc: "SBB Timeout Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            GPI2_RM: {
+              bits: [3],
+              // access: ["R", "W"],
+              doc: "GPI Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            GPI2_FM: {
+              bits: [2],
+              // access: ["R", "W"],
+              doc: "GPI Falling Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            GPI1_RM: {
+              bits: [1],
+              // access: ["R", "W"],
+              doc: "GPI Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            GPI1_FM: {
+              bits: [0],
+              // access: ["R", "W"],
+              doc: "GPI Falling Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
             }
           }
         }
@@ -317,70 +311,72 @@
       Register: {
         adr: 9,
         reset_val: 255,
-        brief: "Interrupt Masking 0",
-        fields: {
-          DOD0_RM: {
-            bits: [7],
-            access: ["R", "W"],
-            brief: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          DOD1_RM: {
-            bits: [6],
-            access: ["R", "W"],
-            brief: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          TJAL2_RM: {
-            bits: [5],
-            access: ["R", "W"],
-            brief: "Thermal Alarm 2 Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          TJAL1_RM: {
-            bits: [4],
-            access: ["R", "W"],
-            brief: "Thermal Alarm 1 Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          nEN_RM: {
-            bits: [3],
-            access: ["R", "W"],
-            brief: "nEN Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          nEN_FM: {
-            bits: [2],
-            access: ["R", "W"],
-            brief: "nEN Falling Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          GPI0_RM: {
-            bits: [1],
-            access: ["R", "W"],
-            brief: "GPI Rising Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          GPI0_FM: {
-            bits: [0],
-            access: ["R", "W"],
-            brief: "GPI Falling Interrupt Mask/Disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
+        doc: "Interrupt Masking 0",
+        layout: {
+          Layout: {
+            DOD0_RM: {
+              bits: [7],
+              // access: ["R", "W"],
+              doc: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            DOD1_RM: {
+              bits: [6],
+              // access: ["R", "W"],
+              doc: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            TJAL2_RM: {
+              bits: [5],
+              // access: ["R", "W"],
+              doc: "Thermal Alarm 2 Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            TJAL1_RM: {
+              bits: [4],
+              // access: ["R", "W"],
+              doc: "Thermal Alarm 1 Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            nEN_RM: {
+              bits: [3],
+              // access: ["R", "W"],
+              doc: "nEN Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            nEN_FM: {
+              bits: [2],
+              // access: ["R", "W"],
+              doc: "nEN Falling Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            GPI0_RM: {
+              bits: [1],
+              // access: ["R", "W"],
+              doc: "GPI Rising Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            GPI0_FM: {
+              bits: [0],
+              // access: ["R", "W"],
+              doc: "GPI Falling Interrupt Mask/Disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
             }
           }
         }
@@ -391,127 +387,137 @@
       Register: {
         adr: 16,
         reset_val: 0,
-        brief: "Global Configuration",
-        fields: {
-          PU_DIS: {
-            bits: [7],
-            brief: "nEN Internal Pullup Resistor",
-            access: ["R", "W"],
-            accepts: {
-              LocalEnum: {
-                PU_200K: {
-                  val: 0,
-                  brief: "200kOhm"
-                },
-                PU_10M: {
-                  val: 1,
-                  brief: "10MOhm"
+        doc: "Global Configuration",
+        layout: {
+          Layout: {
+            PU_DIS: {
+              bits: [7],
+              doc: "nEN Internal Pullup Resistor",
+              // access: ["R", "W"],
+              accepts: {
+                Enum: {
+                  PU_200K: {
+                    val: 0,
+                    doc: "200kOhm"
+                  },
+                  PU_10M: {
+                    val: 1,
+                    doc: "10MOhm"
+                  }
                 }
               }
-            }
-          },
-          T_MRST: {
-            bits: [6],
-            brief: "Sets the Manual Reset Time (tMRST)",
-            access: ["R", "W"],
-            accepts: {
-              LocalEnum: {
-                Hold8s: {
-                  val: 0,
-                  brief: "8 seconds"
-                },
-                Hold16s: {
-                  val: 1,
-                  brief: "16 seconds"
+            },
+            T_MRST: {
+              bits: [6],
+              doc: "Sets the Manual Reset Time (tMRST)",
+              // access: ["R", "W"],
+              accepts: {
+                Enum: {
+                  Hold8s: {
+                    val: 0,
+                    doc: "8 seconds"
+                  },
+                  Hold16s: {
+                    val: 1,
+                    doc: "16 seconds"
+                  }
                 }
               }
-            }
-          },
-          SBIA_LPM: {
-            bits: [5],
-            access: ["R", "W"],
-            brief: "Main Bias Low-Power Mode Software Request"
-          },
-          SBIA_EN: {
-            bits: [4],
-            access: ["R", "W"],
-            brief: "Main Bias Force Enable Software Request",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          nEN_MODE: {
-            bits: [3],
-            access: ["R", "W"],
-            brief: "nEN Input (ON-KEY) Default Configuration",
-            accepts: {
-              LocalEnum: {
-                PUSH_BTN: {
-                  val: 0,
-                  brief: "Push-button"
-                },
-                SLIDE: {
-                  val: 1,
-                  brief: "Slide-switch"
+            },
+            SBIA_LPM: {
+              bits: [5],
+              // access: ["R", "W"],
+              doc: "Main Bias Low-Power Mode Software Request"
+            },
+            SBIA_EN: {
+              bits: [4],
+              // access: ["R", "W"],
+              doc: "Main Bias Force Enable Software Request",
+              accepts: Bool
+            },
+            nEN_MODE: {
+              bits: [3],
+              // access: ["R", "W"],
+              doc: "nEN Input (ON-KEY) Default Configuration",
+              accepts: {
+                Enum: {
+                  PUSH_BTN: {
+                    val: 0,
+                    doc: "Push-button"
+                  },
+                  SLIDE: {
+                    val: 1,
+                    doc: "Slide-switch"
+                  }
                 }
               }
-            }
-          },
-          DBEN_nEN: {
-            bits: [2],
-            access: ["R", "W"],
-            brief: "Debounce Timer Enable for the nEN Pin",
-            accepts: {
-              LocalEnum: {
-                DBNC_500us: {
-                  val: 0,
-                  brief: "500 microseconds"
-                },
-                DBNC_30ms: {
-                  val: 1,
-                  brief: "30 milliseconds"
+            },
+            DBEN_nEN: {
+              bits: [2],
+              // access: ["R", "W"],
+              doc: "Debounce Timer Enable for the nEN Pin",
+              accepts: {
+                Enum: {
+                  DBNC_500us: {
+                    val: 0,
+                    doc: "500 microseconds"
+                  },
+                  DBNC_30ms: {
+                    val: 1,
+                    doc: "30 milliseconds"
+                  }
                 }
               }
-            }
-          },
-          SFT_CTRL: {
-            bits: [1, 0],
-            access: ["R", "W"],
-            brief: "Software Reset Function",
-            doc:
-              '''
-              Note that the SFT_CRST and SFT_OFF commands initiate the power-down sequence
-              flow as described in the data sheet. This power-down sequence flow has delay
-              elements that add up to 205.24ms (60ms delay + 10.24ms nRST assert delay +
-              4x2.56ms power-down slot delays + 125ms output discharge delay). If issuing the
-              SFT_CRST and/or SFT_OFF functions in software, wait for more than 300ms before
-              trying to issue any additional commands through I2C.
-              ''',
-            accepts: {
-              LocalEnum: {
-                NO_ACTION: {
-                  val: 0,
-                  brief: "No Action"
-                },
-                SFT_CRST: {
-                  val: 1,
-                  brief: "Software cold reset.",
-                  doc: "The device powers down, resets, and then powers up again."
-                },
-                SFT_OFF: {
-                  val: 2,
-                  brief: "Software off.",
-                  doc: "The device powers down, resets, and then remains off and waiting for a wake-up event."
-                },
-                FSM: {
-                  val: 3,
-                  brief: "Factory-ship mode enter (FSM).",
-                  doc:
-                    '''
-                    The IC powers down, configuration registers reset, and the internal BATT to SYS
-                    switch opens. The device remains this way until a factory-ship mode exit event
-                    occurs.
-                    '''
+            },
+            SFT_CTRL: {
+              bits: [1, 0],
+              // access: ["R", "W"],
+              doc:
+                '''
+                Software Reset Function
+
+                Note that the SFT_CRST and SFT_OFF commands initiate the power-down sequence
+                flow as described in the data sheet. This power-down sequence flow has delay
+                elements that add up to 205.24ms (60ms delay + 10.24ms nRST assert delay +
+                4x2.56ms power-down slot delays + 125ms output discharge delay). If issuing the
+                SFT_CRST and/or SFT_OFF functions in software, wait for more than 300ms before
+                trying to issue any additional commands through I2C.
+                ''',
+              accepts: {
+                Enum: {
+                  NO_ACTION: {
+                    val: 0,
+                    doc: "No Action"
+                  },
+                  SFT_CRST: {
+                    val: 1,
+                    doc:
+                      '''
+                      Software cold reset.
+
+                      The device powers down, resets, and then powers up again.
+                      '''
+                  },
+                  SFT_OFF: {
+                    val: 2,
+                    doc:
+                      '''
+                      Software off.
+
+                      The device powers down, resets, and then remains off and waiting for a wake-up event.
+                      '''
+                  },
+                  FSM: {
+                    val: 3,
+                    doc:
+                      '''
+                       Factory-ship mode enter (FSM).
+
+                      The IC powers down, configuration registers reset, and the internal BATT to SYS
+                      switch opens. The device remains this way until a factory-ship mode exit event
+                      occurs.
+                      '''
+                  }
                 }
               }
             }
@@ -520,78 +526,77 @@
       }
     },
 
-    CNFG_GPIOn: {
-      Block: {
+    GPIO: {
+      RegisterBlock: {
         instances: {
-          CNFG_GPIO0: 17,
-          CNFG_GPIO1: 18,
-          CNFG_GPIO2: 19
+          GPIO0: { adr: 17 },
+          GPIO1: { adr: 18 },
+          GPIO2: { adr: 19 }
         },
         registers: {
-          "": {
-            adr: 0,
+          CNFG: {
+            offset: 0,
             reset_val: 1,
-            brief: "GPIO Configuration",
-            always_write: [
-              { bits: ["7-6"], val: 0 }
-            ],
-            fields: {
-              ALT: {
-                bits: [5],
-                access: ["R", "W"],
-                brief: "Alternate Mode Enable for GPIO0",
-                accepts: {
-              SharedEnum: "EN"
-                }
-              },
-              DBEN_GPI: {
-                bits: [4],
-                access: ["R", "W"],
-                brief: "General Purpose Input Debounce Timer enable (30ms)",
-                accepts: {
-              SharedEnum: "EN"
-                }
-              },
-              DOUT: {
-                bits: [3],
-                access: ["R", "W"],
-                brief: "General Purpose Output Data Output"
-              },
-              DRV: {
-                bits: [2],
-                access: ["R", "W"],
-                brief: "General Purpose Output Driver Type",
-                accepts: {
-                  LocalEnum: {
-                    OD: {
-                      val: 0,
-                      brief: "Open-drain"
-                    },
-                    PP: {
-                      val: 1,
-                      brief: "Push-Pull"
+            doc: "GPIO Configuration",
+            layout: {
+              Layout: {
+                RESERVED: {
+                  bits: [7, 6],
+                  accepts: { Fixed: 0 }
+                },
+                ALT: {
+                  bits: [5],
+                  // access: ["R", "W"],
+                  doc: "Alternate Mode Enable for GPIO0",
+                  accepts: Bool
+                },
+                DBEN_GPI: {
+                  bits: [4],
+                  // access: ["R", "W"],
+                  doc: "General Purpose Input Debounce Timer enable (30ms)",
+                  accepts: Bool
+                },
+                DOUT: {
+                  bits: [3],
+                  // access: ["R", "W"],
+                  doc: "General Purpose Output Data Output"
+                },
+                DRV: {
+                  bits: [2],
+                  // access: ["R", "W"],
+                  doc: "General Purpose Output Driver Type",
+                  accepts: {
+                    Enum: {
+                      OD: {
+                        val: 0,
+                        doc: "Open-drain"
+                      },
+                      PP: {
+                        val: 1,
+                        doc: "Push-Pull"
+                      }
                     }
                   }
-                }
-              },
-              DI: {
-                bits: [1],
-                access: ["R"],
-                brief: "GPIO Digital Input val."
-              },
-              DIR: {
-                bits: [0],
-                access: ["R", "W"],
-                brief: "GPIO Direction",
-                accepts: {
-                  LocalEnum: {
-                    OUTPUT: {
-                      val: 0,
-                      brief: "Output"
-                    },
-                    INPUT: {
-                      val: 1,
-                      brief: "Input"
+                },
+                DI: {
+                  bits: [1],
+                  // access: ["R"],
+                  doc: "GPIO Digital Input val."
+                },
+                DIR: {
+                  bits: [0],
+                  // access: ["R", "W"],
+                  doc: "GPIO Direction",
+                  accepts: {
+                    Enum: {
+                      OUTPUT: {
+                        val: 0,
+                        doc: "Output"
+                      },
+                      INPUT: {
+                        val: 1,
+                        doc: "Input"
+                      }
                     }
                   }
                 }
@@ -606,15 +611,17 @@
       Register: {
         adr: 20,
         reset_val: 0,
-        brief: "Chip Identification Register",
-        fields: {
-          CID_MSB: {
-            bits: [7],
-            brief: "Bit 4 of the chip identification code."
-          },
-          CID_LSB: {
-            bits: ["0-3"],
-            brief: "Bits 0 to 3 of the chip identification code."
+        doc: "Chip Identification Register",
+        layout: {
+          Layout: {
+            CID_MSB: {
+              bits: [7],
+              doc: "Bit 4 of the chip identification code."
+            },
+            CID_LSB: {
+              bits: ["0-3"],
+              doc: "Bits 0 to 3 of the chip identification code."
+            }
           }
         }
       }
@@ -624,67 +631,66 @@
       Register: {
         adr: 23,
         reset_val: 48,
-        brief: "Watchdog timer configurtion.",
-        always_write: [
-          { bits: ["7-6"], val: 0 }
-        ],
-        fields: {
-          WDT_PER: {
-            bits: [5, 4],
-            brief: "Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.",
-            accepts: {
-              LocalEnum: {
-                WDT_16s: {
-                  val: 0,
-                  brief: "16 seconds"
-                },
-                WDT_32s: {
-                  val: 1,
-                  brief: "32 seconds"
-                },
-                WDT_64s: {
-                  val: 2,
-                  brief: "64 seconds"
-                },
-                WDT_128s: {
-                  val: 3,
-                  brief: "128 seconds"
+        doc: "Watchdog timer configurtion.",
+        layout: {
+          Layout: {
+            RESERVED: {
+              bits: [7, 6],
+              accepts: { Fixed: 0 }
+            },
+            WDT_PER: {
+              bits: [5, 4],
+              doc: "Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.",
+              accepts: {
+                Enum: {
+                  WDT_16s: {
+                    val: 0,
+                    doc: "16 seconds"
+                  },
+                  WDT_32s: {
+                    val: 1,
+                    doc: "32 seconds"
+                  },
+                  WDT_64s: {
+                    val: 2,
+                    doc: "64 seconds"
+                  },
+                  WDT_128s: {
+                    val: 3,
+                    doc: "128 seconds"
+                  }
                 }
               }
-            }
-          },
-          WDT_MODE: {
-            bits: [3],
-            brief: "Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.",
-            accepts: {
-              LocalEnum: {
-                PWR_OFF: {
-                  val: 0,
-                  brief: "Expiration causes power-off."
-                },
-                PWR_RESET: {
-                  val: 1,
-                  brief: "Expiration causes power-reset."
+            },
+            WDT_MODE: {
+              bits: [3],
+              doc: "Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.",
+              accepts: {
+                Enum: {
+                  PWR_OFF: {
+                    val: 0,
+                    doc: "Expiration causes power-off."
+                  },
+                  PWR_RESET: {
+                    val: 1,
+                    doc: "Expiration causes power-reset."
+                  }
                 }
               }
-            }
-          },
-          WDT_CLR: {
-            bits: [2],
-            brief: "Watchdog Timer Clear Control. Set this bit to feed (reset) the WDT."
-          },
-          WDT_EN: {
-            bits: [1],
-            brief: "Watchdog Timer Enable. Write protected.",
-            accepts: {
-              SharedEnum: "EN"
-            }
-          },
-          WDT_LOCK: {
-            bits: [0],
-            brief: "Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.",
-            accepts: {
-              SharedEnum: "EN"
+            },
+            WDT_CLR: {
+              bits: [2],
+              doc: "Watchdog Timer Clear Control. Set this bit to feed (reset) the WDT."
+            },
+            WDT_EN: {
+              bits: [1],
+              doc: "Watchdog Timer Enable. Write protected.",
+              accepts: Bool
+            },
+            WDT_LOCK: {
+              bits: [0],
+              doc: "Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.",
+              accepts: Bool
             }
           }
         }
@@ -695,42 +701,61 @@
       Register: {
         adr: 1,
         reset_val: 0,
-        brief: "Charger Interrupt flag register",
-        always_write: [
-          { bits: [7], val: 0 }
-        ],
-        fields: {
-          SYS_CNFG_I: {
-            bits: [6],
-            brief: "System Voltage Configuration Error Interrupt",
-            doc: "Triggers if VSYS-REG <= VFAST- CHG + 200mV"
-          },
-          SYS_CTRL_I: {
-            bits: [5],
-            brief: "Minimum System Voltage Regulation-Loop Related Interrupt",
-            doc: "This interrupt signals a change in the status bit VSYS_MIN_STAT."
-          },
-          CHGIN_CTRL_I: {
-            bits: [4],
-            brief: "CHGIN Control-Loop Related Interrupt.",
-            doc: "This bit asserts when the input reaches current limit (ICHGIN-LIM) or VCHGIN falls below VCHGIN_MIN."
-          },
-          TJ_REG_I: {
-            bits: [3],
-            brief: "Die Junction Temperature Regulation Interrupt.",
-            doc: "This bit asserts when the die temperature (TJ) exceeds TJ-REG."
-          },
-          CHGIN_I: {
-            bits: [2],
-            brief: "CHGIN Related Interrupt (CHGIN_DTLS has changed)."
-          },
-          CHG_I: {
-            bits: [1],
-            brief: "Charger Related Interrupt (CHG_DTLS has changed)."
-          },
-          THM_I: {
-            bits: [0],
-            brief: "Thermistor Related Interrupt (THM_DTLS has changed)."
+        doc: "Charger Interrupt flag register",
+        layout: {
+          Layout: {
+            RESERVED: {
+              bits: [7],
+              accepts: { Fixed: 0 }
+            },
+            SYS_CNFG_I: {
+              bits: [6],
+              doc:
+                '''
+                System Voltage Configuration Error Interrupt
+
+                Triggers if VSYS-REG <= VFAST- CHG + 200mV
+                '''
+            },
+            SYS_CTRL_I: {
+              bits: [5],
+              doc:
+                '''
+                Minimum System Voltage Regulation-Loop Related Interrupt
+
+                This interrupt signals a change in the status bit VSYS_MIN_STAT.
+                '''
+            },
+            CHGIN_CTRL_I: {
+              bits: [4],
+              doc:
+                '''
+                CHGIN Control-Loop Related Interrupt.
+
+                This bit asserts when the input reaches current limit (ICHGIN-LIM) or VCHGIN falls below VCHGIN_MIN.
+                '''
+            },
+            TJ_REG_I: {
+              bits: [3],
+              doc:
+                '''
+                Die Junction Temperature Regulation Interrupt.
+
+                This bit asserts when the die temperature (TJ) exceeds TJ-REG.
+                '''
+            },
+            CHGIN_I: {
+              bits: [2],
+              doc: "CHGIN Related Interrupt (CHGIN_DTLS has changed)."
+            },
+            CHG_I: {
+              bits: [1],
+              doc: "Charger Related Interrupt (CHG_DTLS has changed)."
+            },
+            THM_I: {
+              bits: [0],
+              doc: "Thermistor Related Interrupt (THM_DTLS has changed)."
+            }
           }
         }
       }
@@ -740,58 +765,69 @@
       Register: {
         adr: 2,
         reset_val: 0,
-        brief: "Charger status register A.",
-        always_write: [
-          { bits: [7], val: 0 }
-        ],
-        fields: {
-          VCHGIN_MIN_STAT: {
-            bits: [6],
-            brief: "Minimum Input Voltage Regulation Loop engaged."
-          },
-          ICHGIN_LIM_STAT: {
-            bits: [5],
-            brief: "Input Current Limit Loop engaged."
-          },
-          VSYS_MIN_STAT: {
-            bits: [4],
-            brief: "Minimum System Voltage Regulation Loop engaged."
-          },
-          TJ_REG_STAT: {
-            bits: [3],
-            brief: "Maximum Junction Temperature Regulation engaged."
-          },
-          THM_DTLS: {
-            bits: [2, 1, 0],
-            brief: "Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.",
-            access: ["R"],
-            accepts: {
-              LocalEnum: {
-                THM_OFF: {
-                  val: 0,
-                  brief: "Thermistor is disabled (THM_EN = 0)."
-                },
-                THM_COLD: {
-                  val: 1,
-                  brief: "Battery is cold as programmed by THM_COLD[1:0].",
-                  doc: "If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs."
-                },
-                THM_COOL: {
-                  val: 2,
-                  brief: "Battery is cool as programmed by THM_COOL[1:0]."
-                },
-                THM_WARM: {
-                  val: 3,
-                  brief: "Battery is warm as programmed by THM_WARM[1:0]."
-                },
-                THM_HOT: {
-                  val: 4,
-                  brief: "Battery is hot as programmed by THM_HOT[1:0].",
-                  doc: "If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs."
-                },
-                THM_OK: {
-                  val: 5,
-                  brief: "Battery is in the normal temperature region."
+        doc: "Charger status register A.",
+        layout: {
+          Layout: {
+            RESERVED: {
+              bits: [7],
+              accepts: { Fixed: 0 }
+            },
+            VCHGIN_MIN_STAT: {
+              bits: [6],
+              doc: "Minimum Input Voltage Regulation Loop engaged."
+            },
+            ICHGIN_LIM_STAT: {
+              bits: [5],
+              doc: "Input Current Limit Loop engaged."
+            },
+            VSYS_MIN_STAT: {
+              bits: [4],
+              doc: "Minimum System Voltage Regulation Loop engaged."
+            },
+            TJ_REG_STAT: {
+              bits: [3],
+              doc: "Maximum Junction Temperature Regulation engaged."
+            },
+            THM_DTLS: {
+              bits: [2, 1, 0],
+              doc: "Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.",
+              // access: ["R"],
+              accepts: {
+                Enum: {
+                  THM_OFF: {
+                    val: 0,
+                    doc: "Thermistor is disabled (THM_EN = 0)."
+                  },
+                  THM_COLD: {
+                    val: 1,
+                    doc:
+                      '''
+                      Battery is cold as programmed by THM_COLD[1:0].
+
+                      If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs.
+                      '''
+                  },
+                  THM_COOL: {
+                    val: 2,
+                    doc: "Battery is cool as programmed by THM_COOL[1:0]."
+                  },
+                  THM_WARM: {
+                    val: 3,
+                    doc: "Battery is warm as programmed by THM_WARM[1:0]."
+                  },
+                  THM_HOT: {
+                    val: 4,
+                    doc:
+                      '''
+                      Battery is hot as programmed by THM_HOT[1:0].
+
+                      If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs.
+                      '''
+                  },
+                  THM_OK: {
+                    val: 5,
+                    doc: "Battery is in the normal temperature region."
+                  }
                 }
               }
             }
@@ -804,99 +840,101 @@
       Register: {
         adr: 3,
         reset_val: 0,
-        brief: "Charger status register B.",
-        fields: {
-          CHG_DTLS: {
-            bits: ["4-7"],
-            brief: "Charger Status details",
-            accepts: {
-              LocalEnum: {
-                OFF: {
-                  val: 0,
-                  brief: "Off"
-                },
-                PQ: {
-                  val: 1,
-                  brief: "Prequalification mode."
-                },
-                CC: {
-                  val: 2,
-                  brief: "Fast-charge constant-current (CC) mode."
-                },
-                CC_JEITA: {
-                  val: 3,
-                  brief: "JEITA modified fast-charge constant-current mode."
-                },
-                CV: {
-                  val: 4,
-                  brief: "Fast-charge constant-voltage (CV)mode."
-                },
-                CV_JEITA: {
-                  val: 5,
-                  brief: "JEITA modified fast-charge constant-voltage mode."
-                },
-                TOPOFF: {
-                  val: 6,
-                  brief: "Top-off mode."
-                },
-                TOPOFF_JEITA: {
-                  val: 7,
-                  brief: "JEITA modified top-off mode."
-                },
-                DONE: {
-                  val: 8,
-                  brief: "Done"
-                },
-                DONE_JEITA: {
-                  val: 9,
-                  brief: "JEITA modified done (done was entered through the JEITA-modified fast-charge states)."
-                },
-                PQ_TIMER_FAULT: {
-                  val: 10,
-                  brief: "Prequalification timer fault."
-                },
-                FASTCHG_TIMER_FAULT: {
-                  val: 11,
-                  brief: "Fast-charge timer fault."
-                },
-                BAT_TEMP_FAULT: {
-                  val: 12,
-                  brief: "Battery temperature fault."
+        doc: "Charger status register B.",
+        layout: {
+          Layout: {
+            CHG_DTLS: {
+              bits: ["4-7"],
+              doc: "Charger Status details",
+              accepts: {
+                Enum: {
+                  OFF: {
+                    val: 0,
+                    doc: "Off"
+                  },
+                  PQ: {
+                    val: 1,
+                    doc: "Prequalification mode."
+                  },
+                  CC: {
+                    val: 2,
+                    doc: "Fast-charge constant-current (CC) mode."
+                  },
+                  CC_JEITA: {
+                    val: 3,
+                    doc: "JEITA modified fast-charge constant-current mode."
+                  },
+                  CV: {
+                    val: 4,
+                    doc: "Fast-charge constant-voltage (CV)mode."
+                  },
+                  CV_JEITA: {
+                    val: 5,
+                    doc: "JEITA modified fast-charge constant-voltage mode."
+                  },
+                  TOPOFF: {
+                    val: 6,
+                    doc: "Top-off mode."
+                  },
+                  TOPOFF_JEITA: {
+                    val: 7,
+                    doc: "JEITA modified top-off mode."
+                  },
+                  DONE: {
+                    val: 8,
+                    doc: "Done"
+                  },
+                  DONE_JEITA: {
+                    val: 9,
+                    doc: "JEITA modified done (done was entered through the JEITA-modified fast-charge states)."
+                  },
+                  PQ_TIMER_FAULT: {
+                    val: 10,
+                    doc: "Prequalification timer fault."
+                  },
+                  FASTCHG_TIMER_FAULT: {
+                    val: 11,
+                    doc: "Fast-charge timer fault."
+                  },
+                  BAT_TEMP_FAULT: {
+                    val: 12,
+                    doc: "Battery temperature fault."
+                  }
                 }
               }
-            }
-          },
-          CHGIN_DTLS: {
-            bits: [3, 2],
-            brief: "CHGIN Status details",
-            accepts: {
-              LocalEnum: {
-                UVLO: {
-                  val: 0,
-                  brief: "The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO)."
-                },
-                OVP: {
-                  val: 1,
-                  brief: "The CHGIN input voltage is above the OVP threshold (VCHGIN > VOVP)."
-                },
-                DBNC: {
-                  val: 2,
-                  brief: "The CHGIN input is being debounced (no power accepted from CHGIN during debounce)."
-                },
-                OK: {
-                  val: 3,
-                  brief: "The CHGIN input is okay and debounced."
+            },
+            CHGIN_DTLS: {
+              bits: [3, 2],
+              doc: "CHGIN Status details",
+              accepts: {
+                Enum: {
+                  UVLO: {
+                    val: 0,
+                    doc: "The CHGIN input voltage is below the UVLO threshold (VCHGIN < VUVLO)."
+                  },
+                  OVP: {
+                    val: 1,
+                    doc: "The CHGIN input voltage is above the OVP threshold (VCHGIN > VOVP)."
+                  },
+                  DBNC: {
+                    val: 2,
+                    doc: "The CHGIN input is being debounced (no power accepted from CHGIN during debounce)."
+                  },
+                  OK: {
+                    val: 3,
+                    doc: "The CHGIN input is okay and debounced."
+                  }
                 }
               }
+            },
+            CHG: {
+              bits: [1],
+              doc: "Quick Charger Status/Is charging."
+            },
+            TIME_SUS: {
+              bits: [0],
+              doc: "Timer Suspend Indicator"
             }
-          },
-          CHG: {
-            bits: [1],
-            brief: "Quick Charger Status/Is charging."
-          },
-          TIME_SUS: {
-            bits: [0],
-            brief: "Timer Suspend Indicator"
           }
         }
       }
@@ -906,58 +944,61 @@
       Register: {
         adr: 7,
         reset_val: 0,
-        brief: "Charger Interrupt masking",
-        always_write: [
-          { bits: [7], val: 0 }
-        ],
-        fields: {
-          SYS_CNFG_I: {
-            bits: [6],
-            brief: "System Voltage Configuration Error Interrupt Mask/disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          SYS_CTRL_I: {
-            bits: [5],
-            brief: "Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          CHGIN_CTRL_I: {
-            bits: [4],
-            brief: "CHGIN Control-Loop Related Interrupt Mask/disabled.",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          TJ_REG_I: {
-            bits: [3],
-            brief: "Die Junction Temperature Regulation Interrupt Mask/disabled.",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          CHGIN_I: {
-            bits: [2],
-            brief: "CHGIN Related Interrupt Mask/disabled.",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          CHG_I: {
-            bits: [1],
-            brief: "Charger Related Interrupt Mask/disabled.",
-            accepts: {
-              SharedEnum: "INT_MASK"
-            }
-          },
-          THM_I: {
-            bits: [0],
-            brief: "Thermistor Related Interrupt Mask/disabled.",
-            accepts: {
-              SharedEnum: "INT_MASK"
+        doc: "Charger Interrupt masking",
+        layout: {
+          Layout: {
+            RESERVED: {
+              bits: [7],
+              accepts: { Fixed: 0 }
+            },
+            SYS_CNFG_I: {
+              bits: [6],
+              doc: "System Voltage Configuration Error Interrupt Mask/disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            SYS_CTRL_I: {
+              bits: [5],
+              doc: "Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            CHGIN_CTRL_I: {
+              bits: [4],
+              doc: "CHGIN Control-Loop Related Interrupt Mask/disabled.",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            TJ_REG_I: {
+              bits: [3],
+              doc: "Die Junction Temperature Regulation Interrupt Mask/disabled.",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            CHGIN_I: {
+              bits: [2],
+              doc: "CHGIN Related Interrupt Mask/disabled.",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            CHG_I: {
+              bits: [1],
+              doc: "Charger Related Interrupt Mask/disabled.",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
+            },
+            THM_I: {
+              bits: [0],
+              doc: "Thermistor Related Interrupt Mask/disabled.",
+              accepts: {
+                SharedEnum: "INT_MASK"
+              }
             }
           }
         }
@@ -968,100 +1009,102 @@
       Register: {
         adr: 32,
         reset_val: 15,
-        brief: "Charger Config register A.",
-        fields: {
-          THM_HOT: {
-            bits: [7, 6],
-            brief: "Sets the VHOT JEITA Temperature Threshold",
-            accepts: {
-              LocalEnum: {
-                THM_0V411: {
-                  val: 0,
-                  brief: "VHOT = 0.411V (45degC for beta = 3380K)"
-                },
-                THM_0V367: {
-                  val: 1,
-                  brief: "VHOT = 0.367V (50degC for beta = 3380K)"
-                },
-                THM_0V327: {
-                  val: 2,
-                  brief: "VHOT = 0.327V (55degC for beta = 3380K)"
-                },
-                THM_0V291: {
-                  val: 3,
-                  brief: "VHOT = 0.291V (60degC for beta = 3380K)"
+        doc: "Charger Config register A.",
+        layout: {
+          Layout: {
+            THM_HOT: {
+              bits: [7, 6],
+              doc: "Sets the VHOT JEITA Temperature Threshold",
+              accepts: {
+                Enum: {
+                  THM_0V411: {
+                    val: 0,
+                    doc: "VHOT = 0.411V (45degC for beta = 3380K)"
+                  },
+                  THM_0V367: {
+                    val: 1,
+                    doc: "VHOT = 0.367V (50degC for beta = 3380K)"
+                  },
+                  THM_0V327: {
+                    val: 2,
+                    doc: "VHOT = 0.327V (55degC for beta = 3380K)"
+                  },
+                  THM_0V291: {
+                    val: 3,
+                    doc: "VHOT = 0.291V (60degC for beta = 3380K)"
+                  }
                 }
               }
-            }
-          },
-          THM_WARM: {
-            bits: [5, 4],
-            brief: "Sets the VWARM JEITA Temperature Threshold",
-            accepts: {
-              LocalEnum: {
-                THM_0V511: {
-                  val: 0,
-                  brief: "VWARM = 0.511V (35degC for beta = 3380K)"
-                },
-                THM_0V459: {
-                  val: 1,
-                  brief: "VWARM = 0.459V (40degC for beta = 3380K)"
-                },
-                THM_0V411: {
-                  val: 2,
-                  brief: "VWARM = 0.411V (45degC for beta = 3380K)"
-                },
-                THM_0V367: {
-                  val: 3,
-                  brief: "VWARM = 0.367V (50degC for beta = 3380K)"
+            },
+            THM_WARM: {
+              bits: [5, 4],
+              doc: "Sets the VWARM JEITA Temperature Threshold",
+              accepts: {
+                Enum: {
+                  THM_0V511: {
+                    val: 0,
+                    doc: "VWARM = 0.511V (35degC for beta = 3380K)"
+                  },
+                  THM_0V459: {
+                    val: 1,
+                    doc: "VWARM = 0.459V (40degC for beta = 3380K)"
+                  },
+                  THM_0V411: {
+                    val: 2,
+                    doc: "VWARM = 0.411V (45degC for beta = 3380K)"
+                  },
+                  THM_0V367: {
+                    val: 3,
+                    doc: "VWARM = 0.367V (50degC for beta = 3380K)"
+                  }
                 }
               }
-            }
-          },
-          THM_COOL: {
-            bits: [3, 2],
-            brief: "Sets the VCOOL JEITA Temperature Threshold",
-            accepts: {
-              LocalEnum: {
-                THM_0V923: {
-                  val: 0,
-                  brief: "VCOOL = 0.923V (0degC for beta = 3380K)"
-                },
-                THM_0V867: {
-                  val: 1,
-                  brief: "VCOOL = 0.867V (5degC for beta = 3380K)"
-                },
-                THM_0V807: {
-                  val: 2,
-                  brief: "VCOOL = 0.807V (10degC for beta = 3380K)"
-                },
-                THM_0V747: {
-                  val: 3,
-                  brief: "VCOOL = 0.747V (15degC for beta = 3380K)"
+            },
+            THM_COOL: {
+              bits: [3, 2],
+              doc: "Sets the VCOOL JEITA Temperature Threshold",
+              accepts: {
+                Enum: {
+                  THM_0V923: {
+                    val: 0,
+                    doc: "VCOOL = 0.923V (0degC for beta = 3380K)"
+                  },
+                  THM_0V867: {
+                    val: 1,
+                    doc: "VCOOL = 0.867V (5degC for beta = 3380K)"
+                  },
+                  THM_0V807: {
+                    val: 2,
+                    doc: "VCOOL = 0.807V (10degC for beta = 3380K)"
+                  },
+                  THM_0V747: {
+                    val: 3,
+                    doc: "VCOOL = 0.747V (15degC for beta = 3380K)"
+                  }
                 }
               }
-            }
-          },
-          THM_COLD: {
-            bits: [1, 0],
-            brief: "Sets the VCOLD JEITA Temperature Threshold",
-            accepts: {
-              LocalEnum: {
-                THM_1V024: {
-                  val: 0,
-                  brief: "VCOLD = 1.024V (-10degC for beta = 3380K)"
-                },
-                THM_0V976: {
-                  val: 1,
-                  brief: "VCOLD = 0.976V (-5degC for beta = 3380K)"
-                },
-                THM_0V923: {
-                  val: 2,
-                  brief: "VCOLD = 0.923V (0degC for beta = 3380K)"
-                },
-                THM_0V867: {
-                  val: 3,
-                  brief: "VCOLD = 0.867V (5degC for beta = 3380K)"
+            },
+            THM_COLD: {
+              bits: [1, 0],
+              doc: "Sets the VCOLD JEITA Temperature Threshold",
+              accepts: {
+                Enum: {
+                  THM_1V024: {
+                    val: 0,
+                    doc: "VCOLD = 1.024V (-10degC for beta = 3380K)"
+                  },
+                  THM_0V976: {
+                    val: 1,
+                    doc: "VCOLD = 0.976V (-5degC for beta = 3380K)"
+                  },
+                  THM_0V923: {
+                    val: 2,
+                    doc: "VCOLD = 0.923V (0degC for beta = 3380K)"
+                  },
+                  THM_0V867: {
+                    val: 3,
+                    doc: "VCOLD = 0.867V (5degC for beta = 3380K)"
+                  }
                 }
               }
             }
@@ -1074,97 +1117,97 @@
       Register: {
         adr: 33,
         reset_val: 0,
-        brief: "Charger Config register B.",
-        fields: {
-          VCHGIN_MIN: {
-            bits: [7, 6, 5],
-            brief: "Minimum CHGIN Regulation Voltage (VCHGIN-MIN)",
-            accepts: {
-              LocalEnum: {
-                VCHGIN_4V0: {
-                  val: 0,
-                  brief: "4.0V"
-                },
-                VCHGIN_4V1: {
-                  val: 1,
-                  brief: "4.1V"
-                },
-                VCHGIN_4V2: {
-                  val: 2,
-                  brief: "4.2V"
-                },
-                VCHGIN_4V3: {
-                  val: 3,
-                  brief: "4.3V"
-                },
-                VCHGIN_4V4: {
-                  val: 4,
-                  brief: "4.4V"
-                },
-                VCHGIN_4V5: {
-                  val: 5,
-                  brief: "4.5V"
-                },
-                VCHGIN_4V6: {
-                  val: 6,
-                  brief: "4.6V"
-                },
-                VCHGIN_4V7: {
-                  val: 7,
-                  brief: "4.7V"
+        doc: "Charger Config register B.",
+        layout: {
+          Layout: {
+            VCHGIN_MIN: {
+              bits: [7, 6, 5],
+              doc: "Minimum CHGIN Regulation Voltage (VCHGIN-MIN)",
+              accepts: {
+                Enum: {
+                  VCHGIN_4V0: {
+                    val: 0,
+                    doc: "4.0V"
+                  },
+                  VCHGIN_4V1: {
+                    val: 1,
+                    doc: "4.1V"
+                  },
+                  VCHGIN_4V2: {
+                    val: 2,
+                    doc: "4.2V"
+                  },
+                  VCHGIN_4V3: {
+                    val: 3,
+                    doc: "4.3V"
+                  },
+                  VCHGIN_4V4: {
+                    val: 4,
+                    doc: "4.4V"
+                  },
+                  VCHGIN_4V5: {
+                    val: 5,
+                    doc: "4.5V"
+                  },
+                  VCHGIN_4V6: {
+                    val: 6,
+                    doc: "4.6V"
+                  },
+                  VCHGIN_4V7: {
+                    val: 7,
+                    doc: "4.7V"
+                  }
                 }
               }
-            }
-          },
-          ICHGIN_LIM: {
-            bits: [4, 3, 2],
-            brief: "CHGIN Input Current Limit (ICHGIN-LIM)",
-            accepts: {
-              LocalEnum: {
-                ICHGIN_95mA: {
-                  val: 0,
-                  brief: "95mA"
-                },
-                ICHGIN_190mA: {
-                  val: 1,
-                  brief: "190mA"
-                },
-                ICHGIN_285mA: {
-                  val: 2,
-                  brief: "285mA"
-                },
-                ICHGIN_380mA: {
-                  val: 3,
-                  brief: "380mA"
-                },
-                ICHGIN_475mA: {
-                  val: 4,
-                  brief: "475mA"
+            },
+            ICHGIN_LIM: {
+              bits: [4, 3, 2],
+              doc: "CHGIN Input Current Limit (ICHGIN-LIM)",
+              accepts: {
+                Enum: {
+                  ICHGIN_95mA: {
+                    val: 0,
+                    doc: "95mA"
+                  },
+                  ICHGIN_190mA: {
+                    val: 1,
+                    doc: "190mA"
+                  },
+                  ICHGIN_285mA: {
+                    val: 2,
+                    doc: "285mA"
+                  },
+                  ICHGIN_380mA: {
+                    val: 3,
+                    doc: "380mA"
+                  },
+                  ICHGIN_475mA: {
+                    val: 4,
+                    doc: "475mA"
+                  }
                 }
               }
-            }
-          },
-          I_PQ: {
-            bits: [1],
-            brief: "Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.",
-            accepts: {
-              LocalEnum: {
-                PQ_10PERC: {
-                  val: 0,
-                  brief: "10% of IFAST-CHG"
-                },
-                PQ_20PERC: {
-                  val: 1,
-                  brief: "20% of IFAST-CHG"
+            },
+            I_PQ: {
+              bits: [1],
+              doc: "Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.",
+              accepts: {
+                Enum: {
+                  PQ_10PERC: {
+                    val: 0,
+                    doc: "10% of IFAST-CHG"
+                  },
+                  PQ_20PERC: {
+                    val: 1,
+                    doc: "20% of IFAST-CHG"
+                  }
                 }
               }
-            }
-          },
-          CHG_EN: {
-            bits: [0],
-            brief: "Charger Enable",
-            accepts: {
-              SharedEnum: "EN"
+            },
+            CHG_EN: {
+              bits: [0],
+              doc: "Charger Enable",
+              accepts: Bool
             }
           }
         }
@@ -1175,108 +1218,110 @@
       Register: {
         adr: 34,
         reset_val: 248,
-        brief: "Charger Config register C.",
-        fields: {
-          CHG_PQ: {
-            bits: [7, 6, 5],
-            brief: "Battery Prequalification Voltage Threshold (VPQ)",
-            accepts: {
-              LocalEnum: {
-                PQ_2V3: {
-                  val: 0,
-                  brief: "2.3V"
-                },
-                PQ_2V4: {
-                  val: 1,
-                  brief: "2.4V"
-                },
-                PQ_2V5: {
-                  val: 2,
-                  brief: "2.5V"
-                },
-                PQ_2V6: {
-                  val: 3,
-                  brief: "2.6V"
-                },
-                PQ_2V7: {
-                  val: 4,
-                  brief: "2.7V"
-                },
-                PQ_2V8: {
-                  val: 5,
-                  brief: "2.8V"
-                },
-                PQ_2V9: {
-                  val: 6,
-                  brief: "2.9V"
-                },
-                PQ_3V0: {
-                  val: 7,
-                  brief: "3.0V"
+        doc: "Charger Config register C.",
+        layout: {
+          Layout: {
+            CHG_PQ: {
+              bits: [7, 6, 5],
+              doc: "Battery Prequalification Voltage Threshold (VPQ)",
+              accepts: {
+                Enum: {
+                  PQ_2V3: {
+                    val: 0,
+                    doc: "2.3V"
+                  },
+                  PQ_2V4: {
+                    val: 1,
+                    doc: "2.4V"
+                  },
+                  PQ_2V5: {
+                    val: 2,
+                    doc: "2.5V"
+                  },
+                  PQ_2V6: {
+                    val: 3,
+                    doc: "2.6V"
+                  },
+                  PQ_2V7: {
+                    val: 4,
+                    doc: "2.7V"
+                  },
+                  PQ_2V8: {
+                    val: 5,
+                    doc: "2.8V"
+                  },
+                  PQ_2V9: {
+                    val: 6,
+                    doc: "2.9V"
+                  },
+                  PQ_3V0: {
+                    val: 7,
+                    doc: "3.0V"
+                  }
                 }
               }
-            }
-          },
-          I_TERM: {
-            bits: [4, 3],
-            brief: "Charger Termination Current (ITERM)",
-            accepts: {
-              LocalEnum: {
-                ITERM_5PERC: {
-                  val: 0,
-                  brief: "5% of IFAST-CHG"
-                },
-                ITERM_7PERC5: {
-                  val: 1,
-                  brief: "7.5% of IFAST-CHG"
-                },
-                ITERM_10PERC: {
-                  val: 2,
-                  brief: "10% of IFAST-CHG"
-                },
-                ITERM_15PERC: {
-                  val: 3,
-                  brief: "15% of IFAST-CHG"
+            },
+            I_TERM: {
+              bits: [4, 3],
+              doc: "Charger Termination Current (ITERM)",
+              accepts: {
+                Enum: {
+                  ITERM_5PERC: {
+                    val: 0,
+                    doc: "5% of IFAST-CHG"
+                  },
+                  ITERM_7PERC5: {
+                    val: 1,
+                    doc: "7.5% of IFAST-CHG"
+                  },
+                  ITERM_10PERC: {
+                    val: 2,
+                    doc: "10% of IFAST-CHG"
+                  },
+                  ITERM_15PERC: {
+                    val: 3,
+                    doc: "15% of IFAST-CHG"
+                  }
                 }
               }
-            }
-          },
-          T_TOPOFF: {
-            bits: [2, 1, 0],
-            brief: "Top-Off Timer val (t_TO)",
-            accepts: {
-              LocalEnum: {
-                T_0MIN: {
-                  val: 0,
-                  brief: "0 minutes"
-                },
-                T_5MIN: {
-                  val: 1,
-                  brief: "5 minutes"
-                },
-                T_10MIN: {
-                  val: 2,
-                  brief: "10 minutes"
-                },
-                T_15MIN: {
-                  val: 3,
-                  brief: "15 minutes"
-                },
-                T_20MIN: {
-                  val: 4,
-                  brief: "20 minutes"
-                },
-                T_25MIN: {
-                  val: 5,
-                  brief: "25 minutes"
-                },
-                T_30MIN: {
-                  val: 6,
-                  brief: "30 minutes"
-                },
-                T_35MIN: {
-                  val: 7,
-                  brief: "35 minute"
+            },
+            T_TOPOFF: {
+              bits: [2, 1, 0],
+              doc: "Top-Off Timer val (t_TO)",
+              accepts: {
+                Enum: {
+                  T_0MIN: {
+                    val: 0,
+                    doc: "0 minutes"
+                  },
+                  T_5MIN: {
+                    val: 1,
+                    doc: "5 minutes"
+                  },
+                  T_10MIN: {
+                    val: 2,
+                    doc: "10 minutes"
+                  },
+                  T_15MIN: {
+                    val: 3,
+                    doc: "15 minutes"
+                  },
+                  T_20MIN: {
+                    val: 4,
+                    doc: "20 minutes"
+                  },
+                  T_25MIN: {
+                    val: 5,
+                    doc: "25 minutes"
+                  },
+                  T_30MIN: {
+                    val: 6,
+                    doc: "30 minutes"
+                  },
+                  T_35MIN: {
+                    val: 7,
+                    doc: "35 minute"
+                  }
                 }
               }
             }
@@ -1289,162 +1334,165 @@
       Register: {
         adr: 35,
         reset_val: 16,
-        brief: "Charger Config register D.",
-        fields: {
-          TJ_REG: {
-            bits: [7, 6, 5],
-            brief: "Sets the die junction temperature regulation point, TJ-REG.",
-            accepts: {
-              LocalEnum: {
-                TJ_60degC: {
-                  val: 0,
-                  brief: "60degC"
-                },
-                TJ_70degC: {
-                  val: 1,
-                  brief: "70degC"
-                },
-                TJ_80degC: {
-                  val: 2,
-                  brief: "80degC"
-                },
-                TJ_90degC: {
-                  val: 3,
-                  brief: "90degC"
-                },
-                TJ_100degC: {
-                  val: 4,
-                  brief: "100degC"
+        doc: "Charger Config register D.",
+        layout: {
+          Layout: {
+            TJ_REG: {
+              bits: [7, 6, 5],
+              doc: "Sets the die junction temperature regulation point, TJ-REG.",
+              accepts: {
+                Enum: {
+                  TJ_60degC: {
+                    val: 0,
+                    doc: "60degC"
+                  },
+                  TJ_70degC: {
+                    val: 1,
+                    doc: "70degC"
+                  },
+                  TJ_80degC: {
+                    val: 2,
+                    doc: "80degC"
+                  },
+                  TJ_90degC: {
+                    val: 3,
+                    doc: "90degC"
+                  },
+                  TJ_100degC: {
+                    val: 4,
+                    doc: "100degC"
+                  }
                 }
               }
-            }
-          },
-          VSYS_REG: {
-            bits: ["0-4"],
-            brief: "System Voltage Regulation (VSYS-REG)",
-            doc:
-              '''
-              This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
-              with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and
-              VFAST-CHG-JEITA.
-              '''
-            accepts: {
-              LocalEnum: {
-                VSYS_4V1: {
-                  val: 0,
-                  brief: "4.100V"
-                },
-                VSYS_4V125: {
-                  val: 1,
-                  brief: "4.125V"
-                },
-                VSYS_4V15: {
-                  val: 2,
-                  brief: "4.150V"
-                },
-                VSYS_4V175: {
-                  val: 3,
-                  brief: "4.175V"
-                },
-                VSYS_4V2: {
-                  val: 4,
-                  brief: "4.200V"
-                },
-                VSYS_4V225: {
-                  val: 5,
-                  brief: "4.225V"
-                },
-                VSYS_4V25: {
-                  val: 6,
-                  brief: "4.250V"
-                },
-                VSYS_4V275: {
-                  val: 7,
-                  brief: "4.275V"
-                },
-                VSYS_4V3: {
-                  val: 8,
-                  brief: "4.300V"
-                },
-                VSYS_4V325: {
-                  val: 9,
-                  brief: "4.325V"
-                },
-                VSYS_4V35: {
-                  val: 10,
-                  brief: "4.350V"
-                },
-                VSYS_4V375: {
-                  val: 11,
-                  brief: "4.375V"
-                },
-                VSYS_4V4: {
-                  val: 12,
-                  brief: "4.400V"
-                },
-                VSYS_4V425: {
-                  val: 13,
-                  brief: "4.425V"
-                },
-                VSYS_4V45: {
-                  val: 14,
-                  brief: "4.450V"
-                },
-                VSYS_4V475: {
-                  val: 15,
-                  brief: "4.475V"
-                },
-                VSYS_4V5: {
-                  val: 16,
-                  brief: "4.500V"
-                },
-                VSYS_4V525: {
-                  val: 17,
-                  brief: "4.525V"
-                },
-                VSYS_4V55: {
-                  val: 18,
-                  brief: "4.550V"
-                },
-                VSYS_4V575: {
-                  val: 19,
-                  brief: "4.575V"
-                },
-                VSYS_4V6: {
-                  val: 20,
-                  brief: "4.600V"
-                },
-                VSYS_4V625: {
-                  val: 21,
-                  brief: "4.625V"
-                },
-                VSYS_4V65: {
-                  val: 22,
-                  brief: "4.650V"
-                },
-                VSYS_4V675: {
-                  val: 23,
-                  brief: "4.675V"
-                },
-                VSYS_4V7: {
-                  val: 24,
-                  brief: "4.700V"
-                },
-                VSYS_4V725: {
-                  val: 25,
-                  brief: "4.725V"
-                },
-                VSYS_4V75: {
-                  val: 26,
-                  brief: "4.750V"
-                },
-                VSYS_4V775: {
-                  val: 27,
-                  brief: "4.775V"
-                },
-                VSYS_4V8: {
-                  val: 28,
-                  brief: "4.800V"
+            },
+            VSYS_REG: {
+              bits: ["0-4"],
+              doc:
+                '''
+                System Voltage Regulation (VSYS-REG)
+
+                This 5-bit configuration is a linear transfer function that starts at 4.1V and ends at 4.8V,
+                with 25mV increments. Program VSYS_REG to at least 200mV above the higher of VFAST-CHG and
+                VFAST-CHG-JEITA.
+                '''
+              accepts: {
+                Enum: {
+                  VSYS_4V1: {
+                    val: 0,
+                    doc: "4.100V"
+                  },
+                  VSYS_4V125: {
+                    val: 1,
+                    doc: "4.125V"
+                  },
+                  VSYS_4V15: {
+                    val: 2,
+                    doc: "4.150V"
+                  },
+                  VSYS_4V175: {
+                    val: 3,
+                    doc: "4.175V"
+                  },
+                  VSYS_4V2: {
+                    val: 4,
+                    doc: "4.200V"
+                  },
+                  VSYS_4V225: {
+                    val: 5,
+                    doc: "4.225V"
+                  },
+                  VSYS_4V25: {
+                    val: 6,
+                    doc: "4.250V"
+                  },
+                  VSYS_4V275: {
+                    val: 7,
+                    doc: "4.275V"
+                  },
+                  VSYS_4V3: {
+                    val: 8,
+                    doc: "4.300V"
+                  },
+                  VSYS_4V325: {
+                    val: 9,
+                    doc: "4.325V"
+                  },
+                  VSYS_4V35: {
+                    val: 10,
+                    doc: "4.350V"
+                  },
+                  VSYS_4V375: {
+                    val: 11,
+                    doc: "4.375V"
+                  },
+                  VSYS_4V4: {
+                    val: 12,
+                    doc: "4.400V"
+                  },
+                  VSYS_4V425: {
+                    val: 13,
+                    doc: "4.425V"
+                  },
+                  VSYS_4V45: {
+                    val: 14,
+                    doc: "4.450V"
+                  },
+                  VSYS_4V475: {
+                    val: 15,
+                    doc: "4.475V"
+                  },
+                  VSYS_4V5: {
+                    val: 16,
+                    doc: "4.500V"
+                  },
+                  VSYS_4V525: {
+                    val: 17,
+                    doc: "4.525V"
+                  },
+                  VSYS_4V55: {
+                    val: 18,
+                    doc: "4.550V"
+                  },
+                  VSYS_4V575: {
+                    val: 19,
+                    doc: "4.575V"
+                  },
+                  VSYS_4V6: {
+                    val: 20,
+                    doc: "4.600V"
+                  },
+                  VSYS_4V625: {
+                    val: 21,
+                    doc: "4.625V"
+                  },
+                  VSYS_4V65: {
+                    val: 22,
+                    doc: "4.650V"
+                  },
+                  VSYS_4V675: {
+                    val: 23,
+                    doc: "4.675V"
+                  },
+                  VSYS_4V7: {
+                    val: 24,
+                    doc: "4.700V"
+                  },
+                  VSYS_4V725: {
+                    val: 25,
+                    doc: "4.725V"
+                  },
+                  VSYS_4V75: {
+                    val: 26,
+                    doc: "4.750V"
+                  },
+                  VSYS_4V775: {
+                    val: 27,
+                    doc: "4.775V"
+                  },
+                  VSYS_4V8: {
+                    val: 28,
+                    doc: "4.800V"
+                  }
                 }
               }
             }
@@ -1457,33 +1505,39 @@
       Register: {
         adr: 36,
         reset_val: 5,
-        brief: "Charger Config register E.",
-        fields: {
-          CHG_CC: {
-            bits: ["2-7"],
-            brief: "Sets the fast-charge constant current val, IFAST-CHG.",
-            doc: "This 6-bit configuration is a linear transfer function that starts at 7.5mA and ends at 300mA, with 7.5mA increments."
-          },
-          T_FAST_CHG: {
-            bits: [1, 0],
-            brief: "Sets the fast-charge safety timer, t_FC.",
-            accepts: {
-              LocalEnum: {
-                T_OFF: {
-                  val: 0,
-                  brief: "Timer disabled"
-                },
-                T_3H: {
-                  val: 1,
-                  brief: "3 hours"
-                },
-                T_5H: {
-                  val: 2,
-                  brief: "5 hours"
-                },
-                T_7H: {
-                  val: 3,
-                  brief: "7 hours"
+        doc: "Charger Config register E.",
+        layout: {
+          Layout: {
+            CHG_CC: {
+              bits: ["2-7"],
+              doc:
+                '''
+                Sets the fast-charge constant current val, IFAST-CHG.
+
+                This 6-bit configuration is a linear transfer function that starts at 7.5mA and ends at 300mA, with 7.5mA increments.
+                '''
+            },
+            T_FAST_CHG: {
+              bits: [1, 0],
+              doc: "Sets the fast-charge safety timer, t_FC.",
+              accepts: {
+                Enum: {
+                  T_OFF: {
+                    val: 0,
+                    doc: "Timer disabled"
+                  },
+                  T_3H: {
+                    val: 1,
+                    doc: "3 hours"
+                  },
+                  T_5H: {
+                    val: 2,
+                    doc: "5 hours"
+                  },
+                  T_7H: {
+                    val: 3,
+                    doc: "7 hours"
+                  }
                 }
               }
             }
@@ -1496,24 +1550,25 @@
       Register: {
         adr: 37,
         reset_val: 4,
-        brief: "Charger Config register F.",
-        fields: {
-          CHG_CC_JEITA: {
-            bits: ["2-7"],
-            brief: "Sets IFAST-CHG-JEITA for when the battery is either cool or warm",
-            doc:
-              '''
-              Cool or warm are as defined by the VCOOL and VWARM temperature thresholds.
-              This register is a don't care if the battery temperature is normal. This
-              6-bit configuration is a linear transfer function that starts at 7.5mA and
-              ends at 300mA, with 7.5mA increments.
-              '''
-          },
-          THM_EN: {
-            bits: [1],
-            brief: "Thermistor Enable",
-            accepts: {
-              SharedEnum: "EN"
+        doc: "Charger Config register F.",
+        layout: {
+          Layout: {
+            CHG_CC_JEITA: {
+              bits: ["2-7"],
+              doc:
+                '''
+                Sets IFAST-CHG-JEITA for when the battery is either cool or warm
+
+                Cool or warm are as defined by the VCOOL and VWARM temperature thresholds.
+                This register is a don't care if the battery temperature is normal. This
+                6-bit configuration is a linear transfer function that starts at 7.5mA and
+                ends at 300mA, with 7.5mA increments.
+                '''
+            },
+            THM_EN: {
+              bits: [1],
+              doc: "Thermistor Enable",
+              accepts: Bool
             }
           }
         }
@@ -1524,24 +1579,28 @@
       Register: {
         adr: 38,
         reset_val: 0,
-        brief: "Charger Config register G.",
-        always_write: [
-          { bits: [0], val: 0 }
-        ],
-        fields: {
-          CHG_CV: {
-            bits: ["2-7"],
-            brief: "Sets fast-charge battery regulation voltage, VFAST-CHG.",
-            doc:
-              '''
-              This 6-bit configuration is a linear transfer function that starts at
-              3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at
-              least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
-              '''
-          },
-          USBS: {
-            bits: [1],
-            brief: "Setting this bit places CHGIN in USB"
+        doc: "Charger Config register G.",
+        layout: {
+          Layout: {
+            CHG_CV: {
+              bits: ["2-7"],
+              doc:
+                '''
+                Sets fast-charge battery regulation voltage, VFAST-CHG.
+
+                This 6-bit configuration is a linear transfer function that starts at
+                3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at
+                least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
+                '''
+            },
+            USBS: {
+              bits: [1],
+              doc: "Setting this bit places CHGIN in USB"
+            }
+            RESERVED: {
+              bits: [0],
+              accepts: { Fixed: 0 }
+            },
           }
         }
       }
@@ -1551,22 +1610,26 @@
       Register: {
         adr: 39,
         reset_val: 0,
-        brief: "Charger Config register H.",
-        always_write: [
-          { bits: ["1-0"], val: 0 }
-        ],
-        fields: {
-          CHG_CV_JEITA: {
-            bits: ["2-7"],
-            brief: "Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.",
-            doc:
-              '''
-              Cool or warm as defined by the VCOOL and VWARM temperature thresholds.
-              This register is a don't care if the battery temperature is normal.
-              This 6-bit configuration is a linear transfer function that starts at
-              3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least
-              200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
-              '''
+        doc: "Charger Config register H.",
+        layout: {
+          Layout: {
+            CHG_CV_JEITA: {
+              bits: ["2-7"],
+              doc:
+                '''
+                Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.
+
+                Cool or warm as defined by the VCOOL and VWARM temperature thresholds.
+                This register is a don't care if the battery temperature is normal.
+                This 6-bit configuration is a linear transfer function that starts at
+                3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least
+                200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
+                '''
+            },
+            RESERVED: {
+              bits: [1, 0],
+              accepts: { Fixed: 0 }
+            }
           }
         }
       }
@@ -1576,108 +1639,110 @@
       Register: {
         adr: 40,
         reset_val: 240,
-        brief: "Charger Config register I.",
-        fields: {
-          IMON_DISCHG_SCALE: {
-            bits: ["4-7"],
-            brief: "Selects the battery discharge current full-scale current val.",
-            accepts: {
-              LocalEnum: {
-                IMON_8mA2: {
-                  val: 0,
-                  brief: "8.2mA"
-                },
-                IMON_40mA5: {
-                  val: 1,
-                  brief: "40.5mA"
-                },
-                IMON_72mA3: {
-                  val: 2,
-                  brief: "72.3mA"
-                },
-                IMON_103mA4: {
-                  val: 3,
-                  brief: "103.4mA"
-                },
-                IMON_134mA1: {
-                  val: 4,
-                  brief: "134.1mA"
-                },
-                IMON_164mA1: {
-                  val: 5,
-                  brief: "164.1mA"
-                },
-                IMON_193mA7: {
-                  val: 6,
-                  brief: "193.7mA"
-                },
-                IMON_222mA7: {
-                  val: 7,
-                  brief: "222.7mA"
-                },
-                IMON_251mA2: {
-                  val: 8,
-                  brief: "251.2mA"
-                },
-                IMON_279mA3: {
-                  val: 9,
-                  brief: "279.3mA"
-                },
-                IMON_300mA: {
-                  val: 10,
-                  brief: "300.0mA"
+        doc: "Charger Config register I.",
+        layout: {
+          Layout: {
+            IMON_DISCHG_SCALE: {
+              bits: ["4-7"],
+              doc: "Selects the battery discharge current full-scale current val.",
+              accepts: {
+                Enum: {
+                  IMON_8mA2: {
+                    val: 0,
+                    doc: "8.2mA"
+                  },
+                  IMON_40mA5: {
+                    val: 1,
+                    doc: "40.5mA"
+                  },
+                  IMON_72mA3: {
+                    val: 2,
+                    doc: "72.3mA"
+                  },
+                  IMON_103mA4: {
+                    val: 3,
+                    doc: "103.4mA"
+                  },
+                  IMON_134mA1: {
+                    val: 4,
+                    doc: "134.1mA"
+                  },
+                  IMON_164mA1: {
+                    val: 5,
+                    doc: "164.1mA"
+                  },
+                  IMON_193mA7: {
+                    val: 6,
+                    doc: "193.7mA"
+                  },
+                  IMON_222mA7: {
+                    val: 7,
+                    doc: "222.7mA"
+                  },
+                  IMON_251mA2: {
+                    val: 8,
+                    doc: "251.2mA"
+                  },
+                  IMON_279mA3: {
+                    val: 9,
+                    doc: "279.3mA"
+                  },
+                  IMON_300mA: {
+                    val: 10,
+                    doc: "300.0mA"
+                  }
                 }
               }
-            }
-          },
-          MUX_SEL: {
-            bits: ["0-3"],
-            brief: "Selects the analog channel to connect to AMUX.",
-            accepts: {
-              LocalEnum: {
-                DISABLED: {
-                  val: 0,
-                  brief: "DISABLED"
-                },
-                CHGIN_V: {
-                  val: 1,
-                  brief: "CHGIN voltage monitor."
-                },
-                CHGIN_I: {
-                  val: 2,
-                  brief: "CHGIN current monitor."
-                },
-                BATT_V: {
-                  val: 3,
-                  brief: "BATT voltage monitor."
-                },
-                BATT_CHG_I: {
-                  val: 4,
-                  brief: "BATT charge current monitor. Valid only while battery charging is happening (CHG = 1)."
-                },
-                BATT_DISCHG_I: {
-                  val: 5,
-                  brief: "BATT discharge current monitor normal measurement."
-                },
-                BATT_DISCHG_I_NULL: {
-                  val: 6,
-                  brief: "BATT discharge current monitor nulling measurement."
-                },
-                THM: {
-                  val: 7,
-                  brief: "THM voltage monitor."
-                },
-                THM_BIAS: {
-                  val: 8,
-                  brief: "TBIAS voltage monitor."
-                },
-                AGND: {
-                  val: 9,
-                  brief: "AGND voltage monitor (through 100ohm pulldown resistor)."
-                },
-                VSYS: {
-                  val: 10,
-                  brief: "SYS voltage monitor"
+            },
+            MUX_SEL: {
+              bits: ["0-3"],
+              doc: "Selects the analog channel to connect to AMUX.",
+              accepts: {
+                Enum: {
+                  DISABLED: {
+                    val: 0,
+                    doc: "DISABLED"
+                  },
+                  CHGIN_V: {
+                    val: 1,
+                    doc: "CHGIN voltage monitor."
+                  },
+                  CHGIN_I: {
+                    val: 2,
+                    doc: "CHGIN current monitor."
+                  },
+                  BATT_V: {
+                    val: 3,
+                    doc: "BATT voltage monitor."
+                  },
+                  BATT_CHG_I: {
+                    val: 4,
+                    doc: "BATT charge current monitor. Valid only while battery charging is happening (CHG = 1)."
+                  },
+                  BATT_DISCHG_I: {
+                    val: 5,
+                    doc: "BATT discharge current monitor normal measurement."
+                  },
+                  BATT_DISCHG_I_NULL: {
+                    val: 6,
+                    doc: "BATT discharge current monitor nulling measurement."
+                  },
+                  THM: {
+                    val: 7,
+                    doc: "THM voltage monitor."
+                  },
+                  THM_BIAS: {
+                    val: 8,
+                    doc: "TBIAS voltage monitor."
+                  },
+                  AGND: {
+                    val: 9,
+                    doc: "AGND voltage monitor (through 100ohm pulldown resistor)."
+                  },
+                  VSYS: {
+                    val: 10,
+                    doc: "SYS voltage monitor"
+                  }
                 }
               }
             }
@@ -1687,86 +1752,99 @@
     },
 
     CNFG_SBB: {
-      Block: {
+      RegisterBlock: {
         instances: {
-          CNFG_SBB0: 41,
-          CNFG_SBB1: 43,
-          CNFG_SBB3: 45
+          CNFG_SBB0: { adr: 41 },
+          CNFG_SBB1: { adr: 43 },
+          CNFG_SBB3: { adr: 45 }
         },
         registers: {
           A: {
-            adr: 0,
+            offset: 0,
             reset_val: 0,
-            brief: "SBB Config A.",
-            fields: {
-              TV_SBB: {
-                bits: ["0-6"],
-                brief: "SIMO Buck-Boost Channel Target Output Voltage",
-                doc: "This 7-bit configuration is a linear transfer function that starts at 0.8V, ends at 5.5V, with 50mV increments."
+            doc: "SBB Config A.",
+            layout: {
+              Layout: {
+                TV_SBB: {
+                  bits: ["0-6"],
+                  doc:
+                    '''
+                    SIMO Buck-Boost Channel Target Output Voltage
+
+                    This 7-bit configuration is a linear transfer function that starts at 0.8V, ends at 5.5V, with
+                    50mV increments.
+                    '''
+                }
               }
             }
           },
           B: {
-            adr: 1,
+            offset: 1,
             reset_val: 0,
-            brief: "SBB Config B.",
-            always_write: [
-              { bits: [7], val: 0 }
-            ],
-            fields: {
-              SBB_OP_MODE: {
-                bits: [6],
-                brief: "Operation Mode of SBB",
-                accepts: {
-                  LocalEnum: {
-                    BUCK_BOOST: {
-                      val: 0,
-                      brief: "Buck-boost mode."
-                    },
-                    BUCK: {
-                      val: 1,
-                      brief: "Buck mode."
+            doc: "SBB Config B.",
+            layout: {
+              Layout: {
+                RESERVED: {
+                  bits: [7],
+                  accepts: { Fixed: 0 }
+                },
+                SBB_OP_MODE: {
+                  bits: [6],
+                  doc: "Operation Mode of SBB",
+                  accepts: {
+                    Enum: {
+                      BUCK_BOOST: {
+                        val: 0,
+                        doc: "Buck-boost mode."
+                      },
+                      BUCK: {
+                        val: 1,
+                        doc: "Buck mode."
+                      }
                     }
                   }
-                }
-              },
-              IP_SBB: {
-                bits: [5, 4],
-                brief: "SIMO Buck-Boost Channel Peak Current Limit",
-                accepts: {
-                  LocalEnum: {
-                    IP_1A: {
-                      val: 0,
-                      brief: "1.000A"
-                    },
-                    IP_0A75: {
-                      val: 1,
-                      brief: "0.750A"
-                    },
-                    IP_0A5: {
-                      val: 2,
-                      brief: "0.500A"
-                    },
-                    IP_0A3: {
-                      val: 3,
-                      brief: "0.333A"
+                },
+                IP_SBB: {
+                  bits: [5, 4],
+                  doc: "SIMO Buck-Boost Channel Peak Current Limit",
+                  accepts: {
+                    Enum: {
+                      IP_1A: {
+                        val: 0,
+                        doc: "1.000A"
+                      },
+                      IP_0A75: {
+                        val: 1,
+                        doc: "0.750A"
+                      },
+                      IP_0A5: {
+                        val: 2,
+                        doc: "0.500A"
+                      },
+                      IP_0A3: {
+                        val: 3,
+                        doc: "0.333A"
+                      }
                     }
                   }
-                }
-              },
-              ADE_SBB: {
-                bits: [3],
-                brief: "SIMO Buck-Boost Channel Active-Discharge Enable",
-                accepts: {
-                  SharedEnum: "EN"
-                }
-              },
-              EN_SBB: {
-                bits: [2, 1, 0],
-                brief: "Enable control for SIMO buck-boost channel.",
-                doc: "Selects either an FPS slot the channel powers-up and powers-down in or whether the channel is forced on or off.",
-                accepts: {
-                  SharedEnum: "REG_EN"
+                },
+                ADE_SBB: {
+                  bits: [3],
+                  doc: "SIMO Buck-Boost Channel Active-Discharge Enable",
+                  accepts: Bool
+                },
+                EN_SBB: {
+                  bits: [2, 1, 0],
+                  doc:
+                    '''
+                    Enable control for SIMO buck-boost channel.
+
+                    Selects either an FPS slot the channel powers-up and powers-down in or
+                    whether the channel is forced on or off.
+                    '''
+                  accepts: {
+                    SharedEnum: "REG_EN"
+                  }
                 }
               }
             }
@@ -1779,36 +1857,38 @@
       Register: {
         adr: 47,
         reset_val: 0,
-        brief: "SBB Top Config.",
-        fields: {
-          ICHGIN_LIM_DEF: {
-            bits: [7],
-            access: ["R"],
-            brief: "Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed."
-          },
-          DRV_SBB: {
-            bits: [1, 0],
-            access: ["R", "W"],
-            brief: "SIMO Buck-Boost (all channels) Drive Strength Trim.",
-            accepts: {
-              LocalEnum: {
-                FASTEST: {
-                  val: 0,
-                  brief: "Fastest transition time"
-                },
-                FAST: {
-                  val: 1,
-                  brief: "A little slower than FASTEST"
-                },
-                SLOW: {
-                  val: 2,
-                  brief: "A little slower than SLOW"
-                },
-                SLOWEST: {
-                  val: 3,
-                  brief: "A little slower than SLOWEST"
-                }
-             }
+        doc: "SBB Top Config.",
+        layout: {
+          Layout: {
+            ICHGIN_LIM_DEF: {
+              bits: [7],
+              // access: ["R"],
+              doc: "Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed."
+            },
+            DRV_SBB: {
+              bits: [1, 0],
+              // access: ["R", "W"],
+              doc: "SIMO Buck-Boost (all channels) Drive Strength Trim.",
+              accepts: {
+                Enum: {
+                  FASTEST: {
+                    val: 0,
+                    doc: "Fastest transition time"
+                  },
+                  FAST: {
+                    val: 1,
+                    doc: "A little slower than FASTEST"
+                  },
+                  SLOW: {
+                    val: 2,
+                    doc: "A little slower than SLOW"
+                  },
+                  SLOWEST: {
+                    val: 3,
+                    doc: "A little slower than SLOWEST"
+                  }
+               }
+              }
             }
           }
         }
@@ -1816,61 +1896,74 @@
     },
 
     CNFG_LDO: {
-      Block: {
+      RegisterBlock: {
         instances: {
-          CNFG_LDO0: 56,
-          CNFG_LDO1: 58
+          CNFG_LDO0: { adr: 56 },
+          CNFG_LDO1: { adr: 58 }
         },
         registers: {
           A: {
-            adr: 0,
+            offset: 0,
             reset_val: 0,
-            brief: "LDO Config A.",
-            always_write: [
-              { bits: [7], val: 0 }
-            ],
-            fields: {
-              TV_LDO: {
-                bits: ["0-6"],
-                brief: "LDO Target Output Voltage",
-                doc: "This 7-bit configuration is a linear transfer function that starts at 0.8V and ends at 3.975V, with 25mV increments."
+            doc: "LDO Config A.",
+            layout: {
+              Layout: {
+                RESERVED: {
+                  bits: [7],
+                  accepts: { Fixed: 0 }
+                },
+                TV_LDO: {
+                  bits: ["0-6"],
+                  doc:
+                    '''
+                    LDO Target Output Voltage
+
+                    This 7-bit configuration is a linear transfer function that starts at 0.8V and ends at
+                    3.975V, with 25mV increments.
+                    '''
+                }
               }
             }
           },
           B: {
-            adr: 1,
+            offset: 1,
             reset_val: 0,
-            brief: "LDO Config B.",
-            fields: {
-              LDO_OP_MODE: {
-                bits: [4],
-                brief: "Operation Mode of LDO0",
-                accepts: {
-                  LocalEnum: {
-                        LDO: {
-                          val: 0,
-                          brief: "LDO regulator"
-                        },
-                        SW: {
-                          val: 1,
-                          brief: "Switch"
-                        }
+            doc: "LDO Config B.",
+            layout: {
+              Layout: {
+                LDO_OP_MODE: {
+                  bits: [4],
+                  doc: "Operation Mode of LDO0",
+                  accepts: {
+                    Enum: {
+                          LDO: {
+                            val: 0,
+                            doc: "LDO regulator"
+                          },
+                          SW: {
+                            val: 1,
+                            doc: "Switch"
+                          }
+                    }
                   }
-                }
-              },
-              ADE_LDO: {
-                bits: [3],
-                brief: "LDO Channel Active-Discharge Enable",
-                accepts: {
-                  SharedEnum: "EN"
-                }
-              },
-              EN_LDO: {
-                bits: [2, 1, 0],
-                brief: "Enable control for LDO",
-                doc: "Selects either an FPS slot the channel powers-up and powers-down in or whether the channel is forced on or off.",
-                accepts: {
-                  SharedEnum: "REG_EN"
+                },
+                ADE_LDO: {
+                  bits: [3],
+                  doc: "LDO Channel Active-Discharge Enable",
+                  accepts: Bool
+                },
+                EN_LDO: {
+                  bits: [2, 1, 0],
+                  doc:
+                    '''
+                    Enable control for LDO
+
+                    Selects either an FPS slot the channel powers-up and powers-down in or
+                    whether the channel is forced on or off.
+                    '''
+                  accepts: {
+                    SharedEnum: "REG_EN"
+                  }
                 }
               }
             }
@@ -1886,40 +1979,27 @@
       enum: {
         FPS_SLOT_0: {
           val: 0,
-          brief: "FPS slot 0"
+          doc: "FPS slot 0"
         },
         FPS_SLOT_1: {
           val: 1,
-          brief: "FPS slot 1"
+          doc: "FPS slot 1"
         },
         FPS_SLOT_2: {
           val: 2,
-          brief: "FPS slot 2"
+          doc: "FPS slot 2"
         },
         FPS_SLOT_3: {
           val: 3,
-          brief: "FPS slot 3"
+          doc: "FPS slot 3"
         },
         DISABLED: {
           val: 4,
-          brief: "Off irrespective of FPS"
+          doc: "Off irrespective of FPS"
         },
         ENABLED: {
           val: 6,
-          brief: "On irrespective of FPS"
-        }
-      }
-    },
-
-    EN: {
-      enum: {
-        DISABLED: {
-          val: 0,
-          brief: "Disabled"
-        },
-        ENABLED: {
-          val: 1,
-          brief: "Enabled"
+          doc: "On irrespective of FPS"
         }
       }
     },
@@ -1928,11 +2008,11 @@
       enum: {
         UNMASKED: {
           val: 0,
-          brief: "Enabled/Unmasked"
+          doc: "Enabled/Unmasked"
         },
         MASKED: {
           val: 1,
-          brief: "Disabled/Masked"
+          doc: "Disabled/Masked"
         },
       }
     }

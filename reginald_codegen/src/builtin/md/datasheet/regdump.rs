@@ -1,13 +1,14 @@
 use std::{
     collections::{BTreeMap, HashSet},
     fmt::Write,
+    ops::Deref,
     path::{Path, PathBuf},
 };
 
 use crate::{
     builtin::md::md_table,
     error::Error,
-    regmap::{PhysicalRegister, RegisterMap, TypeAdr, TypeValue},
+    regmap::{Register, RegisterMap, TypeAdr, TypeValue},
     utils::filename,
 };
 
@@ -72,20 +73,19 @@ pub struct GeneratorOpts {
 pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) -> Result<(), Error> {
     let regdump = read_regdump(&opts.map)?;
 
-    let registers = map.physical_registers();
-    let adrs = adrs_of_interest(&registers, &regdump);
+    let adrs = adrs_of_interest(map, &regdump);
 
-    writeln!(out, "# {} Register Dump Decode Report", map.map_name)?;
+    writeln!(out, "# {} Register Dump Decode Report", map.name)?;
     writeln!(out)?;
     writeln!(out, "## Register Map")?;
-    generate_overview(out, map, &registers, &regdump, &adrs)?;
+    generate_overview(out, map, &regdump, &adrs)?;
 
     writeln!(out)?;
     writeln!(out, "## Register Details")?;
     for adr in adrs {
-        let (regs, val) = lookup_adr(&registers, &regdump, adr);
+        let (regs, val) = lookup_adr(map, &regdump, adr);
         for reg in regs {
-            generate_register_infos(out, reg, val)?;
+            generate_register_infos(out, map, reg, val)?;
         }
     }
 
@@ -95,7 +95,6 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
 fn generate_overview(
     out: &mut dyn Write,
     map: &RegisterMap,
-    registers: &[PhysicalRegister],
     regdump: &RegDump,
     adrs: &Vec<TypeAdr>,
 ) -> Result<(), Error> {
@@ -109,11 +108,11 @@ fn generate_overview(
         writeln!(out)?;
         writeln!(out, "Listing file author: {author}")?;
     }
-    if let Some(note) = &map.note {
+    if let Some(notice) = &map.notice {
         writeln!(out,)?;
-        writeln!(out, "Listing file note:")?;
+        writeln!(out, "Listing file notice:")?;
         writeln!(out, "```")?;
-        for line in note.lines() {
+        for line in notice.lines() {
             writeln!(out, "  {line}")?;
         }
         writeln!(out, "```")?;
@@ -126,7 +125,7 @@ fn generate_overview(
         "**Brief**".to_string(),
     ]);
     for adr in adrs {
-        let (regs, val) = lookup_adr(registers, regdump, *adr);
+        let (regs, val) = lookup_adr(map, regdump, *adr);
         let adr_str = format!("0x{adr:X}");
         let value_str = val.map(|x| format!("0x{x:X}")).unwrap_or_default();
 
@@ -138,7 +137,7 @@ fn generate_overview(
                     adr_str.clone(),
                     reg.name.clone(),
                     value_str.clone(),
-                    reg.template.docs.brief.clone().unwrap_or_default(),
+                    reg.docs.brief.clone().unwrap_or_default(),
                 ]);
             }
         }
@@ -148,13 +147,11 @@ fn generate_overview(
     Ok(())
 }
 
-fn adrs_of_interest(registers: &[PhysicalRegister], regdump: &RegDump) -> Vec<TypeAdr> {
+fn adrs_of_interest(map: &RegisterMap, regdump: &RegDump) -> Vec<TypeAdr> {
     let mut adrs: HashSet<TypeAdr> = HashSet::new();
 
-    for reg in registers {
-        if let Some(adr) = reg.absolute_adr {
-            adrs.insert(adr);
-        }
+    for reg in map.registers.values() {
+        adrs.insert(reg.adr);
     }
 
     for adr in regdump.keys() {
@@ -166,12 +163,13 @@ fn adrs_of_interest(registers: &[PhysicalRegister], regdump: &RegDump) -> Vec<Ty
     adrs
 }
 
-fn lookup_adr<'a>(
-    registers: &'a [PhysicalRegister<'a>],
-    regdump: &RegDump,
-    adr: TypeAdr,
-) -> (Vec<&'a PhysicalRegister<'a>>, Option<TypeValue>) {
-    let phyregs: Vec<&PhysicalRegister> = registers.iter().filter(|x| x.absolute_adr == Some(adr)).collect();
+fn lookup_adr<'a>(map: &'a RegisterMap, regdump: &RegDump, adr: TypeAdr) -> (Vec<&'a Register>, Option<TypeValue>) {
+    let phyregs: Vec<&Register> = map
+        .registers
+        .values()
+        .filter(|x| x.adr == adr)
+        .map(|x| x.deref())
+        .collect();
     let val = regdump.get(&adr);
     (phyregs, val.copied())
 }

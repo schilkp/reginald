@@ -5,7 +5,6 @@ use std::usize;
 
 use clap::ValueEnum;
 
-use crate::bits::lsb_pos;
 use crate::error::Error;
 use crate::regmap::{TypeBitwidth, TypeValue};
 
@@ -193,73 +192,115 @@ pub struct Transform {
     pub mask: u8,
 }
 
-/// Determine the transform required to put a field's value into a byte array.
+/// Determine the transform required to put a field's value into a given byte of
+/// a packed byte array.
 ///
-/// Given a register of width `packed_width_bytes`, and a field that exists at
-/// the bits `field_mask`, this function determines if the byte at position
-/// `packed_byte_pos` contains any part of the given field, and if so determines
-/// the required transform to extract that part of the field and put it into the
-/// correct position. The byte position is interpreted with respect to the
-/// endianess given in 'endian'.
+/// Given a register of width `packed_width_bytes`, and a field that exists of
+/// the shape `field_mask` at postion 'field_pos' that is 'field_byte_width' bytes
+/// wide:
+/// This function determines if the byte at position `packed_byte_pos` contains
+/// any part of the given field, and if so determines the required transform to
+/// extract that part of the field and put it into the correct position. The byte
+/// position is interpreted with respect to the endianess given in 'endian'.
 ///
-/// If this function returns none, the field does not have bits in the given byte.
+/// If this function returns none, the field does not have bits in the packed byte.
 /// If this function returns some transform, the bits of the field as they exist
 /// in the given byte can be obtained by first shifting the field's value by
 /// the given direction and then masking with the given mask.
-pub fn field_to_byte_transform(
+pub fn field_to_packed_byte_transform(
     endian: Endianess,
-    field_mask: TypeValue,
-    packed_byte_pos: TypeBitwidth,
+    unpos_field_mask: TypeValue,
+    field_pos: TypeBitwidth,
+    packed_byte: TypeBitwidth,
     packed_width_bytes: TypeBitwidth,
 ) -> Option<Transform> {
     // Mask to be applied to the field value once shifted into place:
-    let mask = grab_byte(endian, field_mask, packed_byte_pos, packed_width_bytes);
+    let mask = grab_byte(endian, unpos_field_mask << field_pos, packed_byte, packed_width_bytes);
     if mask == 0 {
         return None;
     }
 
     // Convert byte position to little-endian equivalent:
     let le_byte_pos = match endian {
-        Endianess::Little => packed_byte_pos,
-        Endianess::Big => packed_width_bytes - packed_byte_pos - 1,
+        Endianess::Little => packed_byte,
+        Endianess::Big => packed_width_bytes - packed_byte - 1,
     };
 
-    let field_lsb_pos = lsb_pos(field_mask);
     let byte_lsb_pos = 8 * le_byte_pos;
 
-    match TypeBitwidth::cmp(&field_lsb_pos, &byte_lsb_pos) {
+    match TypeBitwidth::cmp(&field_pos, &byte_lsb_pos) {
         std::cmp::Ordering::Equal => Some(Transform { shift: None, mask }),
         std::cmp::Ordering::Greater => Some(Transform {
-            shift: Some((ShiftDirection::Left, field_lsb_pos - byte_lsb_pos)),
+            shift: Some((ShiftDirection::Left, field_pos - byte_lsb_pos)),
             mask,
         }),
         std::cmp::Ordering::Less => Some(Transform {
-            shift: Some((ShiftDirection::Right, byte_lsb_pos - field_lsb_pos)),
+            shift: Some((ShiftDirection::Right, byte_lsb_pos - field_pos)),
             mask,
         }),
     }
 }
 
-/// Determine the transform required to extract piece of a field from a byte
-/// of a register.
+/// Determine the transform required to put the data from a given byte in some field
+/// into a given byte of a packed byte array.
 ///
-/// Given a register of width `packed_width_bytes`, and a field that exists at
-/// the bits `field_mask`, this function determines if the byte at position
-/// `packed_byte_pos` contains any part of the given field, and if so determines
-/// the required transform to determine that part of the field from the byte.
+/// Given a register of width `packed_width_bytes`, and a field that exists of
+/// the shape `field_mask` at postion 'field_pos' that is 'field_byte_width' bytes
+/// wide:
+/// This function determines if the byte at position `packed_byte_pos` contains
+/// any part of the given byte of the given field, and if so determines the
+/// required transform to extract that part of the field byte and put it into the
+/// correct position. The byte position is interpreted with respect to the endianess
+/// given in 'endian'.
+///
+/// If this function returns none, the field's byte does not have bits in the packed byte.
+/// If this function returns some transform, the bits of the field as they exist
+/// in the given byte can be obtained by first shifting the field's value by
+/// the given direction and then masking with the given mask.
+pub fn field_byte_to_packed_byte_transform(
+    endian: Endianess,
+    unpos_field_mask: TypeValue,
+    field_pos: TypeBitwidth,
+    field_byte: TypeBitwidth,
+    field_byte_width: TypeBitwidth,
+    packed_byte: TypeBitwidth,
+    packed_width_bytes: TypeBitwidth,
+) -> Option<Transform> {
+    // Mask of the field's byte of interest:
+    let field_mask = grab_byte(endian, unpos_field_mask, field_byte, field_byte_width);
+
+    // Calculate the actual bit position of the byte in the field:
+    let field_pos = match endian {
+        Endianess::Little => field_pos + field_byte * 8,
+        Endianess::Big => field_pos + (field_byte_width - field_byte - 1) * 8,
+    };
+
+    field_to_packed_byte_transform(endian, field_mask.into(), field_pos, packed_byte, packed_width_bytes)
+}
+
+/// Determine the transform required to extract all bits of field's value present
+/// in a given byte of a packed byte array.
+///
+/// Given a register of width `packed_width_bytes`, and a field that exists of
+/// the shape `field_mask` at postion 'field_pos' that is 'field_byte_width' bytes
+/// wide:
+/// This function determines if the byte at position `packed_byte_pos` contains
+/// any part of the given field, and if so determines the required transform to
+/// extract that part of the byte and put it into the correct position in the field.
 /// The byte position is interpreted with respect to the endianess given in 'endian'.
 ///
-/// If this function returns none, the field does not have bits in the given byte.
+/// If this function returns none, the field does not have bits in the packed byte.
 /// If this function returns some transform, the bits of the field as they exist
 /// in the given byte can be obtained by first masking the bytes's value by
-/// the given mask, and then value by the given shift.
-pub fn byte_to_field_transform(
+/// the given mask, and then shiftingt by the given shift.
+pub fn packed_byte_to_field_transform(
     endian: Endianess,
-    field_mask: TypeValue,
+    unpos_field_mask: TypeValue,
+    field_pos: TypeBitwidth,
     packed_byte_pos: TypeBitwidth,
     packed_width_bytes: TypeBitwidth,
 ) -> Option<Transform> {
-    let t = field_to_byte_transform(endian, field_mask, packed_byte_pos, packed_width_bytes)?;
+    let t = field_to_packed_byte_transform(endian, unpos_field_mask, field_pos, packed_byte_pos, packed_width_bytes)?;
 
     let shift = t.shift.map(|(dir, amt)| match dir {
         ShiftDirection::Left => (ShiftDirection::Right, amt),
@@ -267,6 +308,44 @@ pub fn byte_to_field_transform(
     });
 
     Some(Transform { shift, mask: t.mask })
+}
+
+/// Determine the transform required to extract all bits of given byte of a given
+/// field's value present in a given byte of a packed byte array.
+///
+/// Given a register of width `packed_width_bytes`, and a field that exists of
+/// the shape `field_mask` at postion 'field_pos' that is 'field_byte_width' bytes
+/// wide:
+/// This function determines if the byte at position `packed_byte_pos` contains
+/// any part of the given byte of the given field, and if so determines the required
+/// transform to extract that part of the byte and put it into the correct position
+/// in the field's byte The byte position is interpreted with respect to the
+/// endianess given in 'endian'.
+///
+/// If this function returns none, the given byte of the field does not have
+/// bits in the packed byte. If this function returns some transform, the bits
+/// of the given field byte as they exist in the given byte can be obtained by
+/// first masking the bytes's value by the given mask, and then shiftingt by
+/// the given shift.
+pub fn packed_byte_to_field_byte_transform(
+    endian: Endianess,
+    unpos_field_mask: TypeValue,
+    field_pos: TypeBitwidth,
+    field_byte: TypeBitwidth,
+    field_byte_width: TypeBitwidth,
+    packed_byte: TypeBitwidth,
+    packed_width_bytes: TypeBitwidth,
+) -> Option<Transform> {
+    // Mask of the field's byte of interest:
+    let field_mask = grab_byte(endian, unpos_field_mask, field_byte, field_byte_width);
+
+    // Calculate the actual bit position of the byte in the field:
+    let field_pos = match endian {
+        Endianess::Little => field_pos + field_byte * 8,
+        Endianess::Big => field_pos + (field_byte_width - field_byte - 1) * 8,
+    };
+
+    packed_byte_to_field_transform(endian, field_mask.into(), field_pos, packed_byte, packed_width_bytes)
 }
 
 /// Remove any parenthesis that enclose the complete string.
@@ -314,8 +393,30 @@ pub fn remove_wrapping_parens(inp: &str) -> String {
     s
 }
 
+/// Join two strings with an underscore, if it makes sense to do so, because they
+/// are both non-empty.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::utils::join_with_underscore;
+/// assert_eq!(join_with_underscore("Aaa", "Bbb"), String::from("Aaa_Bbb"));
+/// assert_eq!(join_with_underscore("Aaa", ""), String::from("Aaa"));
+/// assert_eq!(join_with_underscore("", "Bbb"), String::from("Bbb"));
+/// assert_eq!(join_with_underscore("", ""), String::from(""));
+/// ```
+pub fn join_with_underscore(a: &str, b: &str) -> String {
+    match (a.len(), b.len()) {
+        (0, 0) => String::new(),
+        (0, _) => String::from(b),
+        (_, 0) => String::from(a),
+        (_, _) => format!("{a}_{b}"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
+
+    use crate::bits::{lsb_pos, unpositioned_mask};
 
     use super::*;
 
@@ -376,41 +477,44 @@ mod tests {
         assert_eq!(grab_byte(Endianess::Big, 0xDEADBEEF, 3, 4), 0xEF);
     }
 
-    fn check_field_to_byte_transform(
+    fn check_field_to_packed_byte_transform(
         field_mask: TypeValue,
         width_bytes: TypeBitwidth,
         expected_le: Vec<Option<Transform>>,
     ) {
         use pretty_assertions::assert_eq;
 
+        let unpos_mask = unpositioned_mask(field_mask);
+        let field_pos = lsb_pos(field_mask);
+
         let mut expect = expected_le;
         let is_le: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| field_to_byte_transform(Endianess::Little, field_mask, x, width_bytes))
+            .map(|x| field_to_packed_byte_transform(Endianess::Little, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_le);
 
         expect.reverse();
         let is_be: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| field_to_byte_transform(Endianess::Big, field_mask, x, width_bytes))
+            .map(|x| field_to_packed_byte_transform(Endianess::Big, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_be);
     }
 
     #[test]
-    fn test_field_to_byte_transform() {
+    fn test_field_to_packed_byte_transform() {
         // Length 1 (Aligned)
         let expect_le = vec![Some(Transform {
             shift: None,
             mask: 0x0F,
         })];
-        check_field_to_byte_transform(0x0F, 1, expect_le);
+        check_field_to_packed_byte_transform(0x0F, 1, expect_le);
 
         // Length 1 (Misaligned)
         let expect_le = vec![Some(Transform {
             shift: Some((ShiftDirection::Left, 3)),
             mask: 0x18,
         })];
-        check_field_to_byte_transform(0x18, 1, expect_le);
+        check_field_to_packed_byte_transform(0x18, 1, expect_le);
 
         // Length 2 (Aligned)
         let expect_le = vec![
@@ -420,7 +524,7 @@ mod tests {
                 mask: 0xAF,
             }),
         ];
-        check_field_to_byte_transform(0xAF00, 2, expect_le);
+        check_field_to_packed_byte_transform(0xAF00, 2, expect_le);
 
         // Length 2 (Misaligned)
         let expect_le = vec![
@@ -433,7 +537,7 @@ mod tests {
                 mask: 0x0A,
             }),
         ];
-        check_field_to_byte_transform(0x0AF0, 2, expect_le);
+        check_field_to_packed_byte_transform(0x0AF0, 2, expect_le);
 
         // Length 2 (Misaligned)
         let expect_le = vec![
@@ -446,7 +550,7 @@ mod tests {
                 mask: 0x0A,
             }),
         ];
-        check_field_to_byte_transform(0x0A80, 2, expect_le);
+        check_field_to_packed_byte_transform(0x0A80, 2, expect_le);
 
         let expect_le = vec![
             Some(Transform {
@@ -463,44 +567,113 @@ mod tests {
             }),
             None,
         ];
-        check_field_to_byte_transform(0x0003FF80, 4, expect_le);
+        check_field_to_packed_byte_transform(0x0003FF80, 4, expect_le);
     }
 
-    fn check_byte_to_field_transform(
+    #[test]
+    fn test_field_byte_to_packed_byte_transform() {
+        // positioned field: 0b0011_1111_1111_0000
+        let field_mask_unpos = 0x3ff;
+        let field_pos = 4;
+        let field_byte_width = 2;
+        let packed_byte_width = 2;
+
+        let expect = Some(Transform {
+            shift: Some((ShiftDirection::Left, 4)),
+            mask: 0xF0,
+        });
+        let is = field_byte_to_packed_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            0,
+            field_byte_width,
+            0,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+
+        let expect = None;
+        let is = field_byte_to_packed_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            1,
+            field_byte_width,
+            0,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+
+        let expect = Some(Transform {
+            shift: Some((ShiftDirection::Right, 4)),
+            mask: 0x0F,
+        });
+        let is = field_byte_to_packed_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            0,
+            field_byte_width,
+            1,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+
+        let expect = Some(Transform {
+            shift: Some((ShiftDirection::Left, 4)),
+            mask: 0x30,
+        });
+        let is = field_byte_to_packed_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            1,
+            field_byte_width,
+            1,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+    }
+
+    fn check_packed_byte_to_field_transform(
         field_mask: TypeValue,
         width_bytes: TypeBitwidth,
         expected_le: Vec<Option<Transform>>,
     ) {
         use pretty_assertions::assert_eq;
 
+        let unpos_mask = unpositioned_mask(field_mask);
+        let field_pos = lsb_pos(field_mask);
+
         let mut expect = expected_le;
         let is_le: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| byte_to_field_transform(Endianess::Little, field_mask, x, width_bytes))
+            .map(|x| packed_byte_to_field_transform(Endianess::Little, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_le);
 
         expect.reverse();
         let is_be: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| byte_to_field_transform(Endianess::Big, field_mask, x, width_bytes))
+            .map(|x| packed_byte_to_field_transform(Endianess::Big, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_be);
     }
 
     #[test]
-    fn test_byte_to_field_transform() {
+    fn test_packed_byte_to_field_transform() {
         // Length 1 (Aligned)
         let expect_le = vec![Some(Transform {
             shift: None,
             mask: 0x0F,
         })];
-        check_byte_to_field_transform(0x0F, 1, expect_le);
+        check_packed_byte_to_field_transform(0x0F, 1, expect_le);
 
         // Length 1 (Misaligned)
         let expect_le = vec![Some(Transform {
             shift: Some((ShiftDirection::Right, 3)),
             mask: 0x18,
         })];
-        check_byte_to_field_transform(0x18, 1, expect_le);
+        check_packed_byte_to_field_transform(0x18, 1, expect_le);
 
         // Length 2 (Aligned)
         let expect_le = vec![
@@ -510,7 +683,7 @@ mod tests {
                 mask: 0xAF,
             }),
         ];
-        check_byte_to_field_transform(0xAF00, 2, expect_le);
+        check_packed_byte_to_field_transform(0xAF00, 2, expect_le);
 
         // Length 2 (Misaligned)
         let expect_le = vec![
@@ -523,7 +696,7 @@ mod tests {
                 mask: 0x0A,
             }),
         ];
-        check_byte_to_field_transform(0x0AF0, 2, expect_le);
+        check_packed_byte_to_field_transform(0x0AF0, 2, expect_le);
 
         // Length 2 (Misaligned)
         let expect_le = vec![
@@ -536,7 +709,7 @@ mod tests {
                 mask: 0x0A,
             }),
         ];
-        check_byte_to_field_transform(0x0A80, 2, expect_le);
+        check_packed_byte_to_field_transform(0x0A80, 2, expect_le);
 
         // Length 4 (Misaligned)
         let expect_le = vec![
@@ -554,6 +727,72 @@ mod tests {
             }),
             None,
         ];
-        check_byte_to_field_transform(0x0003FF80, 4, expect_le);
+        check_packed_byte_to_field_transform(0x0003FF80, 4, expect_le);
+    }
+
+    #[test]
+    fn test_packed_byte_to_field_byte_transform() {
+        // positioned field: 0b0011_1111_1111_0000
+        let field_mask_unpos = 0x3ff;
+        let field_pos = 4;
+        let field_byte_width = 2;
+        let packed_byte_width = 2;
+
+        let expect = Some(Transform {
+            shift: Some((ShiftDirection::Right, 4)),
+            mask: 0xF0,
+        });
+        let is = packed_byte_to_field_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            0,
+            field_byte_width,
+            0,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+
+        let expect = None;
+        let is = packed_byte_to_field_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            1,
+            field_byte_width,
+            0,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+
+        let expect = Some(Transform {
+            shift: Some((ShiftDirection::Left, 4)),
+            mask: 0x0F,
+        });
+        let is = packed_byte_to_field_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            0,
+            field_byte_width,
+            1,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
+
+        let expect = Some(Transform {
+            shift: Some((ShiftDirection::Right, 4)),
+            mask: 0x30,
+        });
+        let is = packed_byte_to_field_byte_transform(
+            Endianess::Little,
+            field_mask_unpos,
+            field_pos,
+            1,
+            field_byte_width,
+            1,
+            packed_byte_width,
+        );
+        assert_eq!(is, expect);
     }
 }

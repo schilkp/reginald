@@ -6,11 +6,11 @@ use clap::Parser;
 use crate::{
     bits::lsb_pos,
     error::Error,
-    regmap::{Register, RegisterBlock, RegisterMap},
+    regmap::{FieldType, Layout, Register, RegisterBlock, RegisterBlockMember, RegisterMap},
     utils::{filename, str_table},
 };
 
-use super::{c_generate_section_header_comment, c_macro};
+use super::{c_generate_section_header_comment, c_layout_overview_comment, c_macro};
 
 // ====== Generator Opts =======================================================
 
@@ -38,11 +38,19 @@ pub struct GeneratorOpts {
 pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     generate_header(out, map, output_file, opts)?;
 
+    for register in map.individual_registers() {
+        generate_register_header(out, register)?;
+        generate_register_defines(out, map, register)?;
+        generate_layout_defines(out, map, &register.layout)?;
+    }
+
     for block in map.register_blocks.values() {
+        generate_register_block_header(out, block)?;
         generate_register_block_defines(out, map, block)?;
-        for template in block.register_templates.values() {
-            generate_register_header(out, block, template)?;
-            generate_register_defines(out, map, block, template)?;
+        for member in block.members.values() {
+            generate_register_block_member_header(out, member)?;
+            generate_register_block_member_defines(out, map, block, member)?;
+            generate_layout_defines(out, map, &member.layout)?;
         }
     }
 
@@ -62,7 +70,7 @@ fn generate_header(
 
     writeln!(out, "/**")?;
     writeln!(out, " * @file {}", filename(output_file)?)?;
-    writeln!(out, " * @brief {}", map.map_name)?;
+    writeln!(out, " * @brief {}", map.name)?;
     if let Some(input_file) = &map.from_file {
         writeln!(out, " * @note do not edit directly: generated using reginald from {}.", filename(input_file)?)?;
     } else {
@@ -74,9 +82,9 @@ fn generate_header(
         writeln!(out, " *")?;
         writeln!(out, " * Listing file author: {author}")?;
     }
-    if let Some(note) = &map.note {
+    if let Some(note) = &map.notice {
         writeln!(out, " *")?;
-        writeln!(out, " * Listing file note:")?;
+        writeln!(out, " * Listing file notice:")?;
         for line in note.lines() {
             writeln!(out, " *   {line}")?;
         }
@@ -93,156 +101,203 @@ fn generate_header(
     Ok(())
 }
 
-fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block: &RegisterBlock) -> Result<(), Error> {
-    let mut defines = vec![];
+fn generate_register_header(out: &mut dyn Write, register: &Register) -> Result<(), Error> {
+    let name = &register.name;
+    writeln!(out)?;
+    c_generate_section_header_comment(out, &format!("{name} Register"))?;
+    if !register.docs.is_empty() {
+        write!(out, "{}", register.docs.as_multiline("// "))?;
+    }
+    writeln!(out, "// Fields:")?;
+    writeln!(out, "{}", c_layout_overview_comment(&register.layout))?;
+    Ok(())
+}
 
-    if block.instances.len() > 1 && block.register_templates.len() > 1 {
-        let macro_prefix = c_macro(&map.map_name);
-        let macro_block_name = c_macro(&block.name.clone());
+fn generate_register_block_header(out: &mut dyn Write, block: &RegisterBlock) -> Result<(), Error> {
+    let name = &block.name;
 
-        for instance in block.instances.values() {
-            if let Some(adr) = &instance.adr {
-                let macro_instance_name = c_macro(&instance.name);
-                defines.push(vec![
-                    format!("#define {}_{}_INSTANCE_{}", macro_prefix, macro_block_name, macro_instance_name),
-                    format!("(0x{:X}U)", adr),
-                    format!("//!< Start of {} instance {}", block.name, instance.name),
-                ]);
-            }
-        }
+    writeln!(out)?;
+    c_generate_section_header_comment(out, &format!("{name} Register Block"))?;
+    if !block.docs.is_empty() {
+        write!(out, "{}", block.docs.as_multiline("// "))?;
+    }
 
-        for template in block.register_templates.values() {
-            if let Some(template_offset) = template.adr {
-                let template_name = template.name_in_block(block);
-                let macro_template_name = c_macro(&template_name);
-                defines.push(vec![
-                    format!("#define {}_{}_OFFSET", macro_prefix, macro_template_name),
-                    format!("(0x{:X}U)", template_offset),
-                    format!("//!< Offset of {} register from {} block start", template_name, block.name),
-                ]);
+    if !block.members.is_empty() {
+        writeln!(out, "//")?;
+        writeln!(out, "// Contains registers:")?;
+        for member in block.members.values() {
+            if let Some(brief) = &member.docs.brief {
+                writeln!(out, "// - [0x{:02}] {}: {}", member.offset, member.name, brief)?;
+            } else {
+                writeln!(out, "// - [0x{:02}] {}", member.offset, member.name)?;
             }
         }
     }
 
-    if !defines.is_empty() {
-        writeln!(out,)?;
-        c_generate_section_header_comment(out, &format!("{} Register Block", block.name))?;
-        if !block.docs.is_empty() {
-            write!(out, "{}", block.docs.as_multiline("// "))?;
+    if !block.instances.is_empty() {
+        writeln!(out, "//")?;
+        writeln!(out, "// Instances:")?;
+        for instance in block.instances.values() {
+            if let Some(brief) = &instance.docs.brief {
+                writeln!(out, "// - [0x{:02}] {}: {}", instance.adr, instance.name, brief)?;
+            } else {
+                writeln!(out, "// - [0x{:02}] {}", instance.adr, instance.name)?;
+            }
         }
+    }
+
+    Ok(())
+}
+
+fn generate_register_block_member_header(out: &mut dyn Write, member: &RegisterBlockMember) -> Result<(), Error> {
+    writeln!(out)?;
+    writeln!(out, "// ==== {} Block Register ==== ", member.name)?;
+
+    if !member.docs.is_empty() {
+        write!(out, "{}", member.docs.as_multiline("// "))?;
+    }
+    writeln!(out, "// Fields:")?;
+    writeln!(out, "{}", c_layout_overview_comment(&member.layout))?;
+
+    Ok(())
+}
+
+fn generate_register_block_member_defines(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    block: &RegisterBlock,
+    member: &RegisterBlockMember,
+) -> Result<(), Error> {
+    if !block.instances.is_empty() {
+        for block_instance in block.instances.values() {
+            let member_instance = &block_instance.registers[&member.name];
+            generate_register_defines(out, map, member_instance)?;
+        }
+    }
+    Ok(())
+}
+
+fn generate_register_block_defines(out: &mut dyn Write, map: &RegisterMap, block: &RegisterBlock) -> Result<(), Error> {
+    let macro_prefix = c_macro(&map.name);
+    let macro_block_name = c_macro(&block.name.clone());
+
+    if !block.members.is_empty() {
+        let mut defines = vec![];
+        for member in block.members.values() {
+            let macro_member_name = c_macro(&member.name);
+            defines.push(vec![
+                format!("#define {}_{}_OFFSET", macro_prefix, macro_member_name),
+                format!("(0x{:X}U)", member.offset),
+                format!("//!< Offset of {} register from {} block start", member.name, block.name),
+            ]);
+        }
+        writeln!(out)?;
+        writeln!(out, "// Contained registers:")?;
+        write!(out, "{}", str_table(&defines, "", " "))?;
+    }
+
+    if !block.instances.is_empty() {
+        let mut defines = vec![];
+        for instance in block.instances.values() {
+            let macro_instance_name = c_macro(&instance.name);
+            defines.push(vec![
+                format!("#define {}_{}_INSTANCE_{}", macro_prefix, macro_block_name, macro_instance_name),
+                format!("(0x{:X}U)", instance.adr),
+                format!("//!< Start of {} instance {}", block.name, instance.name),
+            ]);
+        }
+        writeln!(out)?;
+        writeln!(out, "// Instances:")?;
         write!(out, "{}", str_table(&defines, "", " "))?;
     }
 
     Ok(())
 }
 
-fn generate_register_header(out: &mut dyn Write, block: &RegisterBlock, template: &Register) -> Result<(), Error> {
-    let generic_template_name = template.name_in_block(block);
+fn generate_register_defines(out: &mut dyn Write, map: &RegisterMap, register: &Register) -> Result<(), Error> {
+    let mut defines: Vec<Vec<String>> = vec![];
 
-    // Register section header:
+    let macro_prefix = c_macro(&map.name);
+    let reg_macro_prefix = format!("{macro_prefix}_{}", c_macro(&register.name));
+
+    // Address:
+    defines.push(vec![
+        format!("#define {}_ADDRESS", reg_macro_prefix),
+        format!("(0x{:X}U)", register.adr),
+        format!("//!< {} register address", register.name),
+    ]);
+
+    // Reset value:
+    if let Some(reset_val) = &register.reset_val {
+        defines.push(vec![
+            format!("#define {}_RESET", reg_macro_prefix),
+            format!("(0x{:X}U)", reset_val),
+            format!("//!< {} register reset value", register.name),
+        ]);
+    }
+
     writeln!(out)?;
-    c_generate_section_header_comment(out, &format!("{generic_template_name} Register"))?;
-    if !template.docs.is_empty() {
-        write!(out, "{}", template.docs.as_multiline("// "))?;
-    }
-    if !template.fields.is_empty() {
-        writeln!(out, "// Fields:")?;
-
-        for field in template.fields.values() {
-            if let Some(brief) = &field.docs.brief {
-                writeln!(out, "//  - {}: {}", field.name, brief)?;
-            } else {
-                writeln!(out, "//  - {}", field.name)?;
-            }
-            if let Some(doc) = &field.docs.doc {
-                for line in doc.lines() {
-                    writeln!(out, "//      {line}")?;
-                }
-            }
-        }
-    }
+    write!(out, "{}", str_table(&defines, "", " "))?;
 
     Ok(())
 }
 
-fn generate_register_defines(
-    out: &mut dyn Write,
-    map: &RegisterMap,
-    block: &RegisterBlock,
-    template: &Register,
-) -> Result<(), Error> {
+fn generate_layout_defines(out: &mut dyn Write, map: &RegisterMap, layout: &Layout) -> Result<(), Error> {
+    let macro_prefix = c_macro(&map.name);
+    let layout_macro_prefix = format!("{macro_prefix}_{}", c_macro(&layout.name));
+
+    if layout.contains_fixed_bits() {
+        let mut defines: Vec<Vec<String>> = vec![];
+        defines.push(vec![
+            format!("#define {}_ALWAYSWRITE_MASK", layout_macro_prefix),
+            format!("(0x{:X}U)", layout.fixed_bits_mask()),
+            format!("//!< {} register always write mask", layout.name),
+        ]);
+        defines.push(vec![
+            format!("#define {}_ALWAYSWRITE_VALUE", layout_macro_prefix),
+            format!("(0x{:X}U)", layout.fixed_bits_val()),
+            format!("//!< {} register always write value", layout.name),
+        ]);
+
+        writeln!(out)?;
+        write!(out, "{}", str_table(&defines, "", " "))?;
+    }
+
     let mut defines: Vec<Vec<String>> = vec![];
 
-    let macro_prefix = c_macro(&map.map_name);
-    let generic_template_name = template.name_in_block(block);
-    let template_macro_prefix = format!("{macro_prefix}_{}", c_macro(&generic_template_name));
-
-    // Absolute address of all instances:
-    if let Some(template_offset) = template.adr {
-        for instance in block.instances.values() {
-            let instance_name = template.name_in_instance(instance);
-            if let Some(instance_adr) = &instance.adr {
-                defines.push(vec![
-                    format!("#define {}_{}", macro_prefix, c_macro(&instance_name)),
-                    format!("(0x{:X}U)", template_offset + instance_adr),
-                    format!("//!< {} register address", instance_name),
-                ]);
-            }
-        }
-    }
-
-    // Reset value:
-    if let Some(reset_val) = &template.reset_val {
-        defines.push(vec![]);
-        defines.push(vec![
-            format!("#define {}__RESET", template_macro_prefix),
-            format!("(0x{:X}U)", reset_val),
-            format!("//!< {} register reset value", generic_template_name),
-        ]);
-    }
-
-    //  Always write mask:
-    if let Some(always_write) = &template.always_write {
-        defines.push(vec![]);
-        defines.push(vec![
-            format!("#define {}__ALWAYSWRITE_MASK", template_macro_prefix),
-            format!("(0x{:X}U)", always_write.mask),
-            format!("//!< {} register always write mask", generic_template_name),
-        ]);
-        defines.push(vec![
-            format!("#define {}__ALWAYSWRITE_VALUE", template_macro_prefix),
-            format!("(0x{:X}U)", always_write.value),
-            format!("//!< {} register always write value", generic_template_name),
-        ]);
-    }
-
     // Register fields & enums:
-    for field in template.fields.values() {
-        defines.push(vec![]);
-        let field_name = c_macro(&field.name);
+    for field in layout.nested_fields_with_content() {
+        let name_macro = c_macro(&field.name.join("_"));
+        let name_comment = c_macro(&field.name.join("_"));
+
+        if !defines.is_empty() {
+            defines.push(vec![]);
+        }
+
         defines.push(vec![
-            format!("#define {}_{}__MASK", template_macro_prefix, field_name),
+            format!("#define {}_{}_MASK", layout_macro_prefix, name_macro),
             format!("(0x{:X}U)", field.mask),
-            format!("//!< {}.{}: bit mask (shifted)", generic_template_name, field.name),
+            format!("//!< {}.{}: bit mask (shifted)", layout.name, name_comment),
         ]);
         defines.push(vec![
-            format!("#define {}_{}__SHIFT", template_macro_prefix, field_name),
+            format!("#define {}_{}_SHIFT", layout_macro_prefix, name_macro),
             format!("({}U)", lsb_pos(field.mask)),
-            format!("//!< {}.{}: bit shift", generic_template_name, field.name),
+            format!("//!< {}.{}: bit shift", layout.name, name_comment),
         ]);
 
-        if let Some(enum_entries) = field.enum_entries() {
-            for entry in enum_entries {
+        if let FieldType::Enum(e) = &field.field.accepts {
+            for entry in e.entries.values() {
                 defines.push(vec![
-                    format!("#define {}_{}_{}", template_macro_prefix, field_name, c_macro(&entry.name)),
+                    format!("#define {}_{}_VAL_{}", layout_macro_prefix, name_macro, c_macro(&entry.name)),
                     format!("(0x{:X}U)", entry.value),
-                    format!("//!< {}.{}: {}", generic_template_name, field.name, entry.name),
+                    format!("//!< {}.{}: Value {}", layout_macro_prefix, name_comment, entry.name),
                 ]);
             }
         }
     }
 
     writeln!(out)?;
+    writeln!(out, "// Fields: ")?;
     write!(out, "{}", str_table(&defines, "", " "))?;
 
     Ok(())

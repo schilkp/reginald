@@ -3,25 +3,27 @@ pub mod regdump;
 use std::fmt::Write;
 
 use crate::{
-    bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, msb_pos},
+    bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges_str, msb_pos},
     error::Error,
-    regmap::{access_string, DecodedField, PhysicalRegister, RegisterBitrange, RegisterMap, RegisterOrigin, TypeValue},
+    regmap::{
+        access_str, DecodedField, FieldType, FlattenedLayoutField, Layout, LayoutField, Register, RegisterMap,
+        TypeValue,
+    },
     utils::filename,
 };
 
 use super::md_table;
 
 pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
-    writeln!(out, "# {}", map.map_name)?;
+    writeln!(out, "# {}", map.name)?;
     writeln!(out)?;
     writeln!(out, "## Register Map")?;
     generate_overview(out, map)?;
 
     writeln!(out)?;
     writeln!(out, "## Register Details")?;
-    let registers = map.physical_registers();
-    for register in registers {
-        generate_register_infos(out, &register, None)?;
+    for register in map.registers.values() {
+        generate_register_infos(out, map, register, None)?;
     }
 
     Ok(())
@@ -36,11 +38,11 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
         writeln!(out)?;
         writeln!(out, "Listing file author: {author}.")?;
     }
-    if let Some(note) = &map.note {
+    if let Some(notice) = &map.notice {
         writeln!(out,)?;
-        writeln!(out, "Listing file note:")?;
+        writeln!(out, "Listing file notice:")?;
         writeln!(out, "```")?;
-        for line in note.lines() {
+        for line in notice.lines() {
             writeln!(out, "  {line}")?;
         }
         writeln!(out, "```")?;
@@ -52,15 +54,10 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
         "**Register**".to_string(),
         "**Brief**".to_string(),
     ]);
-    let regs = map.physical_registers();
-    for reg in &regs {
-        let adr = if let Some(adr) = &reg.absolute_adr {
-            format!("0x{adr:X}")
-        } else {
-            "-".to_string()
-        };
+    for reg in map.registers.values() {
+        let adr = format!("0x{:X}", reg.adr);
         let name = reg.name.clone();
-        let brief = reg.template.docs.brief.clone().unwrap_or("-".to_string());
+        let brief = reg.docs.brief.clone().unwrap_or("-".to_string());
         rows.push(vec![adr, name, brief]);
     }
     writeln!(out)?;
@@ -71,15 +68,134 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
 
 fn generate_register_infos(
     out: &mut dyn Write,
-    register: &PhysicalRegister,
+    map: &RegisterMap,
+    register: &Register,
     value: Option<TypeValue>,
 ) -> Result<(), Error> {
     // Header:
     writeln!(out)?;
     writeln!(out, "### {}", register.name)?;
 
+    writeln!(out)?;
+    writeln!(out, "#### Info:")?;
+    writeln!(out)?;
+    if let Some(value) = value {
+        writeln!(out, "  - **Current Value: 0x{value:X}**")?;
+    }
+    writeln!(out, "  - Address: 0x{:X}", register.adr)?;
+    if let Some(reset_val) = register.reset_val {
+        writeln!(out, "  - Reset: 0x{reset_val:X}")?;
+    }
+
+    writeln!(out)?;
+    writeln!(out, "#### Register:")?;
+    writeln!(out)?;
+
+    generate_layout_table(out, &register.layout, value)?;
+
+    writeln!(out)?;
+    write!(out, "{}", register.docs.as_twoline("  - "))?;
+
+    if let Some(from_block) = &register.from_block {
+        writeln!(out, "  - In '{}' instance of '{}' block", from_block.instance, from_block.block)?;
+        let block = &map.register_blocks[&from_block.block];
+        let member = &block.members[&from_block.block_member];
+        let instance = &block.instances[&from_block.instance];
+
+        writeln!(out, "    - Offset from block start: 0x{:X}", member.offset)?;
+        writeln!(out, "    - Instance {} start address: 0x{:X}", instance.name, instance.adr)?;
+    }
+
+    let sublayouts: Vec<FlattenedLayoutField> = register
+        .layout
+        .nested_fields()
+        .iter()
+        .filter(|&x| matches!(&x.field.accepts, FieldType::Layout(_)))
+        .cloned()
+        .collect();
+
+    if !sublayouts.is_empty() {
+        writeln!(out)?;
+        writeln!(out, "#### Structured Fields:")?;
+
+        for sublayout in sublayouts {
+            let name = sublayout.name.join(".");
+            let bits = mask_to_bit_ranges_str(sublayout.mask);
+            let sublayout_value = value.map(|x| (x & sublayout.mask) >> lsb_pos(sublayout.mask));
+
+            let FieldType::Layout(subfield_layout) = &sublayout.field.accepts else {
+                unreachable!();
+            };
+
+            writeln!(out)?;
+            writeln!(out, " - [{bits}]: {name}")?;
+            if let Some(value) = sublayout_value {
+                writeln!(out, "    - **Current Value: 0x{value:X}**")?;
+            }
+            writeln!(out)?;
+            generate_layout_table(out, subfield_layout, sublayout_value)?;
+        }
+    }
+
+    // Field Info:
+    writeln!(out)?;
+    writeln!(out, "#### Fields:")?;
+    writeln!(out)?;
+
+    for field in register.layout.nested_fields() {
+        let value_field = value.map(|x| (x & field.mask) >> lsb_pos(field.mask));
+
+        let indent = field.name.len();
+        let indent = String::from_iter(std::iter::repeat("  ").take(indent));
+
+        let value_string = value_field.map(|x| format!(": 0x{x:X}")).unwrap_or_default();
+        let bits = mask_to_bit_ranges_str(field.mask);
+
+        let name = field.name.join(".");
+
+        writeln!(out, "{indent}- {name} [{bits}]{value_string}")?;
+        write!(out, "{}", field.field.docs.as_twoline(&format!("{indent}  - ")))?;
+
+        if let Some(access) = &field.field.access {
+            writeln!(out, "{indent} - [{}]", access_str(access))?;
+        }
+
+        match &field.field.accepts {
+            FieldType::UInt => {
+                writeln!(out, "{indent} - Type: uint")?;
+            }
+            FieldType::Bool => {
+                writeln!(out, "{indent} - Type: bool")?;
+            }
+            FieldType::Fixed(fix) => {
+                writeln!(out, "{indent} - Type: fixed 0x{fix:X}")?;
+            }
+            FieldType::Layout(l) => {
+                writeln!(out, "{indent} - Type: struct {}", l.name)?;
+            }
+            FieldType::Enum(e) => {
+                writeln!(out, "{indent} - Type: enum {}", e.name)?;
+                for entry in e.entries.values() {
+                    match value_field {
+                        Some(val_field) if val_field == entry.value => {
+                            writeln!(out, "{indent}   - **0x{:X}: {} (SELECTED)**", entry.value, entry.name)?;
+                        }
+                        _ => {
+                            writeln!(out, "{indent}   - 0x{:X}: {}", entry.value, entry.name)?;
+                        }
+                    }
+                    write!(out, "{}", entry.docs.as_twoline("        - "))?;
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn generate_layout_table(out: &mut dyn Write, layout: &Layout, value: Option<TypeValue>) -> Result<(), Error> {
     // Overview table:
-    let ranges = register.template.split_to_bitranges();
+    let ranges = layout.split_to_bitranges();
 
     let mut row_bits: Vec<String> = vec!["**Bits:**".to_string()];
     let mut row_field: Vec<String> = vec!["**Field:**".to_string()];
@@ -94,154 +210,60 @@ fn generate_register_infos(
             row_bits.push(format!("{}:{}", range.bits.end(), range.bits.start()));
         }
 
-        match range.content {
-            crate::regmap::RegisterBitrangeContent::Empty => {
-                row_field.push("/".into());
+        if let Some(content) = &range.content {
+            if let Some(access) = &content.field.access {
+                row_access.push(access_str(access));
+            } else {
                 row_access.push("/".into());
             }
-            crate::regmap::RegisterBitrangeContent::Field {
-                field,
-                is_split,
-                subfield_mask,
-            } => {
-                if let Some(access) = &field.access {
-                    row_access.push(access_string(access));
-                } else {
-                    row_access.push("?".into());
-                }
 
-                if is_split {
-                    let lsb = lsb_pos(subfield_mask);
-                    let msb = msb_pos(subfield_mask);
-                    if lsb == msb {
-                        row_field.push(format!("{}[{}]", field.name, msb));
-                    } else {
-                        row_field.push(format!("{}[{}:{}]", field.name, msb, lsb));
-                    }
+            if content.is_split {
+                let lsb = lsb_pos(content.subfield_mask);
+                let msb = msb_pos(content.subfield_mask);
+                if lsb == msb {
+                    row_field.push(format!("{}[{}]", content.field.name, msb));
                 } else {
-                    row_field.push(field.name.clone());
+                    row_field.push(format!("{}[{}:{}]", content.field.name, msb, lsb));
                 }
+            } else {
+                row_field.push(content.field.name.clone());
             }
-            crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
-                row_field.push(format!("Write '0b{val:b}'"));
-                row_access.push("/".to_string());
-            }
+        } else {
+            row_field.push("/".into());
+            row_access.push("/".into());
         }
 
         if let Some(value) = value {
             let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.start();
             row_state.push(format!("**0b{value_range:b}**"));
-            row_decode.push(decode_bit_range(value, range));
-        }
-    }
-
-    writeln!(out)?;
-    writeln!(out, "#### Register:")?;
-    writeln!(out)?;
-    if value.is_some() {
-        md_table(out, &vec![row_bits, row_field, row_access, row_state, row_decode])?;
-    } else {
-        md_table(out, &vec![row_bits, row_field, row_access])?;
-    }
-
-    writeln!(out)?;
-    writeln!(out, "#### Info:")?;
-    writeln!(out)?;
-    if let Some(value) = value {
-        writeln!(out, "  - **Current Value: 0x{value:X}**")?;
-    }
-    if let Some(adr) = register.absolute_adr {
-        writeln!(out, "  - Address: 0x{adr:X}")?;
-    }
-    if let Some(reset_val) = register.template.reset_val {
-        writeln!(out, "  - Reset: 0x{reset_val:X}")?;
-    }
-    if let Some(always_write) = &register.template.always_write {
-        let ranges = mask_to_bit_ranges(always_write.mask);
-        writeln!(out, "  - Always write:")?;
-        for range in ranges {
-            let val = (always_write.value & bitmask_from_range(&range)) >> range.end();
-            let bits = if range.end() == range.start() {
-                format!("bit {}", range.end())
+            if let Some(content) = &range.content {
+                let value_field = (value & content.field.mask) >> lsb_pos(content.field.mask);
+                row_decode.push(decode_field(value_field, content.field));
             } else {
-                format!("bits [{}:{}]", range.end(), range.start())
-            };
-            writeln!(out, "    - 0b{val:b} to {bits}")?;
-        }
-    }
-
-    write!(out, "{}", register.template.docs.as_twoline("  - "))?;
-    if let RegisterOrigin::RegisterBlockInstance {
-        block,
-        instance,
-        offset_from_block_start,
-    } = &register.origin
-    {
-        writeln!(out, "  - In '{}' instance of '{}' block", instance.name, block.name)?;
-        if let Some(offset) = offset_from_block_start {
-            writeln!(out, "    - Offset from block start: 0x{offset:X}")?;
-        }
-        if let Some(instance_start) = instance.adr {
-            writeln!(out, "    - Instance {} start address: 0x{:X}", instance.name, instance_start)?;
-        }
-    }
-
-    // Field Info:
-    writeln!(out)?;
-    writeln!(out, "#### Fields:")?;
-    writeln!(out)?;
-
-    for field in register.template.fields.values() {
-        let value_field = value.map(|x| (x & field.mask) >> lsb_pos(field.mask));
-
-        let access = if let Some(access) = &field.access {
-            format!(" [{}]", access_string(access))
-        } else {
-            String::new()
-        };
-
-        let value_string = value_field.map(|x| format!("0x{x:X}")).unwrap_or_default();
-
-        writeln!(out, "  - {}{}: {}", field.name, access, value_string)?;
-        write!(out, "{}", field.docs.as_twoline("    - "))?;
-
-        if let Some(enum_entries) = field.enum_entries() {
-            writeln!(out, "    - Accepts:")?;
-            for entry in enum_entries {
-                match value_field {
-                    Some(val_field) if val_field == entry.value => {
-                        writeln!(out, "      - **0x{:X}: {} (SELECTED)**", entry.value, entry.name)?;
-                    }
-                    _ => {
-                        writeln!(out, "      - 0x{:X}: {}", entry.value, entry.name)?;
-                    }
-                }
-                write!(out, "{}", entry.docs.as_twoline("        - "))?;
+                row_decode.push(String::new());
             }
         }
     }
 
-    Ok(())
+    if value.is_some() {
+        md_table(out, &vec![row_bits, row_field, row_access, row_state, row_decode])
+    } else {
+        md_table(out, &vec![row_bits, row_field, row_access])
+    }
 }
 
-fn decode_bit_range(value: TypeValue, range: &RegisterBitrange) -> String {
-    let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.end();
-
-    match range.content {
-        crate::regmap::RegisterBitrangeContent::Field { field, .. } => {
-            let field_value = (value & field.mask) >> lsb_pos(field.mask);
-            return match field.decode_value(field_value) {
-                Ok(DecodedField::UInt(_)) => String::new(),
-                Ok(DecodedField::Bool(b)) => if b { "true" } else { "false" }.to_string(),
-                Ok(DecodedField::EnumEntry(e)) => format!("**{e}**"),
-                Err(_) => "**ERROR**".to_string(),
-            };
+fn decode_field(field_value: TypeValue, field: &LayoutField) -> String {
+    match field.decode_value(field_value) {
+        Ok(DecodedField::UInt(_)) => String::new(),
+        Ok(DecodedField::Bool(b)) => if b { "**true**" } else { "**false**" }.to_string(),
+        Ok(DecodedField::EnumEntry(e)) => format!("**{e}**"),
+        Ok(DecodedField::Fixed { val: _, is_correct }) => {
+            if is_correct {
+                "**OK**".to_string()
+            } else {
+                "**ERROR**".to_string()
+            }
         }
-        crate::regmap::RegisterBitrangeContent::AlwaysWrite { val } => {
-            return if value_range == val { "**OK**" } else { "**ERROR**" }.into()
-        }
-        crate::regmap::RegisterBitrangeContent::Empty => (),
+        Err(_) => "**ERROR**".to_string(),
     }
-
-    String::new()
 }

@@ -1,8 +1,7 @@
 ---
-map_name: DummyChip
-default_register_bitwidth: 8
+name: DummyChip
 author: "Philipp Schilk"
-note: |
+notice: |
   +------------------+
   | copyright notice |
   +------------------+
@@ -11,82 +10,106 @@ note: |
               (__)\       )\/\
                   ||----w |
                   ||     ||
-
-registers:
-  STATUS: !Register
-    adr: 0x00
-    reset_val: 0x00
-    brief: Status.
-    doc: More extensive documentation.
-    bitwidth: 8
-    always_write:
-      - { bits: ["4-5"], val: 0x1 }
-    fields:
-      FIELD1:
-        bits: [7,6]
-        access: [R]
-        accepts: !SharedEnum STAT
-      FIELD2:
-        bits: ["3-0"]
-        access: [R]
-        brief: Another cool field.
-        doc: Important details.
-        accepts: !LocalEnum
-          EN:
-            val: 0x3
-            brief: Is on.
-            doc: important details.
-
-  PINEAPPLE: !Register
-    adr: 0x00
-    fields:
-      APPLE:
-        bits: [6]
-        accepts: !UInt
-      PEN:
-        bits: [7]
-        accepts: !Bool
-
-  CHn: !Block
-    instances: {"CH1": 0x10, "CH2": 0x20, "CH3": 0x30}
-    brief: Channel control.
-    doc: One for every channel.
-    registers:
-      _CNFG:
-        adr: 0x0
-        reset_val: 0x00
-        fields:
-          A:
-            bits: [0]
-            brief: Controls value A
-            accepts: !LocalEnum
-              "ON":
-                val: 0x1
-              "OFF":
-                val: 0x0
-      _STATUS:
-        adr: 0x1
-        reset_val: 0x00
-        fields:
-          STATUS:
-            bits: ["0-2"]
-            brief: Status
-            accepts: !SharedEnum STAT
+defaults:
+  layout_bitwidth: 8
 
 enums:
   STAT:
-    brief: Current status.
-    doc: More details.
+    doc: |
+      Current status.
+
+      More details.
     enum:
       COOL:
         val: 0x1
-        brief: All cool.
-        doc: Nothing to worry about.
+        doc: |
+          All cool.
+
+          Nothing to worry about.
       NOT_COOL:
         val: 0x2
-        brief: All not so cool.
-        doc: Should be worried.
+        doc: |
+          All not so cool.
+
+          Should be worried.
       HOT:
         val: 0x3
-        brief: All pretty hot.
-        doc: panic.
+        doc: |
+          All pretty hot.
+
+          panic.
+
+layouts:
+  INTERRUPT_CTRL:
+    doc: Per-interrupt control
+    bitwidth: 2
+    layout:
+      MASK:
+        bits: [0]
+        doc: Mask interrupt.
+        accepts: !Enum
+          MASKED:
+            val: 0x1
+          UNMASKED:
+            val: 0x0
+      FLAG:
+        bits: [1]
+        doc: Interrupt has occured flag.
+        accepts: !Bool
+
+registers:
+  INTERRUPTS: !Register
+    adr: 0x01
+    reset_val: 0x00
+    layout: !Layout
+      DATA_RDY:
+        bits: [0-1]
+        accepts: !SharedLayout INTERRUPT_CTRL
+      OVF:
+        bits: [2-3]
+        accepts: !SharedLayout INTERRUPT_CTRL
+      FIFO_WTM:
+        bits: [4-5]
+        accepts: !SharedLayout INTERRUPT_CTRL
+
+  CTRL: !Register
+    adr: 0x02
+    reset_val: 0x00
+    layout: !Layout
+      STATUS:
+        bits: [0-1]
+        accepts: !SharedEnum STAT
+      CTRL:
+        bits: [2]
+        accepts: !UInt
+      RESERVED1:
+        bits: [3-4]
+        accepts: !Fixed 0x01
+
+  CHn: !RegisterBlock
+    instances:
+      CH1:
+        adr: 0x10
+        reset_vals:
+          STATUS: 0x01
+      CH2:
+        adr: 0x20
+        reset_vals:
+          STATUS: 0x02
+      CH3:
+        adr: 0x30
+        reset_vals:
+          STATUS: 0x03
+
+    registers:
+      CONFIG:
+        offset: 0x00
+        reset_val: 0x1B
+        layout: !Layout
+          VAL:
+            bits: [7-0]
+      STATUS:
+        offset: 0x01
+        layout: !Layout
+          VAL:
+            bits: [6-0]

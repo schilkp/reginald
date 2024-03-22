@@ -46,14 +46,20 @@ test_generated_code() {
 start_test "C99 Test (No generics) - LITTLE ENDIAN"
 
 echo "Generating..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack --dont-generate=generic-macros --endian=little
-test_generated_code "-DTEST_LITTLE_ENDIAN -DTEST_SKIP_GENERIC_MACROS -std=c99"
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
+    --dont-generate=generic-macros \
+    --endian=little \
+    --endianess-in-names=false
+test_generated_code "-DTEST_LITTLE_ENDIAN -DTEST_SKIP_GENERIC_MACROS -std=c99 -fanalyzer"
 
 start_test "C99 Test (No generics) - BIG ENDIAN"
 
 echo "Generating..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack --dont-generate=generic-macros --endian=big
-test_generated_code "-DTEST_BIG_ENDIAN -DTEST_SKIP_GENERIC_MACROS -std=c99"
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
+    --dont-generate=generic-macros \
+    --endian=big \
+    --endianess-in-names=false
+test_generated_code "-DTEST_BIG_ENDIAN -DTEST_SKIP_GENERIC_MACROS -std=c99 -fanalyzer"
 
 # #### C11 #####################################################################
 
@@ -61,14 +67,18 @@ start_test "C11 Test - LITTLE ENDIAN"
 
 # Run reginald:
 echo "Generating..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack --endian=little
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
+    --endian=little \
+    --endianess-in-names=false
 test_generated_code "-DTEST_LITTLE_ENDIAN -std=c11"
 
 start_test "C11 Test - BIG ENDIAN"
 
 # Run reginald:
 echo "Generating..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack --endian=big
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
+    --endian=big \
+    --endianess-in-names=false
 test_generated_code "-DTEST_BIG_ENDIAN -std=c11"
 
 # #### HEADER + SOURCE #########################################################
@@ -77,18 +87,21 @@ start_test "Header and Source Test - LITTLE ENDIAN"
 
 # Run reginald:
 echo "Generating header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
+    --endian=little \
+    --endianess-in-names=false \
     --funcs-as-prototypes=true --funcs-static-inline=false
 
 echo "Generating source..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.c c-funcpack \
-    --funcs-static-inline=false          \
-    --add-include="generated.h"          \
-    --include-guards=false               \
-    --doxy-comments=false                \
-    --dont-generate=enums                \
-    --dont-generate=register-structs     \
-    --dont-generate=register-properties  \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.c c-funcpack \
+    --endian=little                         \
+    --endianess-in-names=false               \
+    --funcs-static-inline=false             \
+    --add-include="generated.h"             \
+    --include-guards=false                  \
+    --doxy-comments=false                   \
+    --only-generate=enum-validation-funcs   \
+    --only-generate=struct-conversion-funcs \
 
 test_generated_code "-DTEST_LITTLE_ENDIAN -std=c11" "output/generated.c"
 
@@ -98,32 +111,44 @@ start_test "Split Headers Test- LITTLE ENDIAN"
 
 # Run reginald:
 echo "Generating enum header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated_enum.h c-funcpack \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum.h c-funcpack \
+    --endian=little           \
+    --endianess-in-names=false \
     --only-generate=enums
 
 echo "Generating enum validation header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated_enum_valid.h c-funcpack \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum_valid.h c-funcpack \
+    --endian=little                       \
+    --endianess-in-names=false             \
     --only-generate=enum-validation-funcs \
     --add-include="generated_enum.h"
 
-echo "Generating register struct header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated_regs.h c-funcpack \
-    --only-generate=register-structs \
+echo "Generating struct header..."
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_structs.h c-funcpack \
+    --endian=little            \
+    --endianess-in-names=false  \
+    --only-generate=structs    \
     --add-include="generated_enum_valid.h"
 
-echo "Generating register props header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated_reg_props.h c-funcpack \
-    --only-generate=register-properties
+echo "Generating struct conversion func header..."
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_struct_conv.h c-funcpack \
+    --endian=little                         \
+    --endianess-in-names=false               \
+    --only-generate=struct-conversion-funcs \
+    --add-include="generated_structs.h"
 
-echo "Generating register conversion function header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated_regs_conv.h c-funcpack \
-    --only-generate=register-conversion-funcs \
-    --add-include="generated_reg_props.h"    \
-    --add-include="generated_regs.h"    \
+echo "Generating register properties header..."
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_reg_props.h c-funcpack \
+    --endian=little                         \
+    --endianess-in-names=false               \
+    --only-generate=register-properties     \
+    --add-include="generated_struct_conv.h"
 
 echo "Generating generics header..."
-cargo run --quiet --color always -- gen -i map.yaml -o output/generated.h c-funcpack \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
+    --endian=little                       \
+    --endianess-in-names=false             \
     --only-generate=generic-macros        \
-    --add-include="generated_regs_conv.h" \
+    --add-include="generated_reg_props.h" \
 
 test_generated_code "-DTEST_LITTLE_ENDIAN -std=c11"

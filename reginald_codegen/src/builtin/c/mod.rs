@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use crate::{
     error::Error,
-    regmap::{Docs, TypeBitwidth},
+    regmap::{Docs, Layout, TypeBitwidth},
     utils::str_pad_to_length,
 };
 use lazy_static::lazy_static;
@@ -37,8 +37,24 @@ fn c_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, Error> {
     }
 }
 
+fn c_section_header_comment(title: &str) -> String {
+    let lbar = str_pad_to_length("// ", '=', 80);
+    let lcontent = str_pad_to_length(&format!("// ==== {title} "), '=', 80);
+
+    format!("{lbar}\n{lcontent}\n{lbar}")
+}
+
 fn c_generate_section_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Error> {
-    writeln!(out, "{}", str_pad_to_length(&format!("// ==== {title} "), '=', 80))?;
+    writeln!(out, "{}", c_section_header_comment(title))?;
+    Ok(())
+}
+
+fn c_header_comment(title: &str) -> String {
+    str_pad_to_length(&format!("// ---- {title} "), '-', 80)
+}
+
+fn c_generate_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Error> {
+    writeln!(out, "{}", c_header_comment(title))?;
     Ok(())
 }
 
@@ -68,4 +84,13 @@ fn c_generate_doxy_comment(out: &mut dyn Write, docs: &Docs, prefix: &str, note:
         }
     }
     Ok(())
+}
+
+fn c_layout_overview_comment(layout: &Layout) -> String {
+    layout
+        .overview_text(false)
+        .lines()
+        .map(|x| String::from("//  ") + x)
+        .collect::<Vec<String>>()
+        .join("\n")
 }

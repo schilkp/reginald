@@ -60,9 +60,9 @@ enum Generator {
     CMacromap(c::macromap::GeneratorOpts),
     /// Markdown datasheet
     MdDatasheet,
-    /// Markdown decode report of register dump
+    // Markdown decode report of register dump
     MdRegdumpDecode(md::datasheet::regdump::GeneratorOpts),
-    /// Rust module with register structs and no dependencies
+    // Rust module with register structs and no dependencies
     RsStructs(rs::structs::GeneratorOpts),
 }
 
@@ -109,7 +109,7 @@ fn cmd_generate(gen: CommandGenerate) -> Result<(), Error> {
     let mut map = RegisterMap::from_file(&gen.input)?;
 
     if let Some(name) = &gen.overwrite_map_name {
-        map.map_name = name.to_string();
+        map.name = name.to_string();
     }
 
     // Generate output:

@@ -1,14 +1,14 @@
 use std::{fmt::Write, usize};
 
 /// A wrapper around a `write`, that indents all lines to a set value.
-pub struct IndentWrite<'a> {
+pub struct IndentWriter<'a> {
     w: &'a mut dyn Write,
     indent: String,
     current_indent: usize,
     newline_buffered: bool,
 }
 
-impl Write for IndentWrite<'_> {
+impl Write for IndentWriter<'_> {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         for c in s.chars() {
             self.process_char(c)?;
@@ -17,12 +17,12 @@ impl Write for IndentWrite<'_> {
     }
 }
 
-impl IndentWrite<'_> {
+impl IndentWriter<'_> {
     /// Wrap a given `write` into an `IndentWrite` where each level of indent
     /// consists of the string `indent`. The `IndentWrite` starts without
     /// any indentation.
-    pub fn new<'a>(w: &'a mut dyn Write, indent: &str) -> IndentWrite<'a> {
-        IndentWrite {
+    pub fn new<'a>(w: &'a mut dyn Write, indent: &str) -> IndentWriter<'a> {
+        IndentWriter {
             w,
             indent: indent.to_string(),
             current_indent: 0,
@@ -89,15 +89,21 @@ impl IndentWrite<'_> {
     }
 }
 
+impl Drop for IndentWriter<'_> {
+    fn drop(&mut self) {
+        let _ = self.flush();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{fmt::Write, iter::zip};
 
-    use super::IndentWrite;
+    use super::IndentWriter;
     #[test]
     fn test_indent_write() {
         let mut string = String::new();
-        let mut w = IndentWrite::new(&mut string, "_.-");
+        let mut w = IndentWriter::new(&mut string, "_.-");
 
         writeln!(&mut w, "| no indent").unwrap();
         w.push_indent();
@@ -111,6 +117,8 @@ mod tests {
         writeln!(&mut w, "| no indent").unwrap();
 
         w.flush().unwrap();
+
+        drop(w);
 
         println!("is: ");
         println!("{}", string);

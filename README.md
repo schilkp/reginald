@@ -3,31 +3,54 @@
 Philipp Schilk
 2022-2024
 
-### TODOs:
+### TODO [In-Order]:
 
-- TEST NO-CONTINOUS FIELDS!
-    - With enum!
-
-- TEST VALIDATION: FIELD MUCH LARGER THAN ENUM
-
-- TEST: OVERVWRITE PRESERVES? (Funcpack)
-    - With enum!
-
+- More complex field types
+    - LE/BE Uints
+    - LE/BE Enums
+    - Arrays
+    - Bytes? Or is just just an u8 array?
+    - Signed int?
 
 - No limit on max reg size?
     - YAML/Json limits -> Allow int & string in 'type value' fields?
     - What 'bigint' crate?
         - Probably rework convert/regmap + generators first?
+        - Even needed? Just do everything as uint8 arrays?
+    - Define maximum enum/field size?
 
+- Input/processor option to stuff empty fields with reserved fields
 
-- c.funcpack: just include both LE and BE in the same generator?
-- c.funcpack: Add uint-to-bytes wrapper?
-- c.funcpack: Remove 'overwrite'. Add general option for stuffing unused bytes with 'reserved' fields?
+- C: Emit both LE & BE version.
 
-- Allow fields that are registers? ?!
-- RS uint generator?
+- C: Emit "UINT" version.
 
-- change c-funcpack field_enum_prefix default but issue warning?
+- Rust: Work out how to assosciate data to register?
+    - Make each register a struct, that either has the layout fields directly contained, or
+      newtypes to the shared layout?
+
+- Emit 'unused bits'
+    - Definetly as mask
+    - Rust: "extract/set field" functions? Could be used by actual pack/unpack? Would likely replace RS UInt generator?
+
+- Rust: Port to quote/syn/prettyplease
+- !!Reginald crate with code-gen backing!!
+
+quote = "1.0.35"
+proc-macro2 = "1.0.79"
+prettyplease = "0.2.16"
+syn = "2.0.53"
+
+- GUI:
+    - Tauri
+    - Features/Tabs:
+        - Editor/Viewer
+        - Dump Decoder/Encoder
+        - Remote Control
+            - Connection options:
+                - port to "bridge" process
+                - via UART
+                - via BLE
 
 ### RUST API NOTES:
 
@@ -80,3 +103,25 @@ rust embedded matrix
 
 ### Bitfield struct:
     - https://crates.io/crates/bitfield-struct
+
+### Reginald features:
+    - Support both big-endian and little-endian serialisation on the same struct.
+    - Always-write is zero-size/zero overhead
+    - Support also byte array extraction
+    - Support non-try unpacking
+    - YAML/autogen support.
+
+    - CONSIDER:
+        - Look at packed-structs msb0/lsb0 capabilites? Specify bit order? Specify 
+
+
+### References:
+C++ Code generator with classes:
+https://github.com/jedrzejboczar/regdef-py
+
+RTL + C Code for mem mapped with DSL:
+https://github.com/SystemRDL
+
+Python + C++ code:
+Also mentions another system: "JSPEC"
+https://github.com/SystemRDL

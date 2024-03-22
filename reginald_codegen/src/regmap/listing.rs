@@ -5,6 +5,8 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, io};
 
+// ==== Basic Types ============================================================
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum BitRange {
@@ -22,15 +24,26 @@ pub enum AccessMode {
 
 pub type Access = Vec<AccessMode>;
 
+// ==== Enums ==================================================================
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct EnumEntry {
     pub val: TypeValue,
     pub doc: Option<String>,
-    pub brief: Option<String>,
 }
 
 pub type EnumEntries = BTreeMap<String, EnumEntry>;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SharedEnum {
+    pub doc: Option<String>,
+    #[serde(rename = "enum")]
+    pub entries: EnumEntries,
+}
+
+// ==== Layouts ================================================================
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -39,81 +52,132 @@ pub enum FieldType {
     #[default]
     UInt,
     Bool,
-    LocalEnum(EnumEntries),
+    Fixed(TypeValue),
+    Enum(EnumEntries),
     SharedEnum(String),
+    Layout(LayoutFields),
+    SharedLayout(String),
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
-pub struct Field {
+pub struct LayoutField {
     pub bits: Bits,
-    #[serde(default = "Vec::new")]
-    pub access: Access,
     pub doc: Option<String>,
-    pub brief: Option<String>,
     #[serde(default)]
     pub accepts: FieldType,
+    pub access: Option<Access>,
+}
+
+pub type LayoutFields = BTreeMap<String, LayoutField>;
+
+// TODO: Implement custom deser logic to allow untagged representation?
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub enum RegisterLayout {
+    Layout(LayoutFields),
+    SharedLayout(String),
+}
+
+impl Default for RegisterLayout {
+    fn default() -> Self {
+        Self::Layout(BTreeMap::new())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct AlwaysWrite {
-    pub bits: Bits,
-    pub val: TypeValue,
+pub struct SharedLayout {
+    pub doc: Option<String>,
+    pub bitwidth: Option<TypeBitwidth>,
+    pub layout: LayoutFields,
 }
+
+// ==== Individual Register ====================================================
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Register {
-    #[serde(default = "BTreeMap::new")]
-    pub fields: BTreeMap<String, Field>,
-    pub adr: Option<TypeAdr>,
+    pub adr: TypeAdr,
+    pub doc: Option<String>,
+
     pub bitwidth: Option<TypeBitwidth>,
     pub reset_val: Option<TypeValue>,
-    #[serde(default = "Vec::new")]
-    pub always_write: Vec<AlwaysWrite>,
+
+    #[serde(default)]
+    pub layout: RegisterLayout,
+}
+
+// ==== Register Block =========================================================
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Instance {
+    pub adr: TypeAdr,
+
     pub doc: Option<String>,
-    pub brief: Option<String>,
+
+    #[serde(default = "BTreeMap::new")]
+    pub reset_vals: BTreeMap<String, TypeValue>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
+#[serde(deny_unknown_fields)]
+pub struct RegisterBlockMember {
+    pub offset: TypeAdr,
+    pub doc: Option<String>,
+
+    pub bitwidth: Option<TypeBitwidth>,
+    pub reset_val: Option<TypeValue>,
+
+    pub layout: RegisterLayout,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct RegisterBlock {
-    pub instances: BTreeMap<String, Option<TypeAdr>>,
+    pub instances: BTreeMap<String, Instance>,
     pub doc: Option<String>,
-    pub brief: Option<String>,
-    pub registers: BTreeMap<String, Register>,
+
+    pub registers: BTreeMap<String, RegisterBlockMember>,
 }
 
+// ==== Register Map ===========================================================
+
+// TODO: Implement custom deser logic to allow untagged representation?
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub enum RegisterListing {
     Register(Register),
-    Block(RegisterBlock),
+    RegisterBlock(RegisterBlock),
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
-pub struct SharedEnum {
-    pub doc: Option<String>,
-    pub brief: Option<String>,
-    #[serde(rename = "enum")]
-    pub entries: EnumEntries,
+pub struct Defaults {
+    pub layout_bitwidth: Option<TypeBitwidth>,
+    pub field_access_mode: Option<Access>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct RegisterMap {
-    pub map_name: String,
-    pub default_register_bitwidth: TypeBitwidth,
+    pub name: String,
     pub doc: Option<String>,
-    pub brief: Option<String>,
-    pub note: Option<String>,
+    pub notice: Option<String>,
     pub author: Option<String>,
-    #[serde(default = "BTreeMap::new")]
-    pub registers: BTreeMap<String, RegisterListing>,
+
+    #[serde(default)]
+    pub defaults: Defaults,
+
     #[serde(default = "BTreeMap::new")]
     pub enums: BTreeMap<String, SharedEnum>,
+
+    #[serde(default = "BTreeMap::new")]
+    pub layouts: BTreeMap<String, SharedLayout>,
+
+    #[serde(default = "BTreeMap::new")]
+    pub registers: BTreeMap<String, RegisterListing>,
 }
 
 impl RegisterMap {
@@ -131,6 +195,8 @@ impl RegisterMap {
         Ok(deser_hjson::from_reader(inp)?)
     }
 }
+
+// ==== Tests ==================================================================
 
 #[cfg(test)]
 mod tests {
@@ -220,13 +286,11 @@ mod tests {
     #[test]
     fn deser_yaml_empty_map() {
         let yaml = "
-        map_name: DummyChip
-        default_register_bitwidth: 8
+        name: DummyChip
         ";
         let is: RegisterMap = serde_yaml::from_str(yaml).unwrap();
         let expect = RegisterMap {
-            map_name: "DummyChip".to_string(),
-            default_register_bitwidth: 8,
+            name: "DummyChip".to_string(),
             ..Default::default()
         };
         assert_eq!(is, expect);
@@ -235,13 +299,11 @@ mod tests {
     #[test]
     fn deser_hjson_empty_map() {
         let hjson = "
-        map_name: DummyChip
-        default_register_bitwidth: 8
+        name: DummyChip
         ";
         let is: RegisterMap = deser_hjson::from_str(hjson).unwrap();
         let expect = RegisterMap {
-            map_name: "DummyChip".to_string(),
-            default_register_bitwidth: 8,
+            name: "DummyChip".to_string(),
             ..Default::default()
         };
         assert_eq!(is, expect);
@@ -249,21 +311,12 @@ mod tests {
 
     lazy_static! {
         static ref SHARED_ENUM_EXPECT: RegisterMap = RegisterMap {
-            map_name: "DummyChip".to_string(),
-            default_register_bitwidth: 8,
+            name: "DummyChip".to_string(),
             enums: BTreeMap::from([(
                 "MyEnum".into(),
                 SharedEnum {
-                    doc: Some("Testdoc".into()),
-                    brief: Some("very brief brief".into()),
-                    entries: BTreeMap::from([(
-                        "OFF".into(),
-                        EnumEntry {
-                            val: 0x0,
-                            brief: Some("off".into()),
-                            doc: Some("this is turned off".into()),
-                        },
-                    )]),
+                    doc: None,
+                    entries: BTreeMap::from([("OFF".into(), EnumEntry { val: 0x0, doc: None },)]),
                 },
             )]),
             ..Default::default()
@@ -273,17 +326,12 @@ mod tests {
     #[test]
     fn deser_yaml_shared_enums() {
         let yaml = "
-        map_name: DummyChip
-        default_register_bitwidth: 8
+        name: DummyChip
         enums:
             MyEnum:
-                doc: Testdoc
-                brief: very brief brief
                 enum:
                     OFF:
                         val: 0
-                        brief:  off
-                        doc: this is turned off
         ";
         let is: RegisterMap = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(is, *SHARED_ENUM_EXPECT);
@@ -292,17 +340,12 @@ mod tests {
     #[test]
     fn deser_hjson_shared_enums() {
         let hjson = "
-        map_name: DummyChip
-        default_register_bitwidth: 8
+        name: DummyChip
         enums: {
             MyEnum: {
-                doc: Testdoc
-                brief: very brief brief
                 enum: {
                     OFF: {
                         val: 0
-                        brief:  off
-                        doc: this is turned off
                     }
                 }
             }
@@ -314,29 +357,27 @@ mod tests {
 
     lazy_static! {
         static ref BASIC_REGISTER_EXPECT: RegisterMap = RegisterMap {
-            map_name: "DummyChip".to_string(),
-            default_register_bitwidth: 8,
+            name: "DummyChip".to_string(),
             registers: BTreeMap::from([(
                 "FIFOCTRL4".into(),
                 RegisterListing::Register(Register {
-                    doc: Some("Testdoc".into()),
-                    brief: Some("very brief brief".into()),
-                    fields: BTreeMap::from([
+                    adr: 0x10,
+                    layout: RegisterLayout::Layout(BTreeMap::from([
                         (
                             "F7".into(),
-                            Field {
+                            LayoutField {
                                 bits: vec![BitRange::Bit(7)],
                                 ..Default::default()
                             },
                         ),
                         (
                             "F1".into(),
-                            Field {
+                            LayoutField {
                                 bits: vec![BitRange::Bit(1)],
                                 ..Default::default()
                             },
                         ),
-                    ]),
+                    ])),
                     ..Default::default()
                 }),
             )]),
@@ -347,13 +388,11 @@ mod tests {
     #[test]
     fn deser_yaml_basic_register() {
         let yaml = "
-        map_name: DummyChip
-        default_register_bitwidth: 8
+        name: DummyChip
         registers:
             FIFOCTRL4: !Register
-                doc: Testdoc
-                brief: very brief brief
-                fields:
+                adr: 0x10
+                layout: !Layout
                     F7:
                         bits: [7]
                     F1:
@@ -366,19 +405,19 @@ mod tests {
     #[test]
     fn deser_hjson_basic_register() {
         let hjson = "
-        map_name: DummyChip
-        default_register_bitwidth: 8
+        name: DummyChip
         registers: {
             FIFOCTRL4: {
                 Register: {
-                    doc: Testdoc
-                    brief: very brief brief
-                    fields: {
-                        F7: {
-                            bits: [7]
-                        },
-                        F1: {
-                            bits: [1]
+                    adr: 16,
+                    layout: {
+                        Layout: {
+                            F7: {
+                                bits: [7]
+                            },
+                            F1: {
+                                bits: [1]
+                            }
                         }
                     }
                 }
@@ -390,29 +429,14 @@ mod tests {
     }
 
     lazy_static! {
-        static ref FIELD_ENUM_EXCEPT: Field = Field {
+        static ref FIELD_ENUM_EXCEPT: LayoutField = LayoutField {
             bits: vec![BitRange::Bit(1)],
-            access: vec![],
             doc: None,
-            brief: None,
-            accepts: FieldType::LocalEnum(BTreeMap::from([
-                (
-                    "A".into(),
-                    EnumEntry {
-                        val: 0x1,
-                        doc: None,
-                        brief: None,
-                    },
-                ),
-                (
-                    "B".into(),
-                    EnumEntry {
-                        val: 0x0,
-                        doc: None,
-                        brief: None,
-                    },
-                ),
+            accepts: FieldType::Enum(BTreeMap::from([
+                ("A".into(), EnumEntry { val: 0x1, doc: None },),
+                ("B".into(), EnumEntry { val: 0x0, doc: None },),
             ])),
+            access: None,
         };
     }
 
@@ -420,13 +444,13 @@ mod tests {
     fn deser_yaml_field_enum() {
         let yaml = "
         bits: [1]
-        accepts: !LocalEnum
+        accepts: !Enum
             A:
                 val: 0x1
             B:
                 val: 0x0
         ";
-        let field_is: Field = serde_yaml::from_str(yaml).unwrap();
+        let field_is: LayoutField = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(field_is, *FIELD_ENUM_EXCEPT);
     }
 
@@ -435,7 +459,7 @@ mod tests {
         let hjson = "
         bits: [1]
         accepts: {
-            LocalEnum: {
+            Enum: {
                 A: {
                     val: 1
                 },
@@ -445,17 +469,16 @@ mod tests {
             }
         }
         ";
-        let field_is: Field = deser_hjson::from_str(hjson).unwrap();
+        let field_is: LayoutField = deser_hjson::from_str(hjson).unwrap();
         assert_eq!(field_is, *FIELD_ENUM_EXCEPT);
     }
 
     lazy_static! {
-        static ref FIELD_SHARED_ENUM_EXPECT: Field = Field {
+        static ref FIELD_SHARED_ENUM_EXPECT: LayoutField = LayoutField {
             bits: vec![BitRange::Bit(1)],
-            access: vec![],
             doc: None,
-            brief: None,
             accepts: FieldType::SharedEnum("TestEnum".into()),
+            access: None,
         };
     }
 
@@ -465,7 +488,7 @@ mod tests {
         bits: [1]
         accepts: !SharedEnum 'TestEnum'
         ";
-        let field_is: Field = serde_yaml::from_str(yaml).unwrap();
+        let field_is: LayoutField = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(field_is, *FIELD_SHARED_ENUM_EXPECT);
     }
 
@@ -477,7 +500,7 @@ mod tests {
             SharedEnum: 'TestEnum'
         }
         ";
-        let field_is: Field = deser_hjson::from_str(hjson).unwrap();
+        let field_is: LayoutField = deser_hjson::from_str(hjson).unwrap();
         assert_eq!(field_is, *FIELD_SHARED_ENUM_EXPECT);
     }
 
@@ -515,15 +538,5 @@ mod tests {
     #[test]
     fn deser_example_max77654_hjson() {
         parse_hjson_example("max77654.hjson");
-    }
-
-    #[test]
-    fn deser_example_lsm6dsv16bx_yaml() {
-        parse_yaml_example("lsm6dsv16bx.yaml");
-    }
-
-    #[test]
-    fn deser_example_lsm6dsv16bx_hjson() {
-        parse_hjson_example("lsm6dsv16bx.hjson");
     }
 }

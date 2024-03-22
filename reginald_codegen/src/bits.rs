@@ -173,6 +173,30 @@ pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> 
     numbers_as_ranges(mask_to_bits(mask))
 }
 
+/// Convert a bit mask to a string that explains which bits are set using a list of ranges.
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::mask_to_bit_ranges_str;
+/// assert_eq!(mask_to_bit_ranges_str(0b000001), String::from("0"));
+/// assert_eq!(mask_to_bit_ranges_str(0b001110), String::from("3:1"));
+/// assert_eq!(mask_to_bit_ranges_str(0b111010), String::from("5:3, 1"));
+/// ```
+pub fn mask_to_bit_ranges_str(mask: TypeValue) -> String {
+    let ranges: Vec<String> = mask_to_bit_ranges(mask)
+        .iter()
+        .map(|range| {
+            if range.start() == range.end() {
+                format!("{}", range.start())
+            } else {
+                format!("{}:{}", range.end(), range.start())
+            }
+        })
+        .rev()
+        .collect();
+
+    ranges.join(", ")
+}
+
 #[cfg(test)]
 mod tests {
     use crate::regmap::MAX_BITWIDTH;
@@ -196,6 +220,7 @@ mod tests {
 
     #[test]
     fn test_bitmask_is_contigous() {
+        assert_eq!(bitmask_is_contigous(0b0), true);
         assert_eq!(bitmask_is_contigous(0b1), true);
         assert_eq!(bitmask_is_contigous(0b10), true);
         assert_eq!(bitmask_is_contigous(0b100), true);

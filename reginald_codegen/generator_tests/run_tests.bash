@@ -17,7 +17,7 @@ fail() {
 cd "${0%/*}"
 
 # Run tests:
-echo_cyan "=== COMPILE ===" 
+echo_cyan "=== COMPILE ==="
 cargo build
 echo_green "DONE"
 

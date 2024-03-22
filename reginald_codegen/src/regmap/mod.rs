@@ -1,21 +1,24 @@
+mod convert;
+mod listing;
+mod validate;
+
 use std::{
     collections::{BTreeMap, HashSet},
     io,
-    ops::RangeInclusive,
+    ops::{Deref, RangeInclusive},
     path::PathBuf,
     rc::Rc,
 };
 
 use crate::bits::{
-    bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bits, msb_pos, unpositioned_mask,
+    bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bit_ranges_str, mask_to_bits, msb_pos,
+    unpositioned_mask,
 };
 use crate::{bits::lsb_pos, error::Error, utils::numbers_as_ranges};
 
 use self::convert::convert_map;
 
-mod convert;
-mod listing;
-mod validate;
+// ==== Basic Types ============================================================
 
 pub type TypeValue = u64;
 pub type TypeBitwidth = u32;
@@ -36,6 +39,8 @@ pub struct Docs {
     pub doc: Option<String>,
 }
 
+// ==== Enums ==================================================================
+
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct EnumEntry {
     pub name: String,
@@ -46,72 +51,126 @@ pub struct EnumEntry {
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Enum {
     pub name: String,
-    pub is_shared: bool,
     pub docs: Docs,
+    pub is_local: bool,
     pub entries: BTreeMap<String, EnumEntry>,
 }
+
+// ==== Layouts ================================================================
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum FieldType {
     #[default]
     UInt,
     Bool,
-    LocalEnum(Enum),
-    SharedEnum(Rc<Enum>),
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AlwaysWrite {
-    pub mask: TypeValue,
-    pub value: TypeValue,
+    Fixed(TypeValue),
+    Enum(Rc<Enum>),
+    Layout(Rc<Layout>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct Field {
+pub struct LayoutField {
     pub name: String,
     pub mask: TypeValue,
-    pub access: Option<Access>,
     pub docs: Docs,
     pub accepts: FieldType,
+    pub access: Option<Access>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct Layout {
+    pub name: String,
+    pub docs: Docs,
+    pub is_local: bool,
+    pub bitwidth: TypeBitwidth,
+
+    pub fields: BTreeMap<String, LayoutField>,
+}
+
+// ==== Registers ==============================================================
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegisterOrigin {
+    pub block: String,
+    pub instance: String,
+    pub block_member: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Register {
     pub name: String,
-    pub fields: BTreeMap<String, Field>,
-    pub bitwidth: TypeBitwidth,
-    pub from_explicit_listing_block: bool,
-    pub adr: Option<TypeAdr>,
-    pub always_write: Option<AlwaysWrite>,
-    pub reset_val: Option<TypeValue>,
     pub docs: Docs,
+
+    pub adr: TypeAdr,
+    pub reset_val: Option<TypeValue>,
+
+    pub layout: Rc<Layout>,
+
+    pub from_block: Option<RegisterOrigin>,
+}
+
+// ==== Register Blocks ========================================================
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegisterBlockInstance {
+    pub name: String,
+    pub adr: TypeAdr,
+    pub docs: Docs,
+
+    pub registers: BTreeMap<String, Rc<Register>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Instance {
+pub struct RegisterBlockMember {
     pub name: String,
-    pub adr: Option<TypeAdr>,
+    pub name_raw: String,
+    pub docs: Docs,
+
+    pub offset: TypeAdr,
+
+    pub layout: Rc<Layout>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegisterBlock {
     pub name: String,
-    pub instances: BTreeMap<String, Instance>,
     pub docs: Docs,
-    pub from_explicit_listing_block: bool,
-    pub register_templates: BTreeMap<String, Register>,
+    pub instances: BTreeMap<String, RegisterBlockInstance>,
+
+    pub members: BTreeMap<String, Rc<RegisterBlockMember>>,
+}
+
+// ==== Register Map ===========================================================
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Defaults {
+    pub layout_bitwidth: Option<TypeBitwidth>,
+    pub field_access_mode: Option<Access>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RegisterMap {
     pub from_file: Option<PathBuf>,
-    pub map_name: String,
+    pub name: String,
     pub docs: Docs,
-    pub register_blocks: BTreeMap<String, RegisterBlock>,
-    pub shared_enums: BTreeMap<String, Rc<Enum>>,
-    pub note: Option<String>,
+    pub notice: Option<String>,
     pub author: Option<String>,
+    pub defaults: Defaults,
+
+    // All enums:
+    pub enums: BTreeMap<String, Rc<Enum>>,
+
+    // All layouts:
+    pub layouts: BTreeMap<String, Rc<Layout>>,
+
+    // All registers:
+    pub registers: BTreeMap<String, Rc<Register>>,
+
+    // Register blocks
+    pub register_blocks: BTreeMap<String, RegisterBlock>,
 }
+
+// ==== Impls ==================================================================
 
 impl Docs {
     pub fn is_empty(&self) -> bool {
@@ -196,43 +255,31 @@ impl Enum {
             .map(|x| x.name.clone())
             .ok_or(Error::GeneratorError(format!("Enum '{}' cannot represent value 0x{:X}.", self.name, val)))
     }
+
+    pub fn occupied_bits(&self) -> TypeValue {
+        self.entries.values().map(|x| x.value).reduce(|a, b| a | b).unwrap_or(0)
+    }
+
+    pub fn can_do_truncating_unpacking(&self) -> bool {
+        self.can_unpack_mask(self.occupied_bits())
+    }
 }
 
 pub enum DecodedField {
     UInt(TypeValue),
+    Fixed { val: TypeValue, is_correct: bool },
     Bool(bool),
     EnumEntry(String),
 }
 
-impl Field {
-    pub fn accepts_enum(&self) -> bool {
-        match &self.accepts {
-            FieldType::UInt | FieldType::Bool => false,
-            FieldType::LocalEnum(_) | FieldType::SharedEnum(_) => true,
-        }
-    }
-
-    pub fn get_enum(&self) -> Option<&Enum> {
-        match &self.accepts {
-            FieldType::UInt | FieldType::Bool => None,
-            FieldType::LocalEnum(e) => Some(e),
-            FieldType::SharedEnum(e) => Some(e),
-        }
-    }
-
-    pub fn enum_entries(&self) -> Option<impl Iterator<Item = &EnumEntry>> {
-        match &self.accepts {
-            FieldType::UInt | FieldType::Bool => None,
-            FieldType::LocalEnum(local_enum) => Some(local_enum.entries.values()),
-            FieldType::SharedEnum(shared_enum) => Some(shared_enum.entries.values()),
-        }
-    }
-
+impl LayoutField {
     pub fn can_always_unpack(&self) -> bool {
         match &self.accepts {
-            FieldType::UInt | FieldType::Bool => true,
-            FieldType::LocalEnum(local_enum) => local_enum.can_unpack_mask(unpositioned_mask(self.mask)),
-            FieldType::SharedEnum(shared_enum) => shared_enum.can_unpack_mask(unpositioned_mask(self.mask)),
+            FieldType::UInt => true,
+            FieldType::Bool => true,
+            FieldType::Enum(e) => e.can_unpack_mask(unpositioned_mask(self.mask)),
+            FieldType::Fixed(_) => true,
+            FieldType::Layout(l) => l.can_always_unpack(),
         }
     }
 
@@ -245,77 +292,25 @@ impl Field {
         match &self.accepts {
             FieldType::UInt => Ok(DecodedField::UInt(val)),
             FieldType::Bool => Ok(DecodedField::Bool(val != 0)),
-            FieldType::LocalEnum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
-            FieldType::SharedEnum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
+            FieldType::Enum(e) => Ok(DecodedField::EnumEntry(e.decode(val)?)),
+            FieldType::Fixed(expected) => Ok(DecodedField::Fixed {
+                val,
+                is_correct: *expected == val,
+            }),
+            FieldType::Layout(_) => {
+                let name = &self.name;
+                Err(Error::GeneratorError(format!("Field {name} accepts a layout which cannot be directly decoded!")))
+            }
         }
+    }
+
+    pub fn contains_content(&self) -> bool {
+        !matches!(self.accepts, FieldType::Fixed(_))
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum RegisterBitrangeContent<'a> {
-    Empty,
-    Field {
-        field: &'a Field,
-        is_split: bool,
-        subfield_mask: TypeValue,
-    },
-    AlwaysWrite {
-        val: TypeValue,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RegisterBitrange<'a> {
-    pub bits: RangeInclusive<TypeBitwidth>,
-    pub content: RegisterBitrangeContent<'a>,
-}
-
-impl Register {
-    pub fn split_to_bitranges(&self) -> Vec<RegisterBitrange> {
-        let mut result = vec![];
-
-        if let Some(AlwaysWrite { mask, value }) = &self.always_write {
-            let ranges = mask_to_bit_ranges(*mask);
-            for range in &ranges {
-                let range_value = (value & bitmask_from_range(range)) >> range.start();
-                result.push(RegisterBitrange {
-                    bits: range.clone(),
-                    content: RegisterBitrangeContent::AlwaysWrite { val: range_value },
-                });
-            }
-        }
-
-        for field in self.fields.values() {
-            let ranges = mask_to_bit_ranges(field.mask);
-            for range in &ranges {
-                let subfield_mask = bitmask_from_range(range) >> lsb_pos(field.mask);
-
-                result.push(RegisterBitrange {
-                    bits: range.clone(),
-                    content: RegisterBitrangeContent::Field {
-                        field,
-                        is_split: ranges.len() > 1,
-                        subfield_mask,
-                    },
-                });
-            }
-        }
-
-        let empty_bits: Vec<TypeBitwidth> = (0..self.bitwidth).filter(|x| self.empty_at_bitpos(*x)).collect();
-
-        for range in numbers_as_ranges(empty_bits) {
-            result.push(RegisterBitrange {
-                bits: range.clone(),
-                content: RegisterBitrangeContent::Empty,
-            });
-        }
-
-        result.sort_by_key(|x| *(x.bits.start()));
-
-        result
-    }
-
-    pub fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&Field> {
+impl Layout {
+    pub fn field_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<&LayoutField> {
         for field in self.fields.values() {
             if (1 << bitpos) & field.mask != 0 {
                 return Some(field);
@@ -325,18 +320,8 @@ impl Register {
         self.fields.values().find(|&field| (1 << bitpos) & field.mask != 0)
     }
 
-    pub fn always_write_at_bitpos(&self, bitpos: TypeBitwidth) -> Option<TypeValue> {
-        if let Some(AlwaysWrite { mask, value }) = self.always_write {
-            if (1 << bitpos) & mask != 0 {
-                return Some((value >> bitpos) & 1);
-            }
-        }
-
-        None
-    }
-
     pub fn empty_at_bitpos(&self, bitpos: TypeBitwidth) -> bool {
-        self.always_write_at_bitpos(bitpos).is_none() && self.field_at_bitpos(bitpos).is_none()
+        self.field_at_bitpos(bitpos).is_none()
     }
 
     pub fn can_always_unpack(&self) -> bool {
@@ -348,24 +333,226 @@ impl Register {
         true
     }
 
-    pub fn name_in_block(&self, block: &RegisterBlock) -> String {
-        if self.name.is_empty() {
-            String::from(&block.name)
-        } else {
-            format!("{}_{}", block.name, self.name)
+    pub fn occupied_mask(&self) -> TypeValue {
+        let mut mask: TypeValue = 0;
+        for field in self.fields.values() {
+            mask |= field.mask;
         }
+        mask
     }
 
-    pub fn name_in_instance(&self, instance: &Instance) -> String {
-        if self.name.is_empty() {
-            String::from(&instance.name)
-        } else {
-            format!("{}_{}", instance.name, self.name)
+    pub fn fixed_bits_mask(&self) -> TypeValue {
+        let mut mask: TypeValue = 0;
+        for field in self.fields.values() {
+            if !matches!(field.accepts, FieldType::Fixed(_)) {
+                continue;
+            }
+            mask |= field.mask;
         }
+        mask
+    }
+
+    pub fn fixed_bits_val(&self) -> TypeValue {
+        let mut val: TypeValue = 0;
+        for field in self.fields.values() {
+            if let FieldType::Fixed(fixed_val) = field.accepts {
+                val |= fixed_val << lsb_pos(field.mask);
+            }
+        }
+        val
+    }
+
+    pub fn contains_fixed_bits(&self) -> bool {
+        self.fixed_bits_mask() != 0
+    }
+
+    /// Iterator over all enums local to this layout (excluding local
+    /// enums in nested layouts)
+    pub fn local_enums(&self) -> impl Iterator<Item = &Enum> {
+        self.fields
+            .values()
+            .filter_map(|x| match &x.accepts {
+                FieldType::Enum(e) => Some(e.deref()),
+                _ => None,
+            })
+            .filter(|x| x.is_local)
+    }
+
+    /// Iterator over all layouts local to this layout (excluding local
+    /// layouts in nested layouts)
+    pub fn local_layouts(&self) -> impl Iterator<Item = &Layout> {
+        self.fields
+            .values()
+            .filter_map(|x| match &x.accepts {
+                FieldType::Layout(l) => Some(l.deref()),
+                _ => None,
+            })
+            .filter(|x| x.is_local)
+    }
+
+    pub fn fields_with_content(&self) -> impl Iterator<Item = &LayoutField> {
+        self.fields.values().filter(|x| x.contains_content())
     }
 
     pub fn width_bytes(&self) -> TypeBitwidth {
         (self.bitwidth + 7) / 8
+    }
+
+    pub fn overview_text(&self, as_markdown: bool) -> String {
+        let nested_fields = self.nested_fields();
+        if nested_fields.is_empty() {
+            return String::new();
+        }
+
+        let mut lines = vec![];
+
+        for field in nested_fields {
+            let name = field.name.join(".");
+
+            let indent = field.name.len() - 1;
+            let indent = String::from_iter(std::iter::repeat("  ").take(indent));
+
+            let bits = if as_markdown {
+                format!("[{}]", mask_to_bit_ranges_str(field.mask))
+            } else {
+                format!("`[{}]`", mask_to_bit_ranges_str(field.mask))
+            };
+
+            let type_string = match &field.field.accepts {
+                FieldType::UInt => String::from("(uint)"),
+                FieldType::Bool => String::from("(bool)"),
+                FieldType::Fixed(fix) => format!("(fixed: 0x{fix:x})"),
+                FieldType::Enum(e) => format!("(enum {})", e.name),
+                FieldType::Layout(l) => format!("(layout {})", l.name),
+            };
+
+            if let Some(brief) = &field.field.docs.brief {
+                lines.push(format!("{indent}- {bits} {name} {type_string}: {brief}"))
+            } else {
+                lines.push(format!("{indent}- {bits} {name} {type_string}"))
+            }
+
+            if let Some(doc) = &field.field.docs.doc {
+                for line in doc.lines() {
+                    lines.push(format!("  {indent}{line}"))
+                }
+            }
+        }
+
+        lines.join("\n")
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegisterBitrangeContent<'a> {
+    pub field: &'a LayoutField,
+    pub is_split: bool,
+    pub subfield_mask: TypeValue,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegisterBitrange<'a> {
+    pub bits: RangeInclusive<TypeBitwidth>,
+    pub content: Option<RegisterBitrangeContent<'a>>,
+}
+
+impl Layout {
+    pub fn split_to_bitranges(&self) -> Vec<RegisterBitrange> {
+        let mut result = vec![];
+
+        for field in self.fields.values() {
+            let ranges = mask_to_bit_ranges(field.mask);
+            for range in &ranges {
+                let subfield_mask = bitmask_from_range(range) >> lsb_pos(field.mask);
+
+                result.push(RegisterBitrange {
+                    bits: range.clone(),
+                    content: Some(RegisterBitrangeContent {
+                        field,
+                        is_split: ranges.len() > 1,
+                        subfield_mask,
+                    }),
+                });
+            }
+        }
+
+        let empty_bits: Vec<TypeBitwidth> = (0..self.bitwidth).filter(|x| self.empty_at_bitpos(*x)).collect();
+
+        for range in numbers_as_ranges(empty_bits) {
+            result.push(RegisterBitrange {
+                bits: range.clone(),
+                content: None,
+            });
+        }
+
+        result.sort_by_key(|x| *(x.bits.start()));
+
+        result
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct FlattenedLayoutField<'a> {
+    pub name: Vec<String>,
+    pub mask: TypeValue,
+    pub field: &'a LayoutField,
+}
+
+impl Layout {
+    pub fn nested_fields(&self) -> Vec<FlattenedLayoutField> {
+        let mut result = vec![];
+
+        for field in self.fields.values() {
+            let field_define = FlattenedLayoutField {
+                name: vec![field.name.clone()],
+                mask: field.mask,
+                field,
+            };
+
+            if let FieldType::Layout(sublayout) = &field.accepts {
+                result.push(field_define);
+
+                // Field contains another nested layout. flattened_fieldss:
+                let mut sublayout_defines = sublayout.nested_fields();
+                sublayout_defines.sort_by_key(|x| lsb_pos(x.mask));
+
+                // Adjust them by prefixing them with the name of the enclosing field, and shifting all
+                // masks into the position of the enclosing field:
+                for sublayout_define in sublayout_defines {
+                    let mut sublayout_field = sublayout_define.clone();
+                    sublayout_field.name.insert(0, field.name.clone());
+                    sublayout_field.mask <<= lsb_pos(field.mask);
+                    result.push(sublayout_field);
+                }
+            } else {
+                result.push(field_define);
+            }
+        }
+
+        result.sort_by_key(|x| lsb_pos(x.mask));
+        result
+    }
+
+    pub fn nested_fields_with_content(&self) -> Vec<FlattenedLayoutField> {
+        self.nested_fields()
+            .into_iter()
+            .filter(|x| x.field.contains_content())
+            .collect()
+    }
+
+    pub fn flattened_fields_with_content(&self) -> Vec<FlattenedLayoutField> {
+        self.nested_fields()
+            .into_iter()
+            .filter(|x| !matches!(x.field.accepts, FieldType::Layout(_)))
+            .filter(|x| x.field.contains_content())
+            .collect()
+    }
+
+    pub fn flattened_fields(&self) -> Vec<FlattenedLayoutField> {
+        self.nested_fields()
+            .into_iter()
+            .filter(|x| !matches!(x.field.accepts, FieldType::Layout(_)))
+            .collect()
     }
 }
 
@@ -410,80 +597,39 @@ impl RegisterMap {
 
     pub fn max_register_width(&self) -> TypeBitwidth {
         let mut max_width = 0;
-        for block in self.register_blocks.values() {
-            for template in block.register_templates.values() {
-                max_width = TypeBitwidth::max(max_width, template.bitwidth);
-            }
+
+        for register in self.registers.values() {
+            max_width = TypeBitwidth::max(max_width, register.layout.bitwidth);
         }
 
         max_width
     }
-}
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum RegisterOrigin<'a> {
-    Register,
-    RegisterBlockInstance {
-        block: &'a RegisterBlock,
-        instance: Instance,
-        offset_from_block_start: Option<TypeAdr>,
-    },
-}
+    pub fn shared_enums(&self) -> impl Iterator<Item = &Enum> {
+        self.enums.values().filter(|x| !x.is_local).map(|x| x.deref())
+    }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PhysicalRegister<'a> {
-    pub name: String,
-    pub absolute_adr: Option<TypeAdr>,
-    pub origin: RegisterOrigin<'a>,
-    pub template: &'a Register,
-}
+    pub fn shared_layouts(&self) -> impl Iterator<Item = &Layout> {
+        self.layouts.values().filter(|x| !x.is_local).map(|x| x.deref())
+    }
 
-impl RegisterMap {
-    pub fn physical_registers(&self) -> Vec<PhysicalRegister> {
-        let mut result = vec![];
-        for block in self.register_blocks.values() {
-            for template in block.register_templates.values() {
-                for instance in block.instances.values() {
-                    let absolute_adr = match (instance.adr, template.adr) {
-                        (Some(start), Some(ofs)) => Some(start + ofs),
-                        (_, _) => None,
-                    };
-
-                    let origin = if template.from_explicit_listing_block {
-                        RegisterOrigin::RegisterBlockInstance {
-                            block,
-                            instance: instance.clone(),
-                            offset_from_block_start: template.adr,
-                        }
-                    } else {
-                        RegisterOrigin::Register
-                    };
-
-                    let name = template.name_in_instance(instance);
-
-                    result.push(PhysicalRegister {
-                        name,
-                        absolute_adr,
-                        origin,
-                        template,
-                    });
-                }
-            }
-        }
-        result.sort_by_key(|x| x.absolute_adr.unwrap_or(TypeAdr::MAX));
-        result
+    pub fn individual_registers(&self) -> impl Iterator<Item = &Register> {
+        self.registers
+            .values()
+            .filter(|x| x.from_block.is_none())
+            .map(|x| x.deref())
     }
 }
 
-pub fn access_string(v: &Access) -> String {
-    let mut result = String::new();
-    for i in v {
-        match i {
-            AccessMode::R => result.push('R'),
-            AccessMode::W => result.push('W'),
-        }
-    }
-    result
+pub fn access_str(access: &Access) -> String {
+    access
+        .iter()
+        .map(|x| match x {
+            AccessMode::R => "R",
+            AccessMode::W => "W",
+        })
+        .collect::<Vec<&str>>()
+        .join("/")
 }
 
 #[cfg(test)]
@@ -491,17 +637,25 @@ pub fn assert_regmap_eq(left: RegisterMap, right: RegisterMap) {
     use std::iter::zip;
 
     use pretty_assertions::assert_eq;
-    assert_eq!(left.map_name, right.map_name);
+    assert_eq!(left.name, right.name);
     assert_eq!(left.docs, right.docs);
     assert_eq!(left.author, right.author);
-    assert_eq!(left.note, right.note);
-    for (left, right) in zip(&left.register_blocks, &right.register_blocks) {
+    assert_eq!(left.notice, right.notice);
+    for (left, right) in zip(left.enums.values(), right.enums.values()) {
         assert_eq!(left, right);
     }
-    assert_eq!(left.register_blocks, right.register_blocks);
-    for (name, left) in left.shared_enums {
-        assert_eq!(left, *right.shared_enums.get(&name).unwrap());
+    for (left, right) in zip(left.layouts.values(), right.layouts.values()) {
+        assert_eq!(left, right);
     }
+    for (left, right) in zip(left.registers.values(), right.registers.values()) {
+        assert_eq!(left, right);
+    }
+    for (left, right) in zip(left.register_blocks.values(), right.register_blocks.values()) {
+        assert_eq!(left, right);
+    }
+
+    // Catch-all if a new field gets added and the above is not updated :)
+    assert_eq!(left, right);
 }
 
 #[cfg(test)]
@@ -511,21 +665,15 @@ mod tests {
     #[test]
     fn test_split_to_bitranges() {
         use pretty_assertions::assert_eq;
-        let reg = Register {
-            name: "TestReg".into(),
+        let layout = Layout {
             bitwidth: 16,
-            from_explicit_listing_block: false,
-            adr: None,
-            always_write: Some(AlwaysWrite {
-                mask: 0b01110110,
-                value: 0b001010100,
-            }),
-            reset_val: None,
+            name: String::new(),
             docs: Docs::default(),
+            is_local: false,
             fields: BTreeMap::from([
                 (
                     "A".into(),
-                    Field {
+                    LayoutField {
                         name: "A".into(),
                         mask: 0b1001,
                         ..Default::default()
@@ -533,7 +681,7 @@ mod tests {
                 ),
                 (
                     "B".into(),
-                    Field {
+                    LayoutField {
                         name: "B".into(),
                         mask: 0xF000,
                         ..Default::default()
@@ -541,47 +689,42 @@ mod tests {
                 ),
             ]),
         };
-
-        let ranges = reg.split_to_bitranges();
+        let ranges = layout.split_to_bitranges();
 
         assert_eq!(
             ranges,
             vec![
                 RegisterBitrange {
                     bits: 0..=0,
-                    content: RegisterBitrangeContent::Field {
-                        field: &reg.fields["A".into()],
+                    content: Some(RegisterBitrangeContent {
+                        field: &layout.fields["A".into()],
                         is_split: true,
                         subfield_mask: 0b1
-                    }
+                    }),
                 },
                 RegisterBitrange {
                     bits: 1..=2,
-                    content: RegisterBitrangeContent::AlwaysWrite { val: 0b10 }
+                    content: None,
                 },
                 RegisterBitrange {
                     bits: 3..=3,
-                    content: RegisterBitrangeContent::Field {
-                        field: &reg.fields["A".into()],
+                    content: Some(RegisterBitrangeContent {
+                        field: &layout.fields["A".into()],
                         is_split: true,
                         subfield_mask: 0b1000
-                    }
+                    })
                 },
                 RegisterBitrange {
-                    bits: 4..=6,
-                    content: RegisterBitrangeContent::AlwaysWrite { val: 0b101 }
-                },
-                RegisterBitrange {
-                    bits: 7..=11,
-                    content: RegisterBitrangeContent::Empty
+                    bits: 4..=11,
+                    content: None
                 },
                 RegisterBitrange {
                     bits: 12..=15,
-                    content: RegisterBitrangeContent::Field {
-                        field: &reg.fields["B".into()],
+                    content: Some(RegisterBitrangeContent {
+                        field: &layout.fields["B".into()],
                         is_split: false,
                         subfield_mask: 0b1111
-                    }
+                    })
                 },
             ]
         );

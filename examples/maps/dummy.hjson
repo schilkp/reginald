@@ -1,8 +1,10 @@
 {
-  map_name: "DummyChip",
-  default_register_bitwidth: 8,
+  name: "DummyChip",
+  defaults: {
+      layout_bitwidth: 8
+  }
   author: "Philipp Schilk",
-  note:
+  notice:
     '''
     +------------------+
     | copyright notice |
@@ -14,128 +16,140 @@
                     ||     ||
     ''',
 
-  registers: {
-
-    STATUS: {
-      Register: {
-        adr: 0,
-        reset_val: 0,
-        brief: "Status.",
-        doc: "More extensive documentation.",
-        bitwidth: 8,
-        always_write: [
-          { bits: ["4-5"], val: 1 }
-        ],
-        fields: {
-          FIELD1: {
-            bits: [7, 6],
-            access: ["R"],
-            accepts: {
-                SharedEnum: "STAT"
-            }
-          },
-          FIELD2: {
-            bits: ["3-0"],
-            access: ["R"],
-            brief: "Another cool field.",
-            doc: "Important details.",
-            accepts: {
-              LocalEnum: {
-                EN: {
-                  val: 3,
-                  brief: "Is on.",
-                  doc: "important details."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    PINEAPPLE: {
-        Register: {
-            adr: 0,
-            fields: {
-                APPLE: {
-                    bits: [6],
-                    accepts: UInt
-                },
-                PEN: {
-                    bits: [7],
-                    accepts: Bool
-                },
-            }
-        }
-    },
-
-    CHn: {
-      Block: {
-        instances: {
-          CH1: 16,
-          CH2: 32,
-          CH3: 48
+  enums: {
+    STAT: {
+      doc: "Current status.\n\nMore details.",
+      enum: {
+        COOL: {
+          val: 1,
+          doc: "All cool.\n\nNothing to worry about.",
         },
-        brief: "Channel control.",
-        doc: "One for every channel.",
-        registers: {
-          _CNFG: {
-            adr: 0,
-            reset_val: 0,
-            fields: {
-              A: {
-                bits: [0],
-                brief: "Controls value A",
-                accepts: {
-                  LocalEnum: {
-                    ON: {
-                      val: 1
-                    },
-                    OFF: {
-                      val: 0
-                    }
-                  }
-                }
-              }
-            }
-          },
-          _STATUS: {
-            adr: 1,
-            reset_val: 0,
-            fields: {
-              STATUS: {
-                bits: ["0-2"],
-                brief: "Status",
-                accepts: {
-                    SharedEnum: "STAT"
-                }
-              }
-            }
-          }
+        NOT_COOL: {
+          val: 2,
+          doc: "All not so cool.\n\nShould be worried.",
+        },
+        HOT: {
+          val: 3,
+          doc: "All pretty hot.\n\npanic.",
         }
       }
     }
   },
 
-  enums: {
-    STAT: {
-      brief: "Current status.",
-      doc: "More details.",
-      enum: {
-        COOL: {
-          val: 1,
-          brief: "All cool.",
-          doc: "Nothing to worry about."
+  layouts: {
+    INTERRUPT_CTRL: {
+      doc: Per-interrupt control
+      bitwidth: 2,
+      layout: {
+        MASK: {
+          bits: [0]
+          doc: Mask interrupt.
+          accepts: {
+            Enum: {
+              MASKED: {
+                val: 1,
+              },
+              UNMASKED: {
+                val: 0
+              }
+            }
+          }
         },
-        NOT_COOL: {
-          val: 2,
-          brief: "All not so cool.",
-          doc: "Should be worried."
-        },
-        HOT: {
-          val: 3,
-          brief: "All pretty hot.",
-          doc: "panic."
+        FLAG: {
+          bits: [1]
+          doc: Interrupt has occured flag.
+          accepts: Bool
+        }
+      }
+    }
+  }
+
+  registers: {
+    INTERRUPTS: {
+      Register: {
+        adr: 1,
+        reset_val: 0,
+        layout: {
+          Layout: {
+            DATA_RDY: {
+              bits: ["0-1"],
+              accepts: { SharedLayout: "INTERRUPT_CTRL" }
+            },
+            OVF: {
+              bits: ["2-3"]
+              accepts: { SharedLayout: "INTERRUPT_CTRL" }
+            }
+            FIFO_WTM: {
+              bits: ["4-5"]
+              accepts: { SharedLayout: "INTERRUPT_CTRL" }
+            }
+          }
+        }
+      }
+    },
+
+
+    CTRL: {
+      Register: {
+        adr: 2,
+        reset_val: 0,
+        layout: {
+          Layout: {
+            STATUS: {
+              bits: ["0-1"],
+              accepts: { SharedEnum: "STAT" }
+            },
+            CTRL: {
+              bits: [2],
+              accepts: "UInt"
+            }
+            RESERVED1: {
+              bits: ["3-4"]
+              accepts: { Fixed: 1 }
+            }
+          }
+        }
+      }
+    },
+
+    CHn: {
+      RegisterBlock: {
+        instances: {
+          CH1: {
+            adr: 16,
+            reset_vals: { STATUS: 1 }
+          }
+          CH2: {
+            adr: 32,
+            reset_vals: { STATUS: 2 }
+          }
+          CH3: {
+            adr: 48,
+            reset_vals: { STATUS: 3 }
+          }
+        }
+        registers: {
+          CONFIG: {
+            offset: 0,
+            reset_val: 27,
+            layout: {
+              Layout: {
+                VAL: {
+                  bits: ["7-0"]
+                }
+              }
+            }
+          },
+          STATUS: {
+            offset: 1,
+            layout: {
+              Layout: {
+                VAL: {
+                  bits: ["6-0"]
+                }
+              }
+            }
+          }
         }
       }
     }

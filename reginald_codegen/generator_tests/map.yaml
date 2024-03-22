@@ -1,0 +1,163 @@
+---
+name: chip
+defaults:
+  layout_bitwidth: 8
+
+registers:
+  REG1: !Register
+    adr: 0x00
+    reset_val: 0x00
+    bitwidth: 8
+    layout: !Layout
+      FIELD1:
+        bits: ["2-5"]
+        accepts: !UInt
+      FIELD0:
+        bits: [0]
+        accepts: !Bool
+
+  REG2: !Register
+    adr: 0x00
+    reset_val: 0x0043
+    bitwidth: 16
+    layout: !Layout
+      FIELD1:
+        bits: [7, 6]
+        # access: [R]
+        accepts: !SharedEnum STAT
+      FIELD2:
+        bits: ["1-0"]
+        # access: [R]
+        accepts: !Enum
+          EN:
+            val: 0x3
+      FIELD3:
+        bits: [2]
+        # access: [R]
+        accepts: !Bool
+      FIELD4:
+        bits: ["8-12"]
+        # access: [R]
+      RESERVED:
+        bits: ["4-5"]
+        accepts: !Fixed 0x1
+
+  REG3: !Register
+    adr: 0x10
+    bitwidth: 64
+    layout: !Layout
+      FIELD0:
+        bits: ["0-15"]
+      FIELD1:
+        bits: ["63-56"]
+
+  REG_EMPTY: !Register
+    adr: 0x10
+    reset_val: 0x00
+    bitwidth: 8
+
+  REG_SHARED_LAYOUT_BASIC_1: !Register
+    adr: 0x10
+    layout: !SharedLayout BASIC_SHARED_LAYOUT
+
+  REG_SHARED_LAYOUT_BASIC_2: !Register
+    adr: 0x10
+    layout: !SharedLayout BASIC_SHARED_LAYOUT
+
+  REG_FIXED_ACROSS_BYTES: !Register
+    adr: 0x12
+    bitwidth: 16
+    layout: !Layout
+      F1:
+        bits: ["6-9"]
+        accepts: !Fixed 0x9
+
+  REG_SHARED_LAYOUT: !Register
+    adr: 0x21
+    layout: !SharedLayout BASIC_SHARED_LAYOUT
+
+  REG_LAYOUT_FIELD: !Register
+    adr: 0x20
+    bitwidth: 16
+    layout: !Layout
+      LAYOUT_FIELD:
+        bits: ["0-15"]
+        accepts: !Layout
+          F1:
+            bits: [0]
+          F2:
+            bits: ["2-9"]
+            accepts: !Layout
+              F22:
+                bits: ["0-7"]
+          F3:
+            bits: [13]
+            accepts: !Layout
+
+  REG_NESTED_ONLY_FIXED: !Register
+    adr: 0x20
+    layout: !Layout
+      LAYOUT_FIELD_1:
+        bits: ["0-7"]
+        accepts: !Layout
+          LAYOUT_FIELD_2:
+            bits: ["0-7"]
+            accepts: !Fixed 0xAB
+
+  REG_SPLIT_FIELD: !Register
+    adr: 0x20
+    layout: !Layout
+      SPLIT_FIELD_1:
+        bits: ["0-1", "4-5"]
+      SPLIT_FIELD_2:
+        bits: ["2-3", "6-7"]
+
+  REG_SPLIT_ENUM: !Register
+    adr: 0x20
+    layout: !Layout
+      SPLIT_ENUM:
+        bits: [0, 2]
+        accepts: !Enum
+          SE_0:
+            val: 0x0
+          SE_1:
+            val: 0x1
+          SE_2:
+            val: 0x4
+          SE_3:
+            val: 0x5
+  
+  REG_SPLIT_LAYOUT: !Register
+    adr: 0x21
+    layout: !Layout
+      SPLIT_LAYOUT:
+        bits: ["1-3", "5-7"]
+        accepts: !Layout
+          F1:
+            bits: ["1-2"]
+          F2:
+            bits: ["4-6"]
+
+enums:
+  STAT:
+    enum:
+      COOL:
+        val: 0x1
+      NOT_COOL:
+        val: 0x2
+      HOT:
+        val: 0x3
+
+layouts:
+  BASIC_SHARED_LAYOUT:
+    bitwidth: 14
+    layout:
+      SHARED_FIELD1:
+        bits: ["4-1"]
+      SHARED_FIELD2:
+        bits: [10]
+        accepts: !Enum
+          IS_ONE:
+            val: 0x1
+          IS_ZERO:
+            val: 0x0
