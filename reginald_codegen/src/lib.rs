@@ -1,4 +1,5 @@
 #![warn(clippy::all)]
+#![deny(unused_must_use)]
 
 pub mod bits;
 pub mod builtin;

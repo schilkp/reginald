@@ -156,7 +156,7 @@ pub fn filename(s: &Path) -> Result<String, Error> {
         .map(|x| x.to_string_lossy().to_string())
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 #[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Endianess {
     Little,
@@ -166,8 +166,17 @@ pub enum Endianess {
 impl Display for Endianess {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Endianess::Little => write!(f, "little endian"),
-            Endianess::Big => write!(f, "big endian"),
+            Endianess::Little => write!(f, "little-endian"),
+            Endianess::Big => write!(f, "big-endian"),
+        }
+    }
+}
+
+impl Endianess {
+    pub fn short(&self) -> &'static str {
+        match self {
+            Endianess::Little => "le",
+            Endianess::Big => "be",
         }
     }
 }

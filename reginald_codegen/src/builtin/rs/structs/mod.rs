@@ -4,10 +4,7 @@ use crate::{
     bits::{bitmask_from_width, lsb_pos, mask_to_bit_ranges_str, mask_width, msb_pos, unpositioned_mask},
     builtin::rs::rs_const,
     error::Error,
-    regmap::{
-        Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterBlockMember, RegisterMap, TypeBitwidth,
-        TypeValue,
-    },
+    regmap::{Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterMap, TypeBitwidth, TypeValue},
     utils::{
         field_byte_to_packed_byte_transform, field_to_packed_byte_transform, filename, grab_byte,
         packed_byte_to_field_byte_transform, packed_byte_to_field_transform, remove_wrapping_parens, Endianess,
@@ -18,8 +15,8 @@ use crate::{
 use clap::Parser;
 
 use super::{
-    generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_generate_section_header_comment,
-    rs_header_comment, rs_layout_overview_comment, rs_pascalcase, rs_section_header_comment, rs_snakecase,
+    generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment,
+    rs_layout_overview_comment, rs_pascalcase, rs_snakecase,
 };
 
 // ====== Generator Opts =======================================================
@@ -78,14 +75,6 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub external_traits: Option<String>,
-
-    /// Generate `Default` implementations for all register structs, using the reset
-    /// value - if given.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub generate_defaults: bool,
 
     /// Generate `From/TryFrom/From` implementations that convert a register
     /// to/from the smallest rust unsigned integer value wide enough to hold the
@@ -164,40 +153,38 @@ impl Generator<'_> {
 
         // ===== Shared enums: =====
 
-        out.push_section_with_header(&["\n", &rs_section_header_comment("Shared Enums"), "\n"]);
+        out.push_section_with_header(&["\n", &rs_header_comment("Shared Enums"), "\n"]);
 
         for shared_enum in self.map.shared_enums() {
-            out.push_section_with_header(&["\n", &rs_header_comment(&shared_enum.name), "\n"]);
             self.generate_enum(&mut out, shared_enum)?;
-            out.pop_section();
+            self.generate_enum_impls(&mut out, shared_enum)?;
         }
 
         out.pop_section();
 
         // ===== Shared layouts: =====
 
-        out.push_section_with_header(&["\n", &rs_section_header_comment("Shared Layout Structs"), "\n"]);
         for layout in self.map.shared_layouts() {
-            out.push_section_with_header(&["\n", &rs_header_comment(&layout.name), "\n"]);
-            self.generate_layout(&mut out, layout, true)?;
-            out.pop_section();
+            out.push_section_with_header(&[
+                "\n",
+                &rs_header_comment(&format!("`{}` Shared Layout", layout.name)),
+                "\n",
+            ]);
+            self.generate_layout(&mut out, layout, None)?;
         }
         out.pop_section();
 
         // ===== Individual Registers: =====
         for register in self.map.individual_registers() {
-            let mut header = String::new();
-            Self::generate_register_header(&mut header, register)?;
-            out.push_section_with_header(&[&header]);
+            out.push_section_with_header(&["\n", &rs_header_comment(&format!("`{}` Register", register.name)), "\n"]);
 
-            self.generate_register_properties(&mut out, register)?;
-
-            // If the layout is local to this register, generate it:
             if register.layout.is_local {
-                self.generate_layout(&mut out, &register.layout, true)?;
+                // If the layout is local to this register, generate it and associate
+                // all register properties to it:
+                self.generate_layout(&mut out, &register.layout, Some(register))?;
             } else {
-                writeln!(&mut out)?;
-                writeln!(out, "// Register uses the {} struct.", rs_pascalcase(&register.layout.name))?;
+                // Otherwise generate a newtype to contain the register properties:
+                self.generate_register_newtype(&mut out, register)?;
             }
 
             out.pop_section();
@@ -213,17 +200,22 @@ impl Generator<'_> {
             self.generate_register_block_properties(&mut out, block)?;
 
             for member in block.members.values() {
-                let mut header = String::new();
-                Self::generate_register_block_member_header(&mut header, member)?;
-                out.push_section_with_header(&[&header]);
-
-                self.generate_register_block_member_properties(&mut out, block, member)?;
+                writeln!(&mut out)?;
+                rs_generate_header_comment(
+                    &mut out,
+                    &format!("`{}` Register Block Member `{}`", &block.name, &member.name),
+                )?;
 
                 if member.layout.is_local {
-                    self.generate_layout(&mut out, &member.layout, true)?;
-                } else {
-                    writeln!(&mut out)?;
-                    writeln!(out, "// Register uses the {} struct.", rs_pascalcase(&member.layout.name))?;
+                    self.generate_layout(&mut out, &member.layout, None)?;
+                }
+
+                out.push_section_with_header(&["\n", "// Instances:", "\n"]);
+
+                for block_instance in block.instances.values() {
+                    let member_instance = &block_instance.registers[&member.name];
+                    self.generate_register_newtype(&mut out, member_instance)?;
+                    self.generate_register_impl(&mut out, member_instance, true)?;
                 }
 
                 out.pop_section();
@@ -286,7 +278,7 @@ impl Generator<'_> {
 
     fn generate_traits(&self, out: &mut dyn Write) -> Result<(), Error> {
         writeln!(out)?;
-        rs_generate_section_header_comment(out, "Traits")?;
+        rs_generate_header_comment(out, "Traits")?;
         writeln!(out)?;
         write!(out, "{}", Self::CONVERSION_TRAITS)?;
         Ok(())
@@ -313,13 +305,10 @@ impl Generator<'_> {
         }
         writeln!(out, "}}")?;
 
-        // Enum impl for uint -> enum conversion:
-        self.generate_enum_impl(out, e)?;
-
         Ok(())
     }
 
-    fn generate_enum_impl(&self, out: &mut dyn Write, e: &Enum) -> Result<(), Error> {
+    fn generate_enum_impls(&self, out: &mut dyn Write, e: &Enum) -> Result<(), Error> {
         // Smallest uint type that can be used to represent the enum's content:
         let uint_type = rs_fitting_unsigned_type(e.min_bitdwith())?;
 
@@ -386,67 +375,83 @@ impl Generator<'_> {
         Ok(())
     }
 
-    fn generate_layout(&self, out: &mut dyn Write, layout: &Layout, generate_headers: bool) -> Result<(), Error> {
+    fn generate_layout(
+        &self,
+        out: &mut dyn Write,
+        layout: &Layout,
+        for_register: Option<&Register>,
+    ) -> Result<(), Error> {
         let mut out = HeaderWriter::new(out);
 
-        if generate_headers {
-            if layout.is_local {
-                out.push_section_with_header(&["\n", "// Register-specific enums and sub-layouts:", "\n"]);
-            } else {
-                out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
-            }
+        if for_register.is_some() {
+            out.push_section_with_header(&["\n", "// Register-specific enums and sub-layouts:", "\n"]);
+        } else {
+            out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
         }
 
-        for e in layout.local_enums() {
+        for e in layout.nested_local_enums() {
             self.generate_enum(&mut out, e)?;
         }
 
-        for local_layout in layout.local_layouts() {
-            self.generate_layout(&mut out, local_layout, false)?;
+        for local_layout in layout.nested_local_layouts() {
+            self.generate_layout_struct(&mut out, local_layout, None)?;
         }
 
-        if generate_headers {
+        out.pop_section();
+
+        if for_register.is_some() {
+            out.push_section_with_header(&["\n", "// Register Struct:", "\n"]);
+        } else {
+            out.push_section_with_header(&["\n", "// Layout Struct:", "\n"]);
+        }
+
+        self.generate_layout_struct(&mut out, layout, for_register)?;
+        out.pop_section();
+
+        if let Some(reg) = for_register {
+            out.push_section_with_header(&["\n", "// Register Properties:", "\n"]);
+            self.generate_register_impl(&mut out, reg, false)?;
             out.pop_section();
         }
 
-        if generate_headers {
-            if layout.is_local {
-                out.push_section_with_header(&["\n", "// Register Layout Struct:", "\n"]);
-            } else {
-                out.push_section_with_header(&["\n", "// Layout Struct:", "\n"]);
-            }
+        out.push_section_with_header(&["\n", "// Enum conversion functions:", "\n"]);
+        for e in layout.nested_local_enums() {
+            self.generate_enum_impls(&mut out, e)?;
         }
+        out.pop_section();
 
-        self.generate_layout_struct(&mut out, layout)?;
-
-        if generate_headers {
-            out.pop_section();
+        out.push_section_with_header(&["\n", "// Layout struct conversion functions:", "\n"]);
+        for layout in layout.nested_local_layouts() {
+            self.generate_layout_impls(&mut out, layout)?;
         }
+        self.generate_layout_impls(&mut out, layout)?;
+        out.pop_section();
 
-        if generate_headers {
-            out.push_section_with_header(&["\n", "// Struct Conversion Functions:", "\n"]);
-        }
-
-        self.generate_layout_impl_to_bytes(&mut out, layout)?;
-        self.generate_layout_impl_from_bytes(&mut out, layout)?;
-        if self.opts.generate_uint_conversion {
-            self.generate_layout_impl_uint_conv(&mut out, layout)?;
-        }
-
-        if generate_headers {
-            out.pop_section();
-        }
         Ok(())
     }
 
-    fn generate_layout_struct(&self, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
+    fn generate_layout_struct(
+        &self,
+        out: &mut dyn Write,
+        layout: &Layout,
+        for_register: Option<&Register>,
+    ) -> Result<(), Error> {
         // Struct doc comment:
         writeln!(out)?;
-        writeln!(out, "/// `{}`", layout.name)?;
+        if let Some(reg) = for_register {
+            writeln!(out, "/// `{}` Register", reg.name)?;
+            writeln!(out, "///")?;
+            writeln!(out, "/// Address: 0x{:X}", reg.adr)?;
+        } else {
+            writeln!(out, "/// `{}` Layout", layout.name)?;
+        }
         if !layout.docs.is_empty() {
             writeln!(out, "///")?;
             write!(out, "{}", layout.docs.as_multiline("/// "))?;
         }
+        writeln!(out, "///")?;
+        writeln!(out, "/// Fields:")?;
+        writeln!(out, "{}", rs_layout_overview_comment(layout))?;
 
         // Register derives:
         if !self.opts.struct_derive.is_empty() {
@@ -478,6 +483,15 @@ impl Generator<'_> {
             FieldType::Layout(layout) => Ok(rs_pascalcase(&layout.name)),
             FieldType::Fixed(_) => panic!("Fixed layout field has no type"),
         }
+    }
+
+    fn generate_layout_impls(&self, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
+        self.generate_layout_impl_to_bytes(out, layout)?;
+        self.generate_layout_impl_from_bytes(out, layout)?;
+        if self.opts.generate_uint_conversion {
+            self.generate_layout_impl_uint_conv(out, layout)?;
+        }
+        Ok(())
     }
 
     fn generate_layout_impl_to_bytes(&self, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
@@ -861,43 +875,81 @@ impl Generator<'_> {
         Ok(())
     }
 
-    /// Generate register section header comment
-    fn generate_register_header(out: &mut dyn Write, register: &Register) -> Result<(), Error> {
-        let name = &register.name;
+    fn generate_register_newtype(&self, out: &mut dyn Write, register: &Register) -> Result<(), Error> {
+        // Struct doc comment:
         writeln!(out)?;
-        rs_generate_section_header_comment(out, &format!("{name} Register"))?;
+        writeln!(out, "/// `{}` Register", register.name)?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// Address: 0x{:X}", register.adr)?;
         if !register.docs.is_empty() {
-            write!(out, "{}", register.docs.as_multiline("// "))?;
-            writeln!(out, "//")?;
+            writeln!(out, "///")?;
+            write!(out, "{}", register.docs.as_multiline("/// "))?;
         }
-        writeln!(out, "// Fields:")?;
-        writeln!(out, "{}", rs_layout_overview_comment(&register.layout))?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// Uses `{}` layout.", rs_pascalcase(&register.layout.name))?;
+
+        // Register derives:
+        if !self.opts.struct_derive.is_empty() {
+            let derives = self.opts.struct_derive.join(", ");
+            writeln!(out, "#[derive({derives})]")?;
+        }
+
+        // Struct proper:
+        writeln!(out, "pub struct {} ({});", rs_pascalcase(&register.name), rs_pascalcase(&register.layout.name))?;
+
         Ok(())
     }
 
-    fn generate_register_properties(&self, out: &mut dyn Write, register: &Register) -> Result<(), Error> {
+    fn generate_register_impl(&self, out: &mut dyn Write, register: &Register, is_newtype: bool) -> Result<(), Error> {
         let reg_name = &register.name;
-        let const_reg_name = rs_const(reg_name);
+        let struct_name = rs_pascalcase(reg_name);
         let byte_width = register.layout.width_bytes();
-        let byte_array = format!("[u8; {byte_width}]");
         let address_type = &self.address_type;
+        let trait_prefix = self.trait_prefix();
 
-        // Address
+        // ==== Properties ====:
         writeln!(out)?;
-        writeln!(out, "/// `{reg_name}` register address")?;
-        writeln!(out, "pub const {const_reg_name}_ADDRESS: {address_type} = 0x{:x};", register.adr)?;
+        writeln!(out, "impl {trait_prefix}Register<{byte_width}, {address_type}> for {struct_name} {{")?;
 
-        // Reset val.
+        // Adr:
+        writeln!(out, "    const ADDRESS: {address_type} = 0x{:X};", register.adr)?;
+
+        // Reset val:
         if let Some(reset_val) = &register.reset_val {
             let val = Self::to_array_literal(Endianess::Little, *reset_val, byte_width);
-            writeln!(out)?;
-            writeln!(out, "/// `{reg_name}` little-endian reset value")?;
-            writeln!(out, "pub const {const_reg_name}_RESET_LE: {byte_array} = {val};")?;
+            writeln!(
+                out,
+                "    const RESET_VAL: Option<{trait_prefix}ResetVal<{byte_width}>> = Some({trait_prefix}ResetVal::LittleEndian({val}));"
+            )?;
+        } else {
+            writeln!(out, "    const RESET_VAL: Option<{trait_prefix}ResetVal<{byte_width}>> = None;")?;
+        }
+        writeln!(out, "}}")?;
 
-            let val = Self::to_array_literal(Endianess::Big, *reset_val, byte_width);
+        // ==== Default ====:
+        if let Some(reset_val) = &register.reset_val {
+            let mut out = IndentWriter::new(out, "    ");
+
+            let mut init_str = String::new();
+            let mut init = IndentWriter::new(&mut init_str, "    ");
+            if Self::generate_struct_literal(&mut init, &register.layout, *reset_val, !is_newtype).is_err() {
+                return Ok(());
+            };
+            drop(init);
+
             writeln!(out)?;
-            writeln!(out, "/// `{reg_name}` big-endian reset value")?;
-            writeln!(out, "pub const {const_reg_name}_RESET_BE: {byte_array} = {val};")?;
+            writeln!(out, "/// Reset Value")?;
+            writeln!(out, "impl Default for {struct_name} {{")?;
+            writeln!(out, "    fn default() -> Self {{")?;
+            out.increase_indent(2);
+            if is_newtype {
+                writeln!(out, "Self ({init_str})")?;
+            } else {
+                writeln!(out, "{}", init_str)?;
+            }
+            out.decrease_indent(2);
+            writeln!(out, "    }}")?;
+            writeln!(out, "}}")?;
         }
 
         Ok(())
@@ -906,7 +958,7 @@ impl Generator<'_> {
     fn generate_register_block_header(out: &mut dyn Write, block: &RegisterBlock) -> Result<(), Error> {
         let name = &block.name;
         writeln!(out)?;
-        rs_generate_section_header_comment(out, &format!("{name} Register Block"))?;
+        rs_generate_header_comment(out, &format!("{name} Register Block"))?;
         if !block.docs.is_empty() {
             write!(out, "{}", block.docs.as_multiline("// "))?;
         }
@@ -975,58 +1027,6 @@ impl Generator<'_> {
         Ok(())
     }
 
-    fn generate_register_block_member_header(out: &mut dyn Write, member: &RegisterBlockMember) -> Result<(), Error> {
-        let name = &member.name;
-        writeln!(out)?;
-        rs_generate_header_comment(out, &format!("{name} Register Block Member "))?;
-
-        if !member.docs.is_empty() {
-            write!(out, "{}", member.docs.as_multiline("// "))?;
-            writeln!(out, "//")?;
-        }
-
-        writeln!(out, "// Fields:")?;
-        writeln!(out, "{}", rs_layout_overview_comment(&member.layout))?;
-        Ok(())
-    }
-
-    fn generate_register_block_member_properties(
-        &self,
-        out: &mut dyn Write,
-        block: &RegisterBlock,
-        member: &RegisterBlockMember,
-    ) -> Result<(), Error> {
-        let address_type = &self.address_type;
-        let byte_width = member.layout.width_bytes();
-        let byte_array = format!("[u8; {byte_width}]");
-
-        for block_instance in block.instances.values() {
-            let member_instance = &block_instance.registers[&member.name];
-
-            let reg_name = &member_instance.name;
-            let const_reg_name = rs_const(reg_name);
-
-            // Address
-            writeln!(out)?;
-            writeln!(out, "/// `{reg_name}` register address")?;
-            writeln!(out, "pub const {const_reg_name}_ADDRESS: {address_type} = 0x{:x};", member_instance.adr)?;
-
-            // Reset value:
-            if let Some(reset_val) = &member_instance.reset_val {
-                let val = Self::to_array_literal(Endianess::Little, *reset_val, byte_width);
-                writeln!(out)?;
-                writeln!(out, "/// `{reg_name}` little-endian reset value")?;
-                writeln!(out, "pub const {const_reg_name}_RESET_LE: {byte_array} = {val};")?;
-
-                let val = Self::to_array_literal(Endianess::Big, *reset_val, byte_width);
-                writeln!(out)?;
-                writeln!(out, "/// `{reg_name}` big-endian reset value")?;
-                writeln!(out, "pub const {const_reg_name}_RESET_BE: {byte_array} = {val};")?;
-            }
-        }
-        Ok(())
-    }
-
     fn assemble_numeric_field(&self, layout: &Layout, field: &LayoutField) -> Result<String, Error> {
         let field_raw_type = match &field.accepts {
             FieldType::UInt => self.register_layout_member_type(field)?,
@@ -1092,5 +1092,52 @@ impl Generator<'_> {
         }
 
         format!("[{}]", bytes.join(", "))
+    }
+
+    /// Convert a value to an array literal of given endianess
+    fn generate_struct_literal(
+        out: &mut IndentWriter,
+        layout: &Layout,
+        val: TypeValue,
+        name_self: bool,
+    ) -> Result<(), Error> {
+        if name_self {
+            writeln!(out, "Self {{")?;
+        } else {
+            writeln!(out, "{} {{", rs_pascalcase(&layout.name))?;
+        }
+        out.push_indent();
+
+        for field in layout.fields_with_content() {
+            let field_val = (val & field.mask) >> (lsb_pos(field.mask));
+
+            write!(out, "{}: ", rs_snakecase(&field.name))?;
+
+            if let FieldType::Layout(layout) = &field.accepts {
+                Self::generate_struct_literal(out, layout, field_val, false)?;
+            } else {
+                match field.decode_value(field_val)? {
+                    crate::regmap::DecodedField::UInt(val) => {
+                        write!(out, "0x{:X}", val)?;
+                    }
+                    crate::regmap::DecodedField::Bool(b) => {
+                        write!(out, "{}", b)?;
+                    }
+                    crate::regmap::DecodedField::EnumEntry(entry) => {
+                        let FieldType::Enum(e) = &field.accepts else {
+                            unreachable!()
+                        };
+                        write!(out, "{}::{}", rs_pascalcase(&e.name), rs_pascalcase(&entry))?;
+                    }
+                    crate::regmap::DecodedField::Fixed { .. } => unreachable!(),
+                };
+            }
+
+            writeln!(out, ",")?;
+        }
+
+        out.pop_indent();
+        write!(out, "}}")?;
+        Ok(())
     }
 }

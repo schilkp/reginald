@@ -3,11 +3,9 @@
 Philipp Schilk
 2022-2024
 
-### TODO [In-Order]:
+### TODO:
 
 - More complex field types
-    - LE/BE Uints
-    - LE/BE Enums
     - Arrays
     - Bytes? Or is just just an u8 array?
     - Signed int?
@@ -20,18 +18,9 @@ Philipp Schilk
     - Define maximum enum/field size?
 
 - Input/processor option to stuff empty fields with reserved fields
-
-- C: Emit both LE & BE version.
+- Input/processor option to stuff enums to allow full conversion
 
 - C: Emit "UINT" version.
-
-- Rust: Work out how to assosciate data to register?
-    - Make each register a struct, that either has the layout fields directly contained, or
-      newtypes to the shared layout?
-
-- Emit 'unused bits'
-    - Definetly as mask
-    - Rust: "extract/set field" functions? Could be used by actual pack/unpack? Would likely replace RS UInt generator?
 
 - Rust: Port to quote/syn/prettyplease
 - !!Reginald crate with code-gen backing!!
@@ -44,13 +33,24 @@ syn = "2.0.53"
 - GUI:
     - Tauri
     - Features/Tabs:
-        - Editor/Viewer
+        - Graphical Editor/Viewer
         - Dump Decoder/Encoder
         - Remote Control
             - Connection options:
                 - port to "bridge" process
                 - via UART
                 - via BLE
+
+
+### NOT TODOs:
+
+- Better syntax for bit ranges?
+- Support more flexible register widths?
+- Infer register/field width from underlying type?
+
+- More complex field types
+    - (( LE/BE Uints? Needed? ))
+    - (( LE/BE Enums? Needed? ))
 
 ### RUST API NOTES:
 

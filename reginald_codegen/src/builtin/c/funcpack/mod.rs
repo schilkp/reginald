@@ -39,22 +39,24 @@ pub enum Element {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "cli", derive(Parser))]
 pub struct GeneratorOpts {
-    /// Endianess of input/output byte arrays.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "little"))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub endian: Endianess,
-
-    /// Include endianess in function and macro names
+    /// Generate functions and enums with the given endianess.
     ///
-    /// Function/macro include a "_le" or "_be" to indicate if they operator
-    /// on little/big endian binary arrays.
+    /// May be given multiple times. If not specified, both endianess
+    /// versions will be generated.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "cli", arg(conflicts_with("dont_generate")))]
+    pub endian: Vec<Endianess>,
+
+    /// For other endianess, generate only simple functions that defers to this implementaiton.
+    ///
+    /// If generating both endianess versions, only generate one complete
+    /// function implementation and have the other endianess defer to this
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub endianess_in_names: bool,
+    pub defer_to_endian: Option<Endianess>,
 
     /// Make register structs bitfields to reduce their memory size
     ///
@@ -148,13 +150,26 @@ struct Input<'a> {
     opts: GeneratorOpts,
     map: &'a RegisterMap,
     output_file: &'a Path,
+    endian: Vec<Endianess>,
 }
 
 pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
+    let mut endian = if opts.endian.is_empty() {
+        Vec::from([Endianess::Little, Endianess::Big])
+    } else {
+        Vec::from_iter(opts.endian.iter().copied())
+    };
+
+    // If impls defer to a given endianess, sort to have that impl appear first:
+    if let Some(defer_to) = &opts.defer_to_endian {
+        endian.sort_by_key(|x| if x == defer_to { 0 } else { 1 })
+    }
+
     let inp = Input {
         opts: opts.clone(),
         map,
         output_file,
+        endian,
     };
 
     let mut out = HeaderWriter::new(out);
@@ -182,7 +197,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
             writeln!(out, "// Fields:")?;
             writeln!(out, "{}", c_layout_overview_comment(layout))?;
         }
-        generate_layout(&mut out, &inp, layout, true)?;
+        generate_layout(&mut out, &inp, layout)?;
 
         out.pop_section();
     }
@@ -198,7 +213,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
 
         // If the layout is local to this register, generate it:
         if register.layout.is_local {
-            generate_layout(&mut out, &inp, &register.layout, true)?;
+            generate_layout(&mut out, &inp, &register.layout)?;
         } else if is_enabled(&inp, Element::Structs) {
             writeln!(&mut out)?;
             writeln!(
@@ -227,7 +242,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
 
             generate_register_block_member_properties(&mut out, &inp, member, block)?;
             if member.layout.is_local {
-                generate_layout(&mut out, &inp, &member.layout, true)?;
+                generate_layout(&mut out, &inp, &member.layout)?;
             } else if is_enabled(&inp, Element::Structs) {
                 writeln!(&mut out)?;
                 writeln!(
@@ -276,9 +291,6 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     }
     writeln!(out, " *")?;
     writeln!(out, " * Generator: c.funcpack")?;
-    if is_enabled(inp, Element::StructConversionFuncs) || is_enabled(inp, Element::RegisterProperties) {
-        writeln!(out, " * Endianess: {}", inp.opts.endian)?;
-    }
 
     // Map docs/author/note, if present:
     if !inp.map.docs.is_empty() {
@@ -308,6 +320,9 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     writeln!(out)?;
     writeln!(out, "#include <stdint.h>")?;
     writeln!(out, "#include <stdbool.h>")?;
+    if inp.opts.defer_to_endian.is_some() {
+        writeln!(out, "#include <stddef.h>")?;
+    }
     for include in &inp.opts.add_include {
         writeln!(out, "#include \"{include}\"")?;
     }
@@ -409,85 +424,46 @@ fn generate_enum_validation_func(out: &mut dyn Write, inp: &Input, e: &Enum) -> 
     Ok(())
 }
 
-fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout, generate_headers: bool) -> Result<(), Error> {
+fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
     let mut out = HeaderWriter::new(out);
 
-    if generate_headers {
-        if layout.is_local {
-            out.push_section_with_header(&["\n", "// Register-specific enums and sub-layouts:", "\n"]);
-        } else {
-            out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
-        }
+    if layout.is_local {
+        out.push_section_with_header(&["\n", "// Register-specific enums and sub-layouts:", "\n"]);
+    } else {
+        out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
     }
 
-    for e in layout.local_enums() {
+    for e in layout.nested_local_enums() {
         generate_enum(&mut out, inp, e)?;
+    }
+
+    for local_layout in layout.nested_local_layouts() {
+        generate_layout_struct(&mut out, inp, local_layout)?;
+    }
+
+    out.pop_section();
+
+    if layout.is_local {
+        out.push_section_with_header(&["\n", "// Register Layout Struct:", "\n"]);
+    } else {
+        out.push_section_with_header(&["\n", "// Layout Struct:", "\n"]);
+    }
+    generate_layout_struct(&mut out, inp, layout)?;
+    out.pop_section();
+
+    out.push_section_with_header(&["\n", "// Enum validation functions:", "\n"]);
+    for e in layout.nested_local_enums() {
         generate_enum_validation_func(&mut out, inp, e)?;
     }
+    out.pop_section();
 
-    for local_layout in layout.local_layouts() {
-        generate_layout(&mut out, inp, local_layout, false)?;
+    out.push_section_with_header(&["\n", "// Layout struct conversion functions:", "\n"]);
+    for layout in layout.nested_local_layouts() {
+        generate_layout_funcs(&mut out, inp, layout)?;
     }
-
-    if generate_headers {
-        out.pop_section();
-    }
-
-    if generate_headers {
-        if layout.is_local {
-            out.push_section_with_header(&["\n", "// Register Layout Struct:", "\n"]);
-        } else {
-            out.push_section_with_header(&["\n", "// Layout Struct:", "\n"]);
-        }
-    }
-
-    generate_layout_properties(&mut out, inp, layout)?;
-    generate_layout_struct(&mut out, inp, layout)?;
-
-    if generate_headers {
-        out.pop_section();
-    }
-
-    if generate_headers {
-        out.push_section_with_header(&["\n", "// Struct Conversion Functions:", "\n"]);
-    }
-
     generate_layout_funcs(&mut out, inp, layout)?;
+    out.pop_section();
 
-    if generate_headers {
-        out.pop_section();
-    }
-
-    Ok(())
-}
-
-fn generate_layout_properties(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
-    if !is_enabled(inp, Element::Structs) {
-        return Ok(());
-    }
-
-    let macro_prefix = c_macro(&inp.map.name);
-    let macro_name = c_macro(&layout.name);
-
-    let mut defines = vec![];
-
-    if layout.contains_fixed_bits() {
-        defines.push(vec![]);
-        defines.push(vec![
-            format!("#define {macro_prefix}_{macro_name}_ALWAYSWRITE_MASK"),
-            to_array_init(inp, layout.fixed_bits_mask(), layout.width_bytes()),
-            format!("//!< {} always write mask", layout.name),
-        ]);
-        defines.push(vec![
-            format!("#define {macro_prefix}_{macro_name}_ALWAYSWRITE_VALUE"),
-            to_array_init(inp, layout.fixed_bits_val(), layout.width_bytes()),
-            format!("//!< {} always write value", layout.name),
-        ]);
-    }
-
-    if !defines.is_empty() {
-        write!(out, "{}", str_table(&defines, "", " "))?;
-    }
     Ok(())
 }
 
@@ -550,35 +526,51 @@ fn generate_layout_funcs(out: &mut dyn Write, inp: &Input, layout: &Layout) -> R
         return Ok(());
     }
 
-    generate_layout_pack_func(out, inp, layout)?;
-    generate_layout_try_unpack_func(out, inp, layout)?;
+    for endian in &inp.endian {
+        generate_layout_pack_func(out, inp, layout, *endian)?;
+    }
+    for endian in &inp.endian {
+        generate_layout_try_unpack_func(out, inp, layout, *endian)?;
+    }
     if layout.can_always_unpack() {
-        generate_layout_unpack_func(out, inp, layout)?;
+        for endian in &inp.endian {
+            generate_layout_unpack_func(out, inp, layout, *endian)?;
+        }
     }
 
     Ok(())
 }
 
-fn generate_layout_pack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
+fn generate_layout_pack_func(
+    out: &mut dyn Write,
+    inp: &Input,
+    layout: &Layout,
+    endian: Endianess,
+) -> Result<(), Error> {
     // Strings/Properties:
     let code_prefix = c_code(&inp.map.name);
     let code_name = c_code(&layout.name);
     let func_prefix = func_prefix(inp);
     let width_bytes = layout.width_bytes();
-    let endi = func_endianess_str(inp);
 
     // Doxy comment:
     writeln!(out)?;
     let docs = Docs {
-        brief: Some(format!("Convert @ref struct {code_prefix}_{code_name} struct to packed value.")),
+        brief: Some(format!("Convert @ref struct {code_prefix}_{code_name} struct to packed {endian} value.")),
         doc: None,
     };
     generate_doxy_comment(out, inp, &docs, "", Some("any unspecified fields are left untouched"))?;
 
     // Function:
     let func_sig = format!(
-        "{}void {}_{}_pack{}(const struct {}_{} *r, uint8_t val[{}])",
-        func_prefix, code_prefix, code_name, endi, code_prefix, code_name, width_bytes
+        "{}void {}_{}_pack_{}(const struct {}_{} *r, uint8_t val[{}])",
+        func_prefix,
+        code_prefix,
+        code_name,
+        endian.short(),
+        code_prefix,
+        code_name,
+        width_bytes
     );
 
     if inp.opts.funcs_as_prototypes {
@@ -587,6 +579,17 @@ fn generate_layout_pack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) 
     }
 
     writeln!(out, "{func_sig} {{")?;
+
+    if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
+        // The implementaiton for this endianess defers to the other endianess:
+        let defer_arr = format!("val_{}", defer_to.short());
+        writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
+        writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
+        writeln!(out, "  {}_{}_pack_{}(r, {defer_arr});", code_prefix, code_name, defer_to.short())?;
+        writeln!(out, "  {}", swap_loop(&defer_arr, "val", width_bytes))?;
+        writeln!(out, "}}")?;
+        return Ok(());
+    }
 
     // Pack each field:
     for field in layout.fields.values() {
@@ -599,7 +602,7 @@ fn generate_layout_pack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) 
                 // Numeric field that can be directly converted:
                 for byte in 0..width_bytes {
                     let Some(transform) = field_to_packed_byte_transform(
-                        inp.opts.endian,
+                        endian,
                         unpositioned_mask(field.mask),
                         lsb_pos(field.mask),
                         byte,
@@ -622,8 +625,8 @@ fn generate_layout_pack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) 
             FieldType::Fixed(fixed) => {
                 // Fixed value:
                 for byte in 0..width_bytes {
-                    let mask_byte = grab_byte(inp.opts.endian, field.mask, byte, width_bytes);
-                    let value_byte = grab_byte(inp.opts.endian, *fixed << lsb_pos(field.mask), byte, width_bytes);
+                    let mask_byte = grab_byte(endian, field.mask, byte, width_bytes);
+                    let value_byte = grab_byte(endian, *fixed << lsb_pos(field.mask), byte, width_bytes);
                     if mask_byte == 0 {
                         continue;
                     };
@@ -642,14 +645,19 @@ fn generate_layout_pack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) 
                 let function_prefix = format!("{code_prefix}_{code_sublayout_name}");
 
                 writeln!(out, "  uint8_t {array_name}[{array_len}] = {{0}};")?;
-                writeln!(out, "  {function_prefix}_pack(&r->{field_name}, {});", c_code(&field.name))?;
+                writeln!(
+                    out,
+                    "  {function_prefix}_pack_{}(&r->{field_name}, {});",
+                    endian.short(),
+                    c_code(&field.name)
+                )?;
 
                 for byte in 0..width_bytes {
                     for field_byte in 0..array_len {
                         // Determine required transform to put byte 'field_byte' of field into 'byte' of
                         // output:
                         let transform = field_byte_to_packed_byte_transform(
-                            inp.opts.endian,
+                            endian,
                             sublayout.occupied_mask(),
                             lsb_pos(field.mask),
                             field_byte,
@@ -690,20 +698,24 @@ fn generate_layout_pack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) 
     Ok(())
 }
 
-fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
+fn generate_layout_try_unpack_func(
+    out: &mut dyn Write,
+    inp: &Input,
+    layout: &Layout,
+    endian: Endianess,
+) -> Result<(), Error> {
     // Strings:
     let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));
     let func_prefix = func_prefix(inp);
     let code_prefix = c_code(&inp.map.name);
     let code_name = c_code(&layout.name);
-    let endi = func_endianess_str(inp);
 
     let width_bytes = layout.width_bytes();
 
     // doxy comment:
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Attempt to convert packed binary value to struct.".to_string()),
+        brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
         doc: Some(
             "@returns 0 if succesfull.\n@returns the position of the field that could not be unpacked plus one, if enums can not represent content.".to_string(),
         ),
@@ -712,8 +724,12 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
 
     // Function signature
     let func_sig = format!(
-        "{}int {}_try_unpack{}(const uint8_t val[{}], struct {} *r)",
-        func_prefix, struct_name, endi, width_bytes, struct_name
+        "{}int {}_try_unpack_{}(const uint8_t val[{}], struct {} *r)",
+        func_prefix,
+        struct_name,
+        endian.short(),
+        width_bytes,
+        struct_name
     );
 
     if inp.opts.funcs_as_prototypes {
@@ -722,6 +738,16 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
     }
 
     writeln!(out, "{func_sig} {{")?;
+
+    if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
+        // The implementaiton for this endianess defers to the other endianess:
+        let defer_arr = format!("val_{}", defer_to.short());
+        writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
+        writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
+        writeln!(out, "  return {}_{}_try_unpack_{}({defer_arr}, r);", code_prefix, code_name, defer_to.short())?;
+        writeln!(out, "}}")?;
+        return Ok(());
+    }
 
     // Unpack each field:
     for field in layout.fields_with_content() {
@@ -733,7 +759,7 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
         match &field.accepts {
             FieldType::UInt | FieldType::Bool => {
                 // Numeric fields can be directly converted:
-                let numeric_value = assemble_numeric_field(inp, layout, field)?;
+                let numeric_value = assemble_numeric_field(layout, field, endian)?;
 
                 writeln!(out, "  r->{code_field_name} = {numeric_value};")?;
             }
@@ -741,7 +767,7 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
                 // Enums may require validation:
                 let enum_name = c_code(&e.name);
 
-                let numeric_value = assemble_numeric_field(inp, layout, field)?;
+                let numeric_value = assemble_numeric_field(layout, field, endian)?;
 
                 if field.can_always_unpack() {
                     writeln!(out, "  r->{code_field_name} = (enum {code_prefix}_{enum_name})({numeric_value});")?;
@@ -768,7 +794,7 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
                         // Determine required transform to put byte 'byte' of packed input into 'field_byte' of
                         // field:
                         let transform = packed_byte_to_field_byte_transform(
-                            inp.opts.endian,
+                            endian,
                             sublayout.occupied_mask(),
                             lsb_pos(field.mask),
                             field_byte,
@@ -796,11 +822,16 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
 
                 // Unpack using sublayout's function:
                 if sublayout.can_always_unpack() {
-                    writeln!(out, "  r->{code_field_name} = {function_prefix}_unpack({code_field_name});",)?;
+                    writeln!(
+                        out,
+                        "  r->{code_field_name} = {function_prefix}_unpack_{}({code_field_name});",
+                        endian.short()
+                    )?;
                 } else {
                     writeln!(
                         out,
-                        "  if ({function_prefix}_try_unpack(&r->{code_field_name}, {code_field_name})) {{ return {error_code} }};",
+                        "  if ({function_prefix}_try_unpack_{}(&r->{code_field_name}, {code_field_name})) {{ return {error_code} }};",
+                        endian.short()
                     )?;
                 }
             }
@@ -819,26 +850,34 @@ fn generate_layout_try_unpack_func(out: &mut dyn Write, inp: &Input, layout: &La
     Ok(())
 }
 
-fn generate_layout_unpack_func(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
+fn generate_layout_unpack_func(
+    out: &mut dyn Write,
+    inp: &Input,
+    layout: &Layout,
+    endian: Endianess,
+) -> Result<(), Error> {
     // Strings:
     let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));
     let func_prefix = func_prefix(inp);
-    let endi = func_endianess_str(inp);
 
     let width_bytes = layout.width_bytes();
 
     // doxy comment:
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert packed binary value to struct.".to_string()),
+        brief: Some("Convert packed {endian} binary value to struct.".to_string()),
         doc: None,
     };
     generate_doxy_comment(out, inp, &docs, "", None)?;
 
     // Function signature
     let func_sig = format!(
-        "{}struct {} {}_unpack{}(const uint8_t val[{}])",
-        func_prefix, struct_name, struct_name, endi, width_bytes
+        "{}struct {} {}_unpack_{}(const uint8_t val[{}])",
+        func_prefix,
+        struct_name,
+        struct_name,
+        endian.short(),
+        width_bytes
     );
 
     if inp.opts.funcs_as_prototypes {
@@ -847,9 +886,20 @@ fn generate_layout_unpack_func(out: &mut dyn Write, inp: &Input, layout: &Layout
     }
 
     writeln!(out, "{func_sig} {{")?;
+
+    if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
+        // The implementaiton for this endianess defers to the other endianess:
+        let defer_arr = format!("val_{}", defer_to.short());
+        writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
+        writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
+        writeln!(out, "  return {}_unpack_{}({defer_arr});", struct_name, defer_to.short())?;
+        writeln!(out, "}}")?;
+        return Ok(());
+    }
+
     writeln!(out, "  // All possible layout field values can be unpacked without error.")?;
     writeln!(out, "  struct {struct_name} r = {{0}};")?;
-    writeln!(out, "  (void) {struct_name}_try_unpack(val, &r);")?;
+    writeln!(out, "  (void) {struct_name}_try_unpack_{}(val, &r);", endian.short())?;
     writeln!(out, "  return r;")?;
     writeln!(out, "}}")?;
     Ok(())
@@ -864,19 +914,29 @@ fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error
     let mut out = HeaderWriter::new(out);
     out.push_section_with_header(&["\n", &c_section_header_comment("Generic Macros"), "\n"]);
 
-    let docs = Docs {
-        brief: Some("Convert struct to packed binary value.".to_string()),
-        doc: Some("All non-field/always write bits are left untouched.".to_string()),
-    };
-    generate_generic_macro(&mut out, inp, &docs, "pack", "_struct_ptr_, _val_", inp.map.layouts.values())?;
+    for endian in &inp.endian {
+        let docs = Docs {
+            brief: Some("Convert struct to packed {endian} binary value.".to_string()),
+            doc: Some("All non-field/always write bits are left untouched.".to_string()),
+        };
+        generate_generic_macro(&mut out, inp, &docs, "pack", "_struct_ptr_, _val_", inp.map.layouts.values(), *endian)?;
 
-    let docs = Docs {
-       brief: Some("Attempt to convert packed binary value to struct.".to_string()),
-       doc: Some(
-           "@returns 0 if succesfull.\n@returns the position of the field that could not be unpacked plus one, if enums can not represent content.".to_string(),
-       ),
-    };
-    generate_generic_macro(&mut out, inp, &docs, "try_unpack", "_val_, _struct_ptr_", inp.map.layouts.values())?;
+        let docs = Docs {
+           brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
+           doc: Some(
+               "@returns 0 if succesfull.\n@returns the position of the field that could not be unpacked plus one, if enums can not represent content.".to_string(),
+           ),
+        };
+        generate_generic_macro(
+            &mut out,
+            inp,
+            &docs,
+            "try_unpack",
+            "_val_, _struct_ptr_",
+            inp.map.layouts.values(),
+            *endian,
+        )?;
+    }
 
     out.pop_section();
 
@@ -890,22 +950,26 @@ fn generate_generic_macro<'a>(
     func_name_suffix: &str,
     func_args: &str,
     layouts: impl Iterator<Item = &'a Rc<Layout>>,
+    endian: Endianess,
 ) -> Result<(), Error> {
     let macro_name_suffix = c_macro(func_name_suffix);
     let macro_prefix = c_macro(&inp.map.name);
     let code_prefix = c_code(&inp.map.name);
-    let endi = func_endianess_str(inp).to_uppercase();
+    let macro_endian_str = endian.short().to_uppercase();
+    let endian_str = endian.short();
 
     // doxy comment:
     writeln!(out)?;
     generate_doxy_comment(out, inp, docs, "", None)?;
 
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!("#define {macro_prefix}_{macro_name_suffix}{endi}({func_args}) _Generic((_struct_ptr_),"));
+    macro_lines.push(format!(
+        "#define {macro_prefix}_{macro_name_suffix}_{macro_endian_str}({func_args}) _Generic((_struct_ptr_),"
+    ));
 
     for layout in layouts {
         let struct_name = format!("{}_{}", code_prefix, c_code(&layout.name));
-        macro_lines.push(format!("    struct {struct_name}* : {struct_name}_{func_name_suffix},"));
+        macro_lines.push(format!("    struct {struct_name}* : {struct_name}_{func_name_suffix}_{endian_str},"));
     }
     let last_line = macro_lines.pop().unwrap().replace(',', "");
     macro_lines.push(last_line);
@@ -964,7 +1028,6 @@ fn generate_register_properties(out: &mut dyn Write, inp: &Input, register: &Reg
 
     let macro_prefix = c_macro(&inp.map.name);
     let reg_macro_prefix = format!("{macro_prefix}_{}", c_macro(&register.name));
-    let endi = func_endianess_str(inp).to_uppercase();
 
     // Address:
     defines.push(vec![
@@ -973,13 +1036,15 @@ fn generate_register_properties(out: &mut dyn Write, inp: &Input, register: &Reg
         format!("//!< {} register address", register.name),
     ]);
 
-    // Reset value:
-    if let Some(reset_val) = &register.reset_val {
-        defines.push(vec![
-            format!("#define {}_RESET{}", reg_macro_prefix, endi),
-            to_array_init(inp, *reset_val, register.layout.width_bytes()),
-            format!("//!< {} register reset value", register.name),
-        ]);
+    for endian in &inp.endian {
+        // Reset value:
+        if let Some(reset_val) = &register.reset_val {
+            defines.push(vec![
+                format!("#define {}_RESET_{}", reg_macro_prefix, &endian.short().to_uppercase()),
+                to_array_init(*reset_val, register.layout.width_bytes(), *endian),
+                format!("//!< {} register reset value", register.name),
+            ]);
+        }
     }
 
     if !defines.is_empty() {
@@ -1112,13 +1177,15 @@ fn generate_register_block_member_properties(
             format!("//!< {} register address", member_instance.name),
         ]);
 
-        // Reset value:
-        if let Some(reset_val) = &member_instance.reset_val {
-            defines.push(vec![
-                format!("#define {}_RESET", reg_macro_prefix),
-                to_array_init(inp, *reset_val, member_instance.layout.width_bytes()),
-                format!("//!< {} register reset value", member_instance.name),
-            ]);
+        for endian in &inp.endian {
+            // Reset value:
+            if let Some(reset_val) = &member_instance.reset_val {
+                defines.push(vec![
+                    format!("#define {}_RESET_{}", reg_macro_prefix, endian.short().to_uppercase()),
+                    to_array_init(*reset_val, member_instance.layout.width_bytes(), *endian),
+                    format!("//!< {} register reset value", member_instance.name),
+                ]);
+            }
         }
     }
 
@@ -1142,16 +1209,12 @@ fn func_prefix(inp: &Input) -> &'static str {
     }
 }
 
-fn func_endianess_str(inp: &Input) -> &'static str {
-    match (&inp.opts.endianess_in_names, &inp.opts.endian) {
-        (true, Endianess::Little) => "_le",
-        (true, Endianess::Big) => "_be",
-        (false, _) => "",
-    }
+fn swap_loop(from: &str, to: &str, width_bytes: TypeBitwidth) -> String {
+    format!("for(size_t i = 0; i < {width_bytes}; i++) {{ {to}[i] = {from}[{width_bytes}-(i+1)]; }}")
 }
 
 /// Convert a value to an array initialiser of correct endianess
-fn to_array_init(inp: &Input, val: TypeValue, width_bytes: TypeBitwidth) -> String {
+fn to_array_init(val: TypeValue, width_bytes: TypeBitwidth, endian: Endianess) -> String {
     let mut bytes: Vec<String> = vec![];
 
     for i in 0..width_bytes {
@@ -1159,14 +1222,14 @@ fn to_array_init(inp: &Input, val: TypeValue, width_bytes: TypeBitwidth) -> Stri
         bytes.push(byte);
     }
 
-    if matches!(inp.opts.endian, Endianess::Big) {
+    if matches!(endian, Endianess::Big) {
         bytes.reverse();
     }
 
     format!("{{{}}}", bytes.join(", "))
 }
 
-fn assemble_numeric_field(inp: &Input, layout: &Layout, field: &LayoutField) -> Result<String, Error> {
+fn assemble_numeric_field(layout: &Layout, field: &LayoutField, endian: Endianess) -> Result<String, Error> {
     let layout_width_bytes = layout.width_bytes();
 
     let field_bitwidth = match &field.accepts {
@@ -1186,7 +1249,7 @@ fn assemble_numeric_field(inp: &Input, layout: &Layout, field: &LayoutField) -> 
     let mut unpacked_value: Vec<String> = vec![];
     for byte in 0..layout_width_bytes {
         let Some(transform) = packed_byte_to_field_transform(
-            inp.opts.endian,
+            endian,
             unpositioned_mask(field.mask),
             lsb_pos(field.mask),
             byte,

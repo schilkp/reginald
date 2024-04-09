@@ -70,18 +70,6 @@ fn rs_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, Error> {
     }
 }
 
-fn rs_section_header_comment(title: &str) -> String {
-    let lbar = str_pad_to_length("// ", '=', 80);
-    let lcontent = str_pad_to_length(&format!("// ==== {title} "), '=', 80);
-
-    format!("{lbar}\n{lcontent}\n{lbar}")
-}
-
-fn rs_generate_section_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Error> {
-    writeln!(out, "{}", rs_section_header_comment(title))?;
-    Ok(())
-}
-
 fn rs_header_comment(title: &str) -> String {
     str_pad_to_length(&format!("// ==== {title} "), '=', 80)
 }
@@ -95,7 +83,7 @@ fn rs_layout_overview_comment(layout: &Layout) -> String {
     layout
         .overview_text(true)
         .lines()
-        .map(|x| String::from("//  ") + x)
+        .map(|x| String::from("///  ") + x)
         .collect::<Vec<String>>()
         .join("\n")
 }

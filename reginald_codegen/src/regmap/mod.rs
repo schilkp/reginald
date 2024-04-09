@@ -297,10 +297,7 @@ impl LayoutField {
                 val,
                 is_correct: *expected == val,
             }),
-            FieldType::Layout(_) => {
-                let name = &self.name;
-                Err(Error::GeneratorError(format!("Field {name} accepts a layout which cannot be directly decoded!")))
-            }
+            FieldType::Layout(_) => panic!("Decoding nested layouts is not implemented"),
         }
     }
 
@@ -341,6 +338,10 @@ impl Layout {
         mask
     }
 
+    pub fn empty_mask(&self) -> TypeValue {
+        !self.occupied_mask() & (bitmask_from_width(self.bitwidth))
+    }
+
     pub fn fixed_bits_mask(&self) -> TypeValue {
         let mut mask: TypeValue = 0;
         for field in self.fields.values() {
@@ -378,6 +379,28 @@ impl Layout {
             .filter(|x| x.is_local)
     }
 
+    /// Iterator over all enums local to this layout (including local
+    /// enums in nested layouts)
+    pub fn nested_local_enums(&self) -> impl Iterator<Item = &Enum> {
+        let mut enums: Vec<&Enum> = vec![];
+
+        for layout in self.nested_local_layouts() {
+            enums.extend(layout.local_enums());
+        }
+
+        enums.extend(
+            self.fields
+                .values()
+                .filter_map(|x| match &x.accepts {
+                    FieldType::Enum(e) => Some(e.deref()),
+                    _ => None,
+                })
+                .filter(|x| x.is_local),
+        );
+
+        enums.into_iter()
+    }
+
     /// Iterator over all layouts local to this layout (excluding local
     /// layouts in nested layouts)
     pub fn local_layouts(&self) -> impl Iterator<Item = &Layout> {
@@ -390,6 +413,34 @@ impl Layout {
             .filter(|x| x.is_local)
     }
 
+    /// Iterator over all layouts local to this layout (including local
+    /// layouts in nested layouts), in dependency order.
+    pub fn nested_local_layouts(&self) -> impl Iterator<Item = &Layout> {
+        let mut layouts: Vec<&Layout> = vec![];
+
+        for field in self
+            .fields
+            .values()
+            .filter_map(|x| match &x.accepts {
+                FieldType::Layout(l) => Some(l.deref()),
+                _ => None,
+            })
+            .filter(|x| x.is_local)
+        {
+            layouts.extend(field.nested_local_layouts());
+            layouts.push(field)
+        }
+
+        // Sanity assert that no layout has been included more than tonce:
+        #[cfg(debug_assertions)]
+        {
+            let names: HashSet<String> = HashSet::from_iter(layouts.iter().map(|x| x.name.to_owned()));
+            assert!(names.len() == layouts.len());
+        }
+
+        layouts.into_iter()
+    }
+
     pub fn fields_with_content(&self) -> impl Iterator<Item = &LayoutField> {
         self.fields.values().filter(|x| x.contains_content())
     }
@@ -399,6 +450,14 @@ impl Layout {
     }
 
     pub fn overview_text(&self, as_markdown: bool) -> String {
+        let markdown_escape = |x: &str| {
+            if as_markdown {
+                "`".to_string() + x + "`"
+            } else {
+                x.to_string()
+            }
+        };
+
         let nested_fields = self.nested_fields();
         if nested_fields.is_empty() {
             return String::new();
@@ -407,23 +466,19 @@ impl Layout {
         let mut lines = vec![];
 
         for field in nested_fields {
-            let name = field.name.join(".");
+            let name = markdown_escape(&field.name.join("."));
 
             let indent = field.name.len() - 1;
             let indent = String::from_iter(std::iter::repeat("  ").take(indent));
 
-            let bits = if as_markdown {
-                format!("[{}]", mask_to_bit_ranges_str(field.mask))
-            } else {
-                format!("`[{}]`", mask_to_bit_ranges_str(field.mask))
-            };
+            let bits = markdown_escape(&format!("[{}]", mask_to_bit_ranges_str(field.mask)));
 
             let type_string = match &field.field.accepts {
                 FieldType::UInt => String::from("(uint)"),
                 FieldType::Bool => String::from("(bool)"),
                 FieldType::Fixed(fix) => format!("(fixed: 0x{fix:x})"),
-                FieldType::Enum(e) => format!("(enum {})", e.name),
-                FieldType::Layout(l) => format!("(layout {})", l.name),
+                FieldType::Enum(e) => format!("(enum {})", markdown_escape(&e.name)),
+                FieldType::Layout(l) => format!("(layout {})", markdown_escape(&l.name)),
             };
 
             if let Some(brief) = &field.field.docs.brief {
@@ -618,6 +673,37 @@ impl RegisterMap {
             .values()
             .filter(|x| x.from_block.is_none())
             .map(|x| x.deref())
+    }
+
+    pub fn layouts_in_dependency_order(&self) -> impl Iterator<Item = &Layout> {
+        let mut layouts: Vec<&Layout> = vec![];
+
+        for layout in self.shared_layouts() {
+            layouts.extend(layout.nested_local_layouts());
+            layouts.push(layout);
+        }
+
+        for register in self.individual_registers().filter(|x| x.layout.is_local) {
+            layouts.extend(register.layout.nested_local_layouts());
+            layouts.push(&register.layout);
+        }
+
+        for block in self.register_blocks.values() {
+            for member in block.members.values().filter(|x| x.layout.is_local) {
+                layouts.extend(member.layout.nested_local_layouts());
+                layouts.push(&member.layout);
+            }
+        }
+
+        // Sanity assert that every layout has been included, but only once:
+        #[cfg(debug_assertions)]
+        {
+            assert!(layouts.len() == self.layouts.len());
+            let names: HashSet<String> = HashSet::from_iter(layouts.iter().map(|x| x.name.to_owned()));
+            assert!(names.len() == self.layouts.len());
+        }
+
+        layouts.into_iter()
     }
 }
 

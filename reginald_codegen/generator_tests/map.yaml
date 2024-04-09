@@ -58,6 +58,7 @@ registers:
 
   REG_SHARED_LAYOUT_BASIC_1: !Register
     adr: 0x10
+    reset_val: 0x00
     layout: !SharedLayout BASIC_SHARED_LAYOUT
 
   REG_SHARED_LAYOUT_BASIC_2: !Register
@@ -79,6 +80,7 @@ registers:
   REG_LAYOUT_FIELD: !Register
     adr: 0x20
     bitwidth: 16
+    reset_val: 0xFD03
     layout: !Layout
       LAYOUT_FIELD:
         bits: ["0-15"]
@@ -126,7 +128,7 @@ registers:
             val: 0x4
           SE_3:
             val: 0x5
-  
+
   REG_SPLIT_LAYOUT: !Register
     adr: 0x21
     layout: !Layout
@@ -137,6 +139,25 @@ registers:
             bits: ["1-2"]
           F2:
             bits: ["4-6"]
+
+  BLOCK: !RegisterBlock
+    instances:
+      BLOCK1: { adr: 0x10 }
+      BLOCK2: { adr: 0x20 }
+
+    registers:
+      MEMBER_A:
+        offset: 0x00
+        reset_val: 0x1B
+        layout: !Layout
+          VAL:
+            bits: [7-0]
+      MEMBER_B:
+        offset: 0x01
+        layout: !Layout
+          VAL:
+            bits: [6-0]
+
 
 enums:
   STAT:
