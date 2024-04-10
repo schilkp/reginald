@@ -274,7 +274,7 @@ impl Generator<'_> {
         Ok(())
     }
 
-    const CONVERSION_TRAITS: &'static str = include_str!("traits.txt");
+    const CONVERSION_TRAITS: &'static str = include_str!("../../../../../reginald/src/lib.rs");
 
     fn generate_traits(&self, out: &mut dyn Write) -> Result<(), Error> {
         writeln!(out)?;

@@ -5,6 +5,21 @@ Philipp Schilk
 
 ### TODO:
 
+- Restructure:
+    - `reginald_codegen`: CLI + Code generators
+    - `reginald`: Traits
+    - Future:
+        - `reginald_derive`: Packed struct derive macros
+        - `reginald_gui`: GUI Tool
+
+- Derive:
+    - Design attribute "interface"
+    - Implement attribute parsing (without extra crate, probably?)
+    - Implement actual derive logic
+    - Implement codegen backend
+
+### IDEAS:
+
 - More complex field types
     - Arrays
     - Bytes? Or is just just an u8 array?
@@ -21,14 +36,6 @@ Philipp Schilk
 - Input/processor option to stuff enums to allow full conversion
 
 - C: Emit "UINT" version.
-
-- Rust: Port to quote/syn/prettyplease
-- !!Reginald crate with code-gen backing!!
-
-quote = "1.0.35"
-proc-macro2 = "1.0.79"
-prettyplease = "0.2.16"
-syn = "2.0.53"
 
 - GUI:
     - Tauri
