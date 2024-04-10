@@ -79,11 +79,11 @@ fn rs_generate_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Er
     Ok(())
 }
 
-fn rs_layout_overview_comment(layout: &Layout) -> String {
+fn rs_layout_overview_comment(layout: &Layout, prefix: &str) -> String {
     layout
         .overview_text(true)
         .lines()
-        .map(|x| String::from("///  ") + x)
+        .map(|x| String::from(prefix) + x)
         .collect::<Vec<String>>()
         .join("\n")
 }

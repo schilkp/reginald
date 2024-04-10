@@ -13,20 +13,32 @@ rm -rf rs_structs_test/src/out*.rs
 
 # Run reginald:
 echo "Generating (default)..."
-cargo run --quiet --color always -p "reginald_codegen" --    \
-    gen -i ../map.yaml -o rs_structs_test/src/out.rs rs-structs \
-    --enum-derive=Debug --enum-derive=PartialEq --struct-derive=Debug --struct-derive=Clone
+cargo run --quiet --color always -p "reginald_codegen" --                    \
+    gen -i ../map.yaml -o rs_structs_test/src/out.rs rs-structs              \
+    --enum-derive=Debug --enum-derive=PartialEq                              \
+    --struct-derive=Debug --struct-derive=Clone
 
 echo "Generating (unpacking error msgs)..."
-cargo run --quiet --color always -p "reginald_codegen" --              \
-    gen -i ../map.yaml -o rs_structs_test/src/out_errormsgs.rs rs-structs \
-    --unpacking-error-msg=true --enum-derive=Debug --enum-derive=PartialEq --struct-derive=Debug --struct-derive=Clone
+cargo run --quiet --color always -p "reginald_codegen" --                    \
+    gen -i ../map.yaml -o rs_structs_test/src/out_errormsgs.rs rs-structs    \
+    --enum-derive=Debug --enum-derive=PartialEq                              \
+    --struct-derive=Debug --struct-derive=Clone                              \
+    --unpacking-error-msg=true
 
-
-echo "Generating (no traits)..."
-cargo run --quiet --color always -p "reginald_codegen" --                   \
-    gen -i ../map.yaml -o rs_structs_test/src/out_notraits.rs rs-structs \
+echo "Generating (external traits)..."
+cargo run --quiet --color always -p "reginald_codegen" --                    \
+    gen -i ../map.yaml -o rs_structs_test/src/out_ext_traits.rs rs-structs   \
     --external-traits="crate::out::"
+
+echo "Generating (reginald crate traits)..."
+cargo run --quiet --color always -p "reginald_codegen" --                    \
+    gen -i ../map.yaml -o rs_structs_test/src/out_crate_traits.rs rs-structs \
+    --external-traits="reginald::"
+
+echo "Generating (no modules)..."
+cargo run --quiet --color always -p "reginald_codegen" --                    \
+    gen -i ../map.yaml -o rs_structs_test/src/out_flat.rs rs-structs         \
+    --split-into-modules=false
 
 # Compile + Run test exe:
 echo "Testing..."

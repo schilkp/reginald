@@ -6,16 +6,19 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
 
 pub mod out;
+pub mod out_errormsgs;
 
 // Unused. Included to ensure they compile:
-pub mod out_errormsgs;
-pub mod out_notraits;
+pub mod out_ext_traits;
+pub mod out_crate_traits;
+pub mod out_flat;
 
 #[cfg(test)]
 mod tests {
 
     #[test]
     fn test_basic_reg1() {
+        use crate::out::reg1::*;
         use crate::out::*;
 
         // Basic packing:
@@ -63,6 +66,7 @@ mod tests {
 
     #[test]
     fn test_basic_reg2() {
+        use crate::out::reg2::*;
         use crate::out::*;
 
         // Basic packing:
@@ -116,6 +120,7 @@ mod tests {
 
     #[test]
     fn test_basic_reg3() {
+        use crate::out::reg3::*;
         use crate::out::*;
 
         // Basic packing:
@@ -153,6 +158,7 @@ mod tests {
 
     #[test]
     fn register_validation() {
+        use crate::out::reg2::*;
         use crate::out::*;
 
         // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
@@ -173,6 +179,7 @@ mod tests {
 
     #[test]
     fn register_validation_error_msg() {
+        use crate::out_errormsgs::reg2::*;
         use crate::out_errormsgs::*;
 
         // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
@@ -194,6 +201,7 @@ mod tests {
 
     #[test]
     fn enum_validation() {
+        use crate::out::reg2::*;
         use crate::out::*;
 
         TryInto::<Stat>::try_into(0_u8).unwrap_err();
@@ -211,6 +219,7 @@ mod tests {
 
     #[test]
     fn enum_validation_error_msgs() {
+        use crate::out_errormsgs::reg2::*;
         use crate::out_errormsgs::*;
 
         let err = TryInto::<Stat>::try_into(0_u8).unwrap_err();
@@ -277,6 +286,7 @@ mod tests {
 
     #[test]
     fn test_fixed_accross_byte() {
+        use crate::out::reg_fixed_across_bytes::*;
         use crate::out::*;
 
         // Packing:
@@ -293,6 +303,7 @@ mod tests {
 
     #[test]
     fn test_layout_fields() {
+        use crate::out::reg_layout_field::*;
         use crate::out::*;
 
         // Basic packing:
@@ -334,6 +345,7 @@ mod tests {
 
     #[test]
     fn test_nested_only_fixed() {
+        use crate::out::reg_nested_only_fixed::*;
         use crate::out::*;
 
         // Basic packing:
@@ -349,6 +361,7 @@ mod tests {
 
     #[test]
     fn test_split_field() {
+        use crate::out::reg_split_field::*;
         use crate::out::*;
 
         // Basic packing:
@@ -370,6 +383,7 @@ mod tests {
 
     #[test]
     fn test_split_enum() {
+        use crate::out::reg_split_enum::*;
         use crate::out::*;
 
         // Basic packing:
@@ -403,6 +417,7 @@ mod tests {
 
     #[test]
     fn test_split_layout() {
+        use crate::out::reg_split_layout::*;
         use crate::out::*;
 
         // Basic packing:

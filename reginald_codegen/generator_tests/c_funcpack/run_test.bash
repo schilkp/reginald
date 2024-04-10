@@ -90,11 +90,11 @@ cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-f
 
 echo "Generating source..."
 cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.c c-funcpack \
-    --funcs-static-inline=false             \
-    --add-include="generated.h"             \
-    --include-guards=false                  \
-    --doxy-comments=false                   \
-    --only-generate=enum-validation-funcs   \
+    --funcs-static-inline=false                                                         \
+    --add-include="generated.h"                                                         \
+    --include-guards=false                                                              \
+    --doxy-comments=false                                                               \
+    --only-generate=enum-validation-funcs                                               \
     --only-generate=struct-conversion-funcs
 
 test_generated_code "-std=c11" "output/generated.c"
@@ -105,32 +105,32 @@ start_test "Split Headers Test"
 
 # Run reginald:
 echo "Generating enum header..."
-cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum.h c-funcpack \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum.h c-funcpack        \
     --only-generate=enums
 
 echo "Generating enum validation header..."
-cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum_valid.h c-funcpack \
-    --only-generate=enum-validation-funcs \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum_valid.h c-funcpack  \
+    --only-generate=enum-validation-funcs                                                           \
     --add-include="generated_enum.h"
 
 echo "Generating struct header..."
-cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_structs.h c-funcpack \
-    --only-generate=structs    \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_structs.h c-funcpack     \
+    --only-generate=structs                                                                         \
     --add-include="generated_enum_valid.h"
 
 echo "Generating struct conversion func header..."
 cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_struct_conv.h c-funcpack \
-    --only-generate=struct-conversion-funcs \
+    --only-generate=struct-conversion-funcs                                                         \
     --add-include="generated_structs.h"
 
 echo "Generating register properties header..."
-cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_reg_props.h c-funcpack \
-    --only-generate=register-properties     \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_reg_props.h c-funcpack   \
+    --only-generate=register-properties                                                             \
     --add-include="generated_struct_conv.h"
 
 echo "Generating generics header..."
-cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack \
-    --only-generate=generic-macros        \
+cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack             \
+    --only-generate=generic-macros                                                                  \
     --add-include="generated_reg_props.h"
 
 test_generated_code "-std=c11"
