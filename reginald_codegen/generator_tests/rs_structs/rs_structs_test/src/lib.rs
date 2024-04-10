@@ -1,5 +1,6 @@
 #![no_std]
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
+#![allow(dead_code)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::derive_partial_eq_without_eq)]
