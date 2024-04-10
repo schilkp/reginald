@@ -13,49 +13,49 @@
           Layout: {
             DOD0_R: {
               bits: [7],
-              // access: ["R"],
+              access: ["R"],
               doc: "LDO Dropout Detector Rising Interrupt",
               accepts: Bool
             },
             DOD1_R: {
               bits: [6],
-              // access: ["R"],
+              access: ["R"],
               doc: "LDO Dropout Detector Rising Interrupt",
               accepts: Bool
             },
             TJAL2_R: {
               bits: [5],
-              // access: ["R"],
+              access: ["R"],
               doc: "Thermal Alarm 2 Rising Interrupt",
               accepts: Bool
             },
             TJAL1_R: {
               bits: [4],
-              // access: ["R"],
+              access: ["R"],
               doc: "Thermal Alarm 1 Rising Interrupt",
               accepts: Bool
             },
             nEN_R: {
               bits: [3],
-              // access: ["R"],
+              access: ["R"],
               doc: "nEN Rising Interrupt",
               accepts: Bool
             },
             nEN_F: {
               bits: [2],
-              // access: ["R"],
+              access: ["R"],
               doc: "nEN Falling Interrupt",
               accepts: Bool
             },
             GPI0_R: {
               bits: [1],
-              // access: ["R"],
+              access: ["R"],
               doc: "GPI0 Rising Interrupt",
               accepts: Bool
             },
             GPI0_F: {
               bits: [0],
-              // access: ["R"],
+              access: ["R"],
               doc: "GPI0 Falling Interrupt",
               accepts: Bool
             }
@@ -77,42 +77,42 @@
             },
             LDO1_F: {
               bits: [6],
-              // access: ["R"],
+              access: ["R"],
               doc: "LDO1 Fault Interrupt",
               accepts: Bool
             },
             LDO0_F: {
               bits: [5],
               doc: "LDO0 Fault Interrupt",
-              // access: ["R"],
+              access: ["R"],
               accepts: Bool
             },
             SBB_TO: {
               bits: [4],
-              // access: ["R"],
+              access: ["R"],
               doc: "SBB Timeout"
             },
             GPI2_R: {
               bits: [3],
-              // access: ["R"],
+              access: ["R"],
               doc: "GPI Rising Interrupt",
               accepts: Bool
             },
             GPI2_F: {
               bits: [2],
-              // access: ["R"],
+              access: ["R"],
               doc: "GPI Falling Interrupt",
               accepts: Bool
             },
             GPI1_R: {
               bits: [1],
-              // access: ["R"],
+              access: ["R"],
               doc: "GPI Rising Interrupt",
               accepts: Bool
             },
             GPI1_F: {
               bits: [0],
-              // access: ["R"],
+              access: ["R"],
               doc: "GPI Falling Interrupt",
               accepts: Bool
             }
@@ -130,7 +130,7 @@
           Layout: {
             WDT_RST: {
               bits: [7],
-              // access: ["R"],
+              access: ["R"],
               doc:
                 '''
                 Watchdog Timer Reset Flag
@@ -140,7 +140,7 @@
             },
             WDT_OFF: {
               bits: [6],
-              // access: ["R"],
+              access: ["R"],
               doc:
                 '''
                 Watchdog Timer OFF Flag
@@ -150,32 +150,32 @@
             },
             SFT_CRST_F: {
               bits: [5],
-              // access: ["R"],
+              access: ["R"],
               doc: "Software Cold Reset Flag"
             },
             SFT_OFF_F: {
               bits: [4],
-              // access: ["R"],
+              access: ["R"],
               doc: "Software OFF Flag"
             },
             MRST: {
               bits: [3],
-              // access: ["R"],
+              access: ["R"],
               doc: "Manual Reset Timer"
             },
             SYSUVLO: {
               bits: [2],
-              // access: ["R"],
+              access: ["R"],
               doc: "SYS Domain Undervoltage Lockout"
             },
             SYSOVLO: {
               bits: [1],
-              // access: ["R"],
+              access: ["R"],
               doc: "SYS Domain Overvoltage Lockout"
             },
             TOVLD: {
               bits: [0],
-              // access: ["R"],
+              access: ["R"],
               doc: "Thermal Overload"
             }
           }
@@ -192,42 +192,42 @@
           Layout: {
             DIDM: {
               bits: [7],
-              // access: ["R"],
+              access: ["R"],
               doc: "Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)"
             },
             BOK: {
               bits: [6],
-              // access: ["R"],
+              access: ["R"],
               doc: "Main Bias OK"
             },
             DOD0_S: {
               bits: [5],
-              // access: ["R"],
+              access: ["R"],
               doc: "LDO0 in dropout"
             },
             DOD1_S: {
               bits: [4],
-              // access: ["R"],
+              access: ["R"],
               doc: "LDO1 in dropout"
             },
             TJAL2_S: {
               bits: [3],
-              // access: ["R"],
+              access: ["R"],
               doc: "Thermal Alarm 2 active"
             },
             TJAL1_S: {
               bits: [2],
-              // access: ["R"],
+              access: ["R"],
               doc: "Thermal Alarm 1 active"
             },
             STAT_EN: {
               bits: [1],
-              // access: ["R"],
+              access: ["R"],
               doc: "Debounced Status for the nEN Input"
             },
             STAT_IRQ: {
               bits: [0],
-              // access: ["R"],
+              access: ["R"],
               doc: "nIRQ active"
             }
           }
@@ -248,7 +248,7 @@
             },
             LDO1_M: {
               bits: [6],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "LDO1 Fault Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -256,7 +256,7 @@
             },
             LDO0_M: {
               bits: [5],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "LDO0 Fault Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -264,7 +264,7 @@
             },
             SBB_TO_M: {
               bits: [4],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "SBB Timeout Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -272,7 +272,7 @@
             },
             GPI2_RM: {
               bits: [3],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "GPI Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -280,7 +280,7 @@
             },
             GPI2_FM: {
               bits: [2],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "GPI Falling Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -288,7 +288,7 @@
             },
             GPI1_RM: {
               bits: [1],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "GPI Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -296,7 +296,7 @@
             },
             GPI1_FM: {
               bits: [0],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "GPI Falling Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -316,7 +316,7 @@
           Layout: {
             DOD0_RM: {
               bits: [7],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -324,7 +324,7 @@
             },
             DOD1_RM: {
               bits: [6],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "LDO Dropout Detector Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -332,7 +332,7 @@
             },
             TJAL2_RM: {
               bits: [5],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "Thermal Alarm 2 Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -340,7 +340,7 @@
             },
             TJAL1_RM: {
               bits: [4],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "Thermal Alarm 1 Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -348,7 +348,7 @@
             },
             nEN_RM: {
               bits: [3],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "nEN Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -356,7 +356,7 @@
             },
             nEN_FM: {
               bits: [2],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "nEN Falling Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -364,7 +364,7 @@
             },
             GPI0_RM: {
               bits: [1],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "GPI Rising Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -372,7 +372,7 @@
             },
             GPI0_FM: {
               bits: [0],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "GPI Falling Interrupt Mask/Disabled",
               accepts: {
                 SharedEnum: "INT_MASK"
@@ -393,7 +393,7 @@
             PU_DIS: {
               bits: [7],
               doc: "nEN Internal Pullup Resistor",
-              // access: ["R", "W"],
+              access: ["R", "W"],
               accepts: {
                 Enum: {
                   PU_200K: {
@@ -410,7 +410,7 @@
             T_MRST: {
               bits: [6],
               doc: "Sets the Manual Reset Time (tMRST)",
-              // access: ["R", "W"],
+              access: ["R", "W"],
               accepts: {
                 Enum: {
                   Hold8s: {
@@ -426,18 +426,18 @@
             },
             SBIA_LPM: {
               bits: [5],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "Main Bias Low-Power Mode Software Request"
             },
             SBIA_EN: {
               bits: [4],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "Main Bias Force Enable Software Request",
               accepts: Bool
             },
             nEN_MODE: {
               bits: [3],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "nEN Input (ON-KEY) Default Configuration",
               accepts: {
                 Enum: {
@@ -454,7 +454,7 @@
             },
             DBEN_nEN: {
               bits: [2],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "Debounce Timer Enable for the nEN Pin",
               accepts: {
                 Enum: {
@@ -471,7 +471,7 @@
             },
             SFT_CTRL: {
               bits: [1, 0],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc:
                 '''
                 Software Reset Function
@@ -546,24 +546,24 @@
                 },
                 ALT: {
                   bits: [5],
-                  // access: ["R", "W"],
+                  access: ["R", "W"],
                   doc: "Alternate Mode Enable for GPIO0",
                   accepts: Bool
                 },
                 DBEN_GPI: {
                   bits: [4],
-                  // access: ["R", "W"],
+                  access: ["R", "W"],
                   doc: "General Purpose Input Debounce Timer enable (30ms)",
                   accepts: Bool
                 },
                 DOUT: {
                   bits: [3],
-                  // access: ["R", "W"],
+                  access: ["R", "W"],
                   doc: "General Purpose Output Data Output"
                 },
                 DRV: {
                   bits: [2],
-                  // access: ["R", "W"],
+                  access: ["R", "W"],
                   doc: "General Purpose Output Driver Type",
                   accepts: {
                     Enum: {
@@ -580,12 +580,12 @@
                 },
                 DI: {
                   bits: [1],
-                  // access: ["R"],
+                  access: ["R"],
                   doc: "GPIO Digital Input val."
                 },
                 DIR: {
                   bits: [0],
-                  // access: ["R", "W"],
+                  access: ["R", "W"],
                   doc: "GPIO Direction",
                   accepts: {
                     Enum: {
@@ -791,7 +791,7 @@
             THM_DTLS: {
               bits: [2, 1, 0],
               doc: "Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.",
-              // access: ["R"],
+              access: ["R"],
               accepts: {
                 Enum: {
                   THM_OFF: {
@@ -1862,12 +1862,12 @@
           Layout: {
             ICHGIN_LIM_DEF: {
               bits: [7],
-              // access: ["R"],
+              access: ["R"],
               doc: "Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed."
             },
             DRV_SBB: {
               bits: [1, 0],
-              // access: ["R", "W"],
+              access: ["R", "W"],
               doc: "SIMO Buck-Boost (all channels) Drive Strength Trim.",
               accepts: {
                 Enum: {

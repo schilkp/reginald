@@ -23,21 +23,21 @@ registers:
     layout: !Layout
       FIELD1:
         bits: [7, 6]
-        # access: [R]
+        access: [R]
         accepts: !SharedEnum STAT
       FIELD2:
         bits: ["1-0"]
-        # access: [R]
+        access: [R]
         accepts: !Enum
           EN:
             val: 0x3
       FIELD3:
         bits: [2]
-        # access: [R]
+        access: [R]
         accepts: !Bool
       FIELD4:
         bits: ["8-12"]
-        # access: [R]
+        access: [R]
       RESERVED:
         bits: ["4-5"]
         accepts: !Fixed 0x1

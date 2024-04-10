@@ -87,3 +87,5 @@ fn rs_layout_overview_comment(layout: &Layout, prefix: &str) -> String {
         .collect::<Vec<String>>()
         .join("\n")
 }
+
+pub const CONVERSION_TRAITS: &str = include_str!("../../../../reginald/src/lib.rs");

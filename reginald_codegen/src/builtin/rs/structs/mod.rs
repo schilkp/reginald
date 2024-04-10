@@ -16,7 +16,7 @@ use clap::Parser;
 
 use super::{
     generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment,
-    rs_layout_overview_comment, rs_pascalcase, rs_snakecase,
+    rs_layout_overview_comment, rs_pascalcase, rs_snakecase, CONVERSION_TRAITS,
 };
 
 // ====== Generator Opts =======================================================
@@ -320,13 +320,11 @@ impl Generator<'_> {
         Ok(())
     }
 
-    const CONVERSION_TRAITS: &'static str = include_str!("../../../../../reginald/src/lib.rs");
-
     fn generate_traits(&self, out: &mut dyn Write) -> Result<(), Error> {
         writeln!(out)?;
         rs_generate_header_comment(out, "Traits")?;
         writeln!(out)?;
-        write!(out, "{}", Self::CONVERSION_TRAITS)?;
+        write!(out, "{}", CONVERSION_TRAITS)?;
         Ok(())
     }
 

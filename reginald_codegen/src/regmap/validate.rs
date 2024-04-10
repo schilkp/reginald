@@ -130,8 +130,6 @@ pub fn validate_enum(e: &Enum, bt: &str) -> Result<(), Error> {
 
     let mut enum_vals: HashSet<TypeValue> = HashSet::new();
 
-    // TODO This is only required for the rust output ATM. Should this be a
-    // general limitation, or specific to the rust output?
     for entry in e.entries.values() {
         if !enum_vals.insert(entry.value) {
             return Err(Error::ConversionError {
