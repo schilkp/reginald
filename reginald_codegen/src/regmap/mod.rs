@@ -228,9 +228,14 @@ impl Enum {
 
         // Number of values the mask can represent:
         let mask_bit_count = mask_to_bits(unpos_mask).len();
-        let mask_vals_count = 2_usize.pow(mask_bit_count.try_into().unwrap());
+        let mask_vals_count = 2_u128.pow(mask_bit_count.try_into().unwrap());
 
-        mask_vals_count == enum_vals.len()
+        let enum_vals_count: u128 = enum_vals
+            .len()
+            .try_into()
+            .expect("HashSet holding u64 cannot have more than u64::MAX entries");
+
+        mask_vals_count == enum_vals_count
     }
 
     /// Minimum bitwidth required to represent all values in this enum.
@@ -841,6 +846,8 @@ mod tests {
             assert_eq!(e.can_unpack_mask(0b1000 | val), false);
             assert_eq!(e.can_unpack_mask(0b110101000 | val), false);
         }
+
+        assert_eq!(e.can_unpack_mask(TypeValue::MAX), false);
     }
 
     #[test]
