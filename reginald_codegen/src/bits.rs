@@ -197,6 +197,11 @@ pub fn mask_to_bit_ranges_str(mask: TypeValue) -> String {
     ranges.join(", ")
 }
 
+/// Number of bytes required to store an N-bit value.
+pub fn bitwidth_to_width_bytes(bitwidth: TypeBitwidth) -> TypeBitwidth {
+    (bitwidth + 7) / 8
+}
+
 #[cfg(test)]
 mod tests {
     use crate::regmap::MAX_BITWIDTH;

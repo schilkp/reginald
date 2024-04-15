@@ -1,20 +1,17 @@
+mod enums;
+mod layouts;
+mod registers;
+
 use std::{fmt::Write, path::Path, rc::Rc};
 
 #[cfg(feature = "cli")]
 use clap::{Parser, ValueEnum};
 
 use crate::{
-    bits::{lsb_pos, mask_to_bit_ranges_str, mask_width, unpositioned_mask},
+    bits::{lsb_pos, mask_width, unpositioned_mask},
     error::Error,
-    regmap::{
-        Docs, Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterBlockMember, RegisterMap,
-        TypeBitwidth, TypeValue,
-    },
-    utils::{
-        field_byte_to_packed_byte_transform, field_to_packed_byte_transform, filename, grab_byte, numbers_as_ranges,
-        packed_byte_to_field_byte_transform, packed_byte_to_field_transform, str_pad_to_length, str_table, Endianess,
-        ShiftDirection,
-    },
+    regmap::{Docs, FieldType, Layout, LayoutField, RegisterMap, TypeBitwidth, TypeValue},
+    utils::{filename, packed_byte_to_field_transform, str_pad_to_length, Endianess, ShiftDirection},
     writer::header_writer::HeaderWriter,
 };
 
@@ -29,7 +26,7 @@ use super::{
 #[cfg_attr(feature = "cli", derive(ValueEnum))]
 pub enum Element {
     Enums,
-    EnumValidationFuncs,
+    EnumValidationMacros,
     Structs,
     StructConversionFuncs,
     RegisterProperties,
@@ -67,6 +64,15 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(default_value = "true"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub registers_as_bitfields: bool,
+
+    /// Max enum bitwidth before it is represented using macros instead of an enum. (default: 31)
+    ///
+    /// Set to zero to have all enums be represented using macros.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "cli", arg(default_value = "31"))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub max_enum_bitwidth: TypeBitwidth,
 
     /// Header file that should be included at the top of the generated header
     ///
@@ -107,13 +113,6 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(default_value = "true"))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub include_guards: bool,
-
-    /// Generate doxygen comments.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub doxy_comments: bool,
 
     /// Only generate a subset of the elements/sections usually included in
     /// a complete output file.
@@ -181,8 +180,8 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
     for e in map.shared_enums() {
         out.push_section_with_header(&["\n", &c_header_comment(&format!("{} Enum", e.name)), "\n"]);
 
-        generate_enum(&mut out, &inp, e)?;
-        generate_enum_validation_func(&mut out, &inp, e)?;
+        enums::generate_enum(&mut out, &inp, e)?;
+        enums::generate_enum_validation_macro(&mut out, &inp, e)?;
 
         out.pop_section();
     }
@@ -192,71 +191,24 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
     out.push_section_with_header(&["\n", &c_section_header_comment("Shared Layout Structs"), "\n"]);
     for layout in map.shared_layouts() {
         out.push_section_with_header(&["\n", &c_header_comment(&format!("{} Layout", layout.name)), "\n"]);
-
         if is_enabled(&inp, Element::Structs) {
+            // Field details only in comment if struct is generated.
             writeln!(out, "// Fields:")?;
             writeln!(out, "{}", c_layout_overview_comment(layout))?;
         }
-        generate_layout(&mut out, &inp, layout)?;
-
+        layouts::generate_layout(&mut out, &inp, layout)?;
         out.pop_section();
     }
     out.pop_section();
 
     // ===== Individual Registers: =====
     for register in map.individual_registers() {
-        let mut header = String::new();
-        generate_register_header(&mut header, &inp, register)?;
-        out.push_section_with_header(&[&header]);
-
-        generate_register_properties(&mut out, &inp, register)?;
-
-        // If the layout is local to this register, generate it:
-        if register.layout.is_local {
-            generate_layout(&mut out, &inp, &register.layout)?;
-        } else if is_enabled(&inp, Element::Structs) {
-            writeln!(&mut out)?;
-            writeln!(
-                out,
-                "// Register uses the {}_{} struct and conversion funcs defined above.",
-                c_code(&map.name),
-                c_code(&register.layout.name)
-            )?;
-        }
-
-        out.pop_section();
+        registers::generate_register(&mut out, &inp, register)?;
     }
 
     // Register blocks:
     for block in map.register_blocks.values() {
-        let mut header = String::new();
-        generate_register_block_header(&mut header, block)?;
-        out.push_section_with_header(&[&header]);
-
-        generate_register_block_properties(&mut out, &inp, block)?;
-
-        for member in block.members.values() {
-            let mut header = String::new();
-            generate_register_block_member_header(&mut header, &inp, member)?;
-            out.push_section_with_header(&[&header]);
-
-            generate_register_block_member_properties(&mut out, &inp, member, block)?;
-            if member.layout.is_local {
-                generate_layout(&mut out, &inp, &member.layout)?;
-            } else if is_enabled(&inp, Element::Structs) {
-                writeln!(&mut out)?;
-                writeln!(
-                    out,
-                    "// Register uses the {}_{} struct and conversion funcs defined above.",
-                    c_code(&map.name),
-                    c_code(&member.layout.name)
-                )?;
-            }
-
-            out.pop_section();
-        }
-
-        out.pop_section();
+        registers::generate_register_block(&mut out, &inp, block)?;
     }
 
     generate_generic_macros(&mut out, &inp)?;
@@ -347,564 +299,6 @@ fn generate_footer(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     Ok(())
 }
 
-/// Generate an enum
-fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {
-    if !is_enabled(inp, Element::Enums) {
-        return Ok(());
-    }
-
-    let code_prefix = c_code(&inp.map.name);
-    let macro_prefix = c_macro(&inp.map.name);
-
-    let code_name = c_code(&e.name);
-    let macro_name = c_macro(&e.name);
-
-    // Enum proper:
-    writeln!(out)?;
-    generate_doxy_comment(out, inp, &e.docs, "", None)?;
-    writeln!(out, "enum {code_prefix}_{code_name} {{")?;
-    for entry in e.entries.values() {
-        generate_doxy_comment(out, inp, &entry.docs, "  ", None)?;
-        writeln!(out, "  {}_{}_{} = 0x{:X}U,", macro_prefix, macro_name, c_macro(&entry.name), entry.value)?;
-    }
-    writeln!(out, "}};")?;
-
-    Ok(())
-}
-
-/// Generate an enum validation func
-fn generate_enum_validation_func(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {
-    if !is_enabled(inp, Element::EnumValidationFuncs) {
-        return Ok(());
-    }
-
-    let code_prefix = c_code(&inp.map.name);
-
-    let uint_type = c_fitting_unsigned_type(e.min_bitdwith())?;
-    let accept_values: Vec<TypeValue> = e.entries.values().map(|x| x.value).collect();
-    let accept_ranges = numbers_as_ranges(accept_values);
-    let code_name = c_code(&e.name);
-
-    // Doxy comment:
-    writeln!(out,)?;
-    let docs = Docs {
-        brief: Some(format!("Check if a numeric value is a valid @ref enum {code_prefix}_{code_name}.")),
-        doc: None,
-    };
-    generate_doxy_comment(out, inp, &docs, "", None)?;
-
-    // Validation Function
-    let func_prefix = func_prefix(inp);
-    let func_sig = format!("{func_prefix}bool {code_prefix}_is_{code_name}_enum({uint_type} val)");
-
-    if inp.opts.funcs_as_prototypes {
-        writeln!(out, "{func_sig};")?;
-    } else {
-        writeln!(out, "{func_sig} {{")?;
-
-        // Convert possible ranges to continous ranges, and generate a check for each range.
-        for range in accept_ranges {
-            match (range.start(), range.end()) {
-                (&start, &end) if start == end => {
-                    writeln!(out, "  if (val == 0x{:X}U) return true;", range.start())?;
-                }
-                (0, &end) => {
-                    writeln!(out, "  if (val <= 0x{end:X}U) return true;")?;
-                }
-                (&start, &end) => {
-                    writeln!(out, "  if (0x{start:X}U <= val && val <= 0x{end:X}U) return true;")?;
-                }
-            }
-        }
-
-        writeln!(out, "  return false;")?;
-        writeln!(out, "}}")?;
-    }
-
-    Ok(())
-}
-
-fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
-    let mut out = HeaderWriter::new(out);
-
-    if layout.is_local {
-        out.push_section_with_header(&["\n", "// Register-specific enums and sub-layouts:", "\n"]);
-    } else {
-        out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
-    }
-
-    for e in layout.nested_local_enums() {
-        generate_enum(&mut out, inp, e)?;
-    }
-
-    for local_layout in layout.nested_local_layouts() {
-        generate_layout_struct(&mut out, inp, local_layout)?;
-    }
-
-    out.pop_section();
-
-    if layout.is_local {
-        out.push_section_with_header(&["\n", "// Register Layout Struct:", "\n"]);
-    } else {
-        out.push_section_with_header(&["\n", "// Layout Struct:", "\n"]);
-    }
-    generate_layout_struct(&mut out, inp, layout)?;
-    out.pop_section();
-
-    out.push_section_with_header(&["\n", "// Enum validation functions:", "\n"]);
-    for e in layout.nested_local_enums() {
-        generate_enum_validation_func(&mut out, inp, e)?;
-    }
-    out.pop_section();
-
-    out.push_section_with_header(&["\n", "// Layout struct conversion functions:", "\n"]);
-    for layout in layout.nested_local_layouts() {
-        generate_layout_funcs(&mut out, inp, layout)?;
-    }
-    generate_layout_funcs(&mut out, inp, layout)?;
-    out.pop_section();
-
-    Ok(())
-}
-
-fn generate_layout_struct(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
-    if !is_enabled(inp, Element::Structs) {
-        return Ok(());
-    }
-
-    let code_prefix = c_code(&inp.map.name);
-    let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));
-
-    // doxy comment
-    writeln!(out)?;
-    generate_doxy_comment(
-        out,
-        inp,
-        &layout.docs,
-        "",
-        Some("use pack/unpack functions for conversion to/from packed binary value"),
-    )?;
-
-    // Struct proper:
-    writeln!(out, "struct {struct_name} {{")?;
-    for field in layout.fields.values() {
-        let field_type = match &field.accepts {
-            FieldType::Enum(e) => {
-                let name = c_code(&e.name);
-                format!("enum {code_prefix}_{name}")
-            }
-            FieldType::UInt => c_fitting_unsigned_type(mask_width(field.mask))?,
-            FieldType::Bool => "bool".to_string(),
-            FieldType::Layout(layout) => {
-                let name = c_code(&layout.name);
-                format!("struct {code_prefix}_{name}")
-            }
-            FieldType::Fixed(_) => continue,
-        };
-
-        let field_name = c_code(&field.name);
-        generate_doxy_comment(out, inp, &field.docs, "  ", None)?;
-
-        // Members are bitifields, if configured:
-        if inp.opts.registers_as_bitfields && !matches!(field.accepts, FieldType::Layout(_)) {
-            writeln!(out, "  {field_type} {field_name}: {};", mask_width(field.mask))?;
-        } else {
-            writeln!(out, "  {field_type} {field_name};",)?;
-        }
-    }
-    if layout.fields_with_content().count() == 0 {
-        writeln!(out, "  int dummy; // Register contains no variable fields.",)?;
-    }
-
-    writeln!(out, "}};")?;
-    Ok(())
-}
-
-/// Generate register packing/unpacking funcs
-fn generate_layout_funcs(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
-    if !is_enabled(inp, Element::StructConversionFuncs) {
-        return Ok(());
-    }
-
-    for endian in &inp.endian {
-        generate_layout_pack_func(out, inp, layout, *endian)?;
-    }
-    for endian in &inp.endian {
-        generate_layout_try_unpack_func(out, inp, layout, *endian)?;
-    }
-    if layout.can_always_unpack() {
-        for endian in &inp.endian {
-            generate_layout_unpack_func(out, inp, layout, *endian)?;
-        }
-    }
-
-    Ok(())
-}
-
-fn generate_layout_pack_func(
-    out: &mut dyn Write,
-    inp: &Input,
-    layout: &Layout,
-    endian: Endianess,
-) -> Result<(), Error> {
-    // Strings/Properties:
-    let code_prefix = c_code(&inp.map.name);
-    let code_name = c_code(&layout.name);
-    let func_prefix = func_prefix(inp);
-    let width_bytes = layout.width_bytes();
-
-    // Doxy comment:
-    writeln!(out)?;
-    let docs = Docs {
-        brief: Some(format!("Convert @ref struct {code_prefix}_{code_name} struct to packed {endian} value.")),
-        doc: None,
-    };
-    generate_doxy_comment(out, inp, &docs, "", Some("any unspecified fields are left untouched"))?;
-
-    // Function:
-    let func_sig = format!(
-        "{}void {}_{}_pack_{}(const struct {}_{} *r, uint8_t val[{}])",
-        func_prefix,
-        code_prefix,
-        code_name,
-        endian.short(),
-        code_prefix,
-        code_name,
-        width_bytes
-    );
-
-    if inp.opts.funcs_as_prototypes {
-        writeln!(out, "{func_sig};")?;
-        return Ok(());
-    }
-
-    writeln!(out, "{func_sig} {{")?;
-
-    if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
-        // The implementaiton for this endianess defers to the other endianess:
-        let defer_arr = format!("val_{}", defer_to.short());
-        writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
-        writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
-        writeln!(out, "  {}_{}_pack_{}(r, {defer_arr});", code_prefix, code_name, defer_to.short())?;
-        writeln!(out, "  {}", swap_loop(&defer_arr, "val", width_bytes))?;
-        writeln!(out, "}}")?;
-        return Ok(());
-    }
-
-    // Pack each field:
-    for field in layout.fields.values() {
-        let field_name = c_code(&field.name);
-
-        writeln!(out, "  // {} @ {code_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
-
-        match &field.accepts {
-            FieldType::UInt | FieldType::Bool | FieldType::Enum(_) => {
-                // Numeric field that can be directly converted:
-                for byte in 0..width_bytes {
-                    let Some(transform) = field_to_packed_byte_transform(
-                        endian,
-                        unpositioned_mask(field.mask),
-                        lsb_pos(field.mask),
-                        byte,
-                        width_bytes,
-                    ) else {
-                        continue;
-                    };
-
-                    let field_byte = match &transform.shift {
-                        Some((ShiftDirection::Left, amnt)) => format!("(r->{field_name} << {amnt})"),
-                        Some((ShiftDirection::Right, amnt)) => format!("(r->{field_name} >> {amnt})"),
-                        None => format!("r->{field_name}"),
-                    };
-
-                    writeln!(out, "  val[{byte}] &= (uint8_t)~0x{:X}U;", transform.mask)?;
-                    writeln!(out, "  val[{byte}] |= (uint8_t)(((uint8_t){field_byte}) & 0x{:X}U);", transform.mask)?;
-                }
-            }
-
-            FieldType::Fixed(fixed) => {
-                // Fixed value:
-                for byte in 0..width_bytes {
-                    let mask_byte = grab_byte(endian, field.mask, byte, width_bytes);
-                    let value_byte = grab_byte(endian, *fixed << lsb_pos(field.mask), byte, width_bytes);
-                    if mask_byte == 0 {
-                        continue;
-                    };
-
-                    writeln!(out, "  val[{byte}] &= (uint8_t)~0x{:X}U;", mask_byte)?;
-                    writeln!(out, "  val[{byte}] |= (uint8_t)0x{value_byte:x}; // Fixed value.")?;
-                }
-            }
-
-            FieldType::Layout(sublayout) => {
-                // Sub-layout has to delegate to other pack function:
-
-                let array_name = c_code(&field.name);
-                let array_len = sublayout.width_bytes();
-                let code_sublayout_name = c_code(&sublayout.name);
-                let function_prefix = format!("{code_prefix}_{code_sublayout_name}");
-
-                writeln!(out, "  uint8_t {array_name}[{array_len}] = {{0}};")?;
-                writeln!(
-                    out,
-                    "  {function_prefix}_pack_{}(&r->{field_name}, {});",
-                    endian.short(),
-                    c_code(&field.name)
-                )?;
-
-                for byte in 0..width_bytes {
-                    for field_byte in 0..array_len {
-                        // Determine required transform to put byte 'field_byte' of field into 'byte' of
-                        // output:
-                        let transform = field_byte_to_packed_byte_transform(
-                            endian,
-                            sublayout.occupied_mask(),
-                            lsb_pos(field.mask),
-                            field_byte,
-                            sublayout.width_bytes(),
-                            byte,
-                            width_bytes,
-                        );
-
-                        let Some(transform) = transform else {
-                            continue;
-                        };
-
-                        let field_byte = format!("{array_name}[{field_byte}]");
-                        let field_byte = match &transform.shift {
-                            Some((ShiftDirection::Left, amnt)) => format!("({field_byte} << {amnt})"),
-                            Some((ShiftDirection::Right, amnt)) => format!("({field_byte} >> {amnt})"),
-                            None => field_byte,
-                        };
-
-                        writeln!(out, "  val[{byte}] &= (uint8_t)~0x{:X}U;", transform.mask)?;
-                        writeln!(out, "  val[{byte}] |= (uint8_t)((uint8_t){field_byte} & 0x{:X}U);", transform.mask)?;
-                    }
-                }
-            }
-        }
-    }
-
-    // Prevent unused args warnings:
-    if layout.fields.is_empty() {
-        writeln!(out, "  (void)val;")?;
-    }
-    if layout.fields_with_content().count() == 0 {
-        writeln!(out, "  (void)r;")?;
-    }
-
-    writeln!(out, "}}",)?;
-
-    Ok(())
-}
-
-fn generate_layout_try_unpack_func(
-    out: &mut dyn Write,
-    inp: &Input,
-    layout: &Layout,
-    endian: Endianess,
-) -> Result<(), Error> {
-    // Strings:
-    let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));
-    let func_prefix = func_prefix(inp);
-    let code_prefix = c_code(&inp.map.name);
-    let code_name = c_code(&layout.name);
-
-    let width_bytes = layout.width_bytes();
-
-    // doxy comment:
-    writeln!(out)?;
-    let docs = Docs {
-        brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
-        doc: Some(
-            "@returns 0 if succesfull.\n@returns the position of the field that could not be unpacked plus one, if enums can not represent content.".to_string(),
-        ),
-    };
-    generate_doxy_comment(out, inp, &docs, "", None)?;
-
-    // Function signature
-    let func_sig = format!(
-        "{}int {}_try_unpack_{}(const uint8_t val[{}], struct {} *r)",
-        func_prefix,
-        struct_name,
-        endian.short(),
-        width_bytes,
-        struct_name
-    );
-
-    if inp.opts.funcs_as_prototypes {
-        writeln!(out, "{func_sig};")?;
-        return Ok(());
-    }
-
-    writeln!(out, "{func_sig} {{")?;
-
-    if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
-        // The implementaiton for this endianess defers to the other endianess:
-        let defer_arr = format!("val_{}", defer_to.short());
-        writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
-        writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
-        writeln!(out, "  return {}_{}_try_unpack_{}({defer_arr}, r);", code_prefix, code_name, defer_to.short())?;
-        writeln!(out, "}}")?;
-        return Ok(());
-    }
-
-    // Unpack each field:
-    for field in layout.fields_with_content() {
-        let code_field_name = c_code(&field.name);
-        let error_code = lsb_pos(field.mask) + 1;
-
-        writeln!(out, "  // {} @ {code_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
-
-        match &field.accepts {
-            FieldType::UInt | FieldType::Bool => {
-                // Numeric fields can be directly converted:
-                let numeric_value = assemble_numeric_field(layout, field, endian)?;
-
-                writeln!(out, "  r->{code_field_name} = {numeric_value};")?;
-            }
-            FieldType::Enum(e) => {
-                // Enums may require validation:
-                let enum_name = c_code(&e.name);
-
-                let numeric_value = assemble_numeric_field(layout, field, endian)?;
-
-                if field.can_always_unpack() {
-                    writeln!(out, "  r->{code_field_name} = (enum {code_prefix}_{enum_name})({numeric_value});")?;
-                } else {
-                    let unsigned_type = c_fitting_unsigned_type(e.min_bitdwith())?;
-                    writeln!(out, "  {unsigned_type} {code_field_name} = ({unsigned_type})({numeric_value});")?;
-                    writeln!(
-                        out,
-                        "  if (!{code_prefix}_is_{enum_name}_enum({code_field_name})) {{ return {error_code}; }}",
-                    )?;
-                    writeln!(out, "  r->{code_field_name} = (enum {code_prefix}_{enum_name}){code_field_name};")?;
-                }
-            }
-            FieldType::Layout(sublayout) => {
-                // Sub-layout has to delegate to other unpack function:
-                let array_len = sublayout.width_bytes();
-                let code_sublayout_name = c_code(&sublayout.name);
-
-                // Array to contain unpacked/binary sublayout:
-                writeln!(out, "  uint8_t {code_field_name}[{array_len}] = {{0}};")?;
-
-                for byte in 0..width_bytes {
-                    for field_byte in 0..array_len {
-                        // Determine required transform to put byte 'byte' of packed input into 'field_byte' of
-                        // field:
-                        let transform = packed_byte_to_field_byte_transform(
-                            endian,
-                            sublayout.occupied_mask(),
-                            lsb_pos(field.mask),
-                            field_byte,
-                            array_len,
-                            byte,
-                            width_bytes,
-                        );
-
-                        let Some(transform) = transform else {
-                            continue;
-                        };
-
-                        let masked = format!("(val[{byte}] & 0x{:X}U)", transform.mask);
-                        let shifted = match &transform.shift {
-                            Some((ShiftDirection::Left, amnt)) => format!("{masked} << {amnt}"),
-                            Some((ShiftDirection::Right, amnt)) => format!("{masked} >> {amnt}"),
-                            None => masked,
-                        };
-
-                        writeln!(out, "  {code_field_name}[{field_byte}] |= (uint8_t)({shifted});")?;
-                    }
-                }
-
-                let function_prefix = format!("{code_prefix}_{code_sublayout_name}");
-
-                // Unpack using sublayout's function:
-                if sublayout.can_always_unpack() {
-                    writeln!(
-                        out,
-                        "  r->{code_field_name} = {function_prefix}_unpack_{}({code_field_name});",
-                        endian.short()
-                    )?;
-                } else {
-                    writeln!(
-                        out,
-                        "  if ({function_prefix}_try_unpack_{}(&r->{code_field_name}, {code_field_name})) {{ return {error_code} }};",
-                        endian.short()
-                    )?;
-                }
-            }
-            FieldType::Fixed(_) => unreachable!(),
-        }
-    }
-
-    // Prevent unused args warnings:
-    if layout.fields_with_content().count() == 0 {
-        writeln!(out, "  (void)val;")?;
-        writeln!(out, "  (void)r;")?;
-    }
-
-    writeln!(out, "  return 0;")?;
-    writeln!(out, "}}")?;
-    Ok(())
-}
-
-fn generate_layout_unpack_func(
-    out: &mut dyn Write,
-    inp: &Input,
-    layout: &Layout,
-    endian: Endianess,
-) -> Result<(), Error> {
-    // Strings:
-    let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));
-    let func_prefix = func_prefix(inp);
-
-    let width_bytes = layout.width_bytes();
-
-    // doxy comment:
-    writeln!(out)?;
-    let docs = Docs {
-        brief: Some("Convert packed {endian} binary value to struct.".to_string()),
-        doc: None,
-    };
-    generate_doxy_comment(out, inp, &docs, "", None)?;
-
-    // Function signature
-    let func_sig = format!(
-        "{}struct {} {}_unpack_{}(const uint8_t val[{}])",
-        func_prefix,
-        struct_name,
-        struct_name,
-        endian.short(),
-        width_bytes
-    );
-
-    if inp.opts.funcs_as_prototypes {
-        writeln!(out, "{func_sig};")?;
-        return Ok(());
-    }
-
-    writeln!(out, "{func_sig} {{")?;
-
-    if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
-        // The implementaiton for this endianess defers to the other endianess:
-        let defer_arr = format!("val_{}", defer_to.short());
-        writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
-        writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
-        writeln!(out, "  return {}_unpack_{}({defer_arr});", struct_name, defer_to.short())?;
-        writeln!(out, "}}")?;
-        return Ok(());
-    }
-
-    writeln!(out, "  // All possible layout field values can be unpacked without error.")?;
-    writeln!(out, "  struct {struct_name} r = {{0}};")?;
-    writeln!(out, "  (void) {struct_name}_try_unpack_{}(val, &r);", endian.short())?;
-    writeln!(out, "  return r;")?;
-    writeln!(out, "}}")?;
-    Ok(())
-}
-
 /// Generate generic macros:
 fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     if !is_enabled(inp, Element::GenericMacros) {
@@ -919,23 +313,46 @@ fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error
             brief: Some("Convert struct to packed {endian} binary value.".to_string()),
             doc: Some("All non-field/always write bits are left untouched.".to_string()),
         };
-        generate_generic_macro(&mut out, inp, &docs, "pack", "_struct_ptr_, _val_", inp.map.layouts.values(), *endian)?;
+        writeln!(out)?;
+        c_generate_doxy_comment(&mut out, &docs, "", vec![])?;
 
+        let func_suffix = format!("pack_{}", endian.short());
+        generate_generic_macro(&mut out, inp, &func_suffix, "_struct_ptr_, _val_", inp.map.layouts.values())?;
+    }
+
+    let docs = Docs {
+        brief: Some("Validate struct".to_string()),
+        doc: Some("Confirms that all enums are valid, and all values fit into respective fields".to_string()),
+    };
+    writeln!(out)?;
+    c_generate_doxy_comment(
+        &mut out,
+        &docs,
+        "",
+        vec![
+            (String::from("returns"), String::from("0 if valid.")),
+            (String::from("returns"), String::from("the position of the first invalid field if invalid.")),
+        ],
+    )?;
+    generate_generic_macro(&mut out, inp, "validate", "_struct_ptr_", inp.map.layouts.values())?;
+
+    for endian in &inp.endian {
         let docs = Docs {
-           brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
-           doc: Some(
-               "@returns 0 if succesfull.\n@returns the position of the field that could not be unpacked plus one, if enums can not represent content.".to_string(),
-           ),
+            brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
+            doc: None,
         };
-        generate_generic_macro(
+        writeln!(out)?;
+        c_generate_doxy_comment(
             &mut out,
-            inp,
             &docs,
-            "try_unpack",
-            "_val_, _struct_ptr_",
-            inp.map.layouts.values(),
-            *endian,
+            "",
+            vec![
+                (String::from("returns"), String::from("0 if valid.")),
+                (String::from("returns"), String::from("the position of the first invalid field if invalid.")),
+            ],
         )?;
+        let func_suffix = format!("try_unpack_{}", endian.short());
+        generate_generic_macro(&mut out, inp, &func_suffix, "_val_, _struct_ptr_", inp.map.layouts.values())?;
     }
 
     out.pop_section();
@@ -946,30 +363,20 @@ fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error
 fn generate_generic_macro<'a>(
     out: &mut dyn Write,
     inp: &Input,
-    docs: &Docs,
     func_name_suffix: &str,
     func_args: &str,
     layouts: impl Iterator<Item = &'a Rc<Layout>>,
-    endian: Endianess,
 ) -> Result<(), Error> {
     let macro_name_suffix = c_macro(func_name_suffix);
     let macro_prefix = c_macro(&inp.map.name);
     let code_prefix = c_code(&inp.map.name);
-    let macro_endian_str = endian.short().to_uppercase();
-    let endian_str = endian.short();
-
-    // doxy comment:
-    writeln!(out)?;
-    generate_doxy_comment(out, inp, docs, "", None)?;
 
     let mut macro_lines: Vec<String> = vec![];
-    macro_lines.push(format!(
-        "#define {macro_prefix}_{macro_name_suffix}_{macro_endian_str}({func_args}) _Generic((_struct_ptr_),"
-    ));
+    macro_lines.push(format!("#define {macro_prefix}_{macro_name_suffix}({func_args}) _Generic((_struct_ptr_),"));
 
     for layout in layouts {
         let struct_name = format!("{}_{}", code_prefix, c_code(&layout.name));
-        macro_lines.push(format!("    struct {struct_name}* : {struct_name}_{func_name_suffix}_{endian_str},"));
+        macro_lines.push(format!("    struct {struct_name}* : {struct_name}_{func_name_suffix},"));
     }
     let last_line = macro_lines.pop().unwrap().replace(',', "");
     macro_lines.push(last_line);
@@ -987,213 +394,6 @@ fn generate_multiline_macro(out: &mut dyn Write, mut lines: Vec<String>) -> Resu
         }
         writeln!(out, "{last_line}")?;
     }
-    Ok(())
-}
-
-fn generate_doxy_comment(
-    out: &mut dyn Write,
-    inp: &Input,
-    docs: &Docs,
-    prefix: &str,
-    note: Option<&str>,
-) -> Result<(), Error> {
-    if inp.opts.doxy_comments {
-        c_generate_doxy_comment(out, docs, prefix, note)
-    } else {
-        Ok(())
-    }
-}
-
-/// Generate register section header comment
-fn generate_register_header(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
-    let name = &register.name;
-    writeln!(out)?;
-    c_generate_section_header_comment(out, &format!("{name} Register"))?;
-    if !register.docs.is_empty() {
-        write!(out, "{}", register.docs.as_multiline("// "))?;
-    }
-    if is_enabled(inp, Element::Structs) {
-        writeln!(out, "// Fields:")?;
-        writeln!(out, "{}", c_layout_overview_comment(&register.layout))?;
-    }
-    Ok(())
-}
-
-fn generate_register_properties(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
-    if !is_enabled(inp, Element::RegisterProperties) {
-        return Ok(());
-    }
-
-    let mut defines: Vec<Vec<String>> = vec![];
-
-    let macro_prefix = c_macro(&inp.map.name);
-    let reg_macro_prefix = format!("{macro_prefix}_{}", c_macro(&register.name));
-
-    // Address:
-    defines.push(vec![
-        format!("#define {}_ADDRESS", reg_macro_prefix),
-        format!("(0x{:X}U)", register.adr),
-        format!("//!< {} register address", register.name),
-    ]);
-
-    for endian in &inp.endian {
-        // Reset value:
-        if let Some(reset_val) = &register.reset_val {
-            defines.push(vec![
-                format!("#define {}_RESET_{}", reg_macro_prefix, &endian.short().to_uppercase()),
-                to_array_init(*reset_val, register.layout.width_bytes(), *endian),
-                format!("//!< {} register reset value", register.name),
-            ]);
-        }
-    }
-
-    if !defines.is_empty() {
-        writeln!(out)?;
-        write!(out, "{}", str_table(&defines, "", " "))?;
-    }
-
-    Ok(())
-}
-
-fn generate_register_block_header(out: &mut dyn Write, block: &RegisterBlock) -> Result<(), Error> {
-    let name = &block.name;
-    writeln!(out)?;
-    c_generate_section_header_comment(out, &format!("{name} Register Block"))?;
-    if !block.docs.is_empty() {
-        write!(out, "{}", block.docs.as_multiline("// "))?;
-    }
-
-    if !block.members.is_empty() {
-        writeln!(out, "//")?;
-        writeln!(out, "// Contains registers:")?;
-        for member in block.members.values() {
-            if let Some(brief) = &member.docs.brief {
-                writeln!(out, "// - [0x{:02}] {}: {}", member.offset, member.name, brief)?;
-            } else {
-                writeln!(out, "// - [0x{:02}] {}", member.offset, member.name)?;
-            }
-        }
-    }
-
-    if !block.instances.is_empty() {
-        writeln!(out, "//")?;
-        writeln!(out, "// Instances:")?;
-        for instance in block.instances.values() {
-            if let Some(brief) = &instance.docs.brief {
-                writeln!(out, "// - [0x{:02}] {}: {}", instance.adr, instance.name, brief)?;
-            } else {
-                writeln!(out, "// - [0x{:02}] {}", instance.adr, instance.name)?;
-            }
-        }
-    }
-
-    Ok(())
-}
-
-fn generate_register_block_properties(out: &mut dyn Write, inp: &Input, block: &RegisterBlock) -> Result<(), Error> {
-    if !is_enabled(inp, Element::RegisterProperties) {
-        return Ok(());
-    }
-
-    let macro_prefix = c_macro(&inp.map.name);
-    let macro_block_name = c_macro(&block.name);
-
-    let mut defines = vec![];
-    for member in block.members.values() {
-        let macro_member_name = c_macro(&member.name);
-        defines.push(vec![
-            format!("#define {}_{}_OFFSET", macro_prefix, macro_member_name),
-            format!("(0x{:X}U)", member.offset),
-            format!("//!< Offset of {} register from {} block start", member.name, block.name),
-        ]);
-    }
-
-    if !defines.is_empty() {
-        writeln!(out)?;
-        writeln!(out, "// Contained registers:")?;
-        write!(out, "{}", str_table(&defines, "", " "))?;
-    }
-
-    let mut defines = vec![];
-    for instance in block.instances.values() {
-        let macro_instance_name = c_macro(&instance.name);
-        defines.push(vec![
-            format!("#define {}_{}_INSTANCE_{}", macro_prefix, macro_block_name, macro_instance_name),
-            format!("(0x{:X}U)", instance.adr),
-            format!("//!< Start of {} instance {}", block.name, instance.name),
-        ]);
-    }
-
-    if !defines.is_empty() {
-        writeln!(out)?;
-        writeln!(out, "// Instances:")?;
-        write!(out, "{}", str_table(&defines, "", " "))?;
-    }
-
-    Ok(())
-}
-
-fn generate_register_block_member_header(
-    out: &mut dyn Write,
-    inp: &Input,
-    member: &RegisterBlockMember,
-) -> Result<(), Error> {
-    let name = &member.name;
-    writeln!(out)?;
-    c_generate_header_comment(out, &format!("{name} Register Block Member "))?;
-
-    if !member.docs.is_empty() {
-        write!(out, "{}", member.docs.as_multiline("// "))?;
-    }
-
-    if is_enabled(inp, Element::Structs) {
-        writeln!(out, "// Fields:")?;
-        writeln!(out, "{}", c_layout_overview_comment(&member.layout))?;
-    }
-    Ok(())
-}
-
-fn generate_register_block_member_properties(
-    out: &mut dyn Write,
-    inp: &Input,
-    member: &RegisterBlockMember,
-    block: &RegisterBlock,
-) -> Result<(), Error> {
-    if !is_enabled(inp, Element::RegisterProperties) {
-        return Ok(());
-    }
-
-    let macro_prefix = c_macro(&inp.map.name);
-
-    let mut defines = vec![];
-    for block_instance in block.instances.values() {
-        let member_instance = &block_instance.registers[&member.name];
-        let reg_macro_prefix = format!("{macro_prefix}_{}", c_macro(&member_instance.name));
-
-        // Address:
-        defines.push(vec![
-            format!("#define {}_ADDRESS", reg_macro_prefix),
-            format!("(0x{:X}U)", member_instance.adr),
-            format!("//!< {} register address", member_instance.name),
-        ]);
-
-        for endian in &inp.endian {
-            // Reset value:
-            if let Some(reset_val) = &member_instance.reset_val {
-                defines.push(vec![
-                    format!("#define {}_RESET_{}", reg_macro_prefix, endian.short().to_uppercase()),
-                    to_array_init(*reset_val, member_instance.layout.width_bytes(), *endian),
-                    format!("//!< {} register reset value", member_instance.name),
-                ]);
-            }
-        }
-    }
-
-    if !defines.is_empty() {
-        writeln!(out)?;
-        write!(out, "{}", str_table(&defines, "", " "))?;
-    }
-
     Ok(())
 }
 
@@ -1232,13 +432,7 @@ fn to_array_init(val: TypeValue, width_bytes: TypeBitwidth, endian: Endianess) -
 fn assemble_numeric_field(layout: &Layout, field: &LayoutField, endian: Endianess) -> Result<String, Error> {
     let layout_width_bytes = layout.width_bytes();
 
-    let field_bitwidth = match &field.accepts {
-        FieldType::UInt => mask_width(field.mask),
-        FieldType::Bool => 1,
-        FieldType::Enum(e) => e.min_bitdwith(),
-        FieldType::Fixed(_) => unreachable!(),
-        FieldType::Layout(_) => unreachable!(),
-    };
+    let field_bitwidth = mask_width(field.mask);
 
     let pre_cast = if field_bitwidth <= 8 {
         String::new()

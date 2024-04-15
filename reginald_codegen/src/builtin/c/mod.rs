@@ -58,32 +58,43 @@ fn c_generate_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Err
     Ok(())
 }
 
-fn c_generate_doxy_comment(out: &mut dyn Write, docs: &Docs, prefix: &str, note: Option<&str>) -> Result<(), Error> {
-    match (&docs.brief, note, &docs.doc) {
-        (None, None, None) => (),
-        (Some(brief), None, None) => {
-            writeln!(out, "{prefix}/** @brief {brief} */")?;
-        }
-        (None, Some(note), None) => {
-            writeln!(out, "{prefix}/** @note {note} */")?;
-        }
-        (brief, note, doc) => {
-            writeln!(out, "{prefix}/**")?;
-            if let Some(brief) = brief {
-                writeln!(out, "{prefix} * @brief {brief}")?;
-            }
-            if let Some(note) = note {
-                writeln!(out, "{prefix} * @note {note}")?;
-            }
-            if let Some(doc) = doc {
-                for line in doc.lines() {
-                    writeln!(out, "{prefix} * {line}")?;
-                }
-            }
-            writeln!(out, "{prefix} */")?;
-        }
+fn c_generate_doxy_comment(
+    out: &mut dyn Write,
+    docs: &Docs,
+    prefix: &str,
+    mut nodes: Vec<(String, String)>,
+) -> Result<(), Error> {
+    if let Some(brief) = &docs.brief {
+        nodes.push((String::from("brief"), brief.to_owned()));
     }
-    Ok(())
+
+    nodes.sort_by_key(|x| match x.0.as_str() {
+        "name" => 0,
+        "brief" => 1,
+        "warning" => 2,
+        "note" => 3,
+        "returns" => 4,
+        _ => 5,
+    });
+
+    if nodes.is_empty() && docs.doc.is_none() {
+        Ok(())
+    } else if nodes.len() == 1 && docs.doc.is_none() {
+        writeln!(out, "{prefix}/** @{} {} */", nodes[0].0, nodes[0].1)?;
+        Ok(())
+    } else {
+        writeln!(out, "{prefix}/**")?;
+        for (node_name, node) in &nodes {
+            writeln!(out, "{prefix} * @{node_name} {node}")?
+        }
+        if let Some(doc) = &docs.doc {
+            for line in doc.lines() {
+                writeln!(out, "{prefix} * {line}")?;
+            }
+        }
+        writeln!(out, "{prefix} */")?;
+        Ok(())
+    }
 }
 
 fn c_layout_overview_comment(layout: &Layout) -> String {

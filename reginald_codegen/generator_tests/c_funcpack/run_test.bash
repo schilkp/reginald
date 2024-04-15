@@ -93,8 +93,6 @@ cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.c c-f
     --funcs-static-inline=false                                                         \
     --add-include="generated.h"                                                         \
     --include-guards=false                                                              \
-    --doxy-comments=false                                                               \
-    --only-generate=enum-validation-funcs                                               \
     --only-generate=struct-conversion-funcs
 
 test_generated_code "-std=c11" "output/generated.c"
@@ -110,7 +108,7 @@ cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum.
 
 echo "Generating enum validation header..."
 cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated_enum_valid.h c-funcpack  \
-    --only-generate=enum-validation-funcs                                                           \
+    --only-generate=enum-validation-macros                                                          \
     --add-include="generated_enum.h"
 
 echo "Generating struct header..."

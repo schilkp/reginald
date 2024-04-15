@@ -4,13 +4,14 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::derive_partial_eq_without_eq)]
+#![allow(clippy::inline_always)]
 
 pub mod out;
 pub mod out_errormsgs;
 
 // Unused. Included to ensure they compile:
-pub mod out_ext_traits;
 pub mod out_crate_traits;
+pub mod out_ext_traits;
 pub mod out_flat;
 
 #[cfg(test)]
@@ -38,13 +39,13 @@ mod tests {
 
         // Basic unpacking:
         let mut packed = reg.to_le_bytes();
-        packed[0] |= 0x3 << 5; // Futz with unused bits
+        packed[0] |= 0x3 << 6; // Futz with unused bits
 
-        let reg_unpacked = Reg1::from_le_bytes(packed);
+        let reg_unpacked = Reg1::from_le_bytes(&packed);
         assert_eq!(reg_unpacked.field0, true);
         assert_eq!(reg_unpacked.field1, 0xA);
 
-        let reg_unpacked = Reg1::from_be_bytes(packed);
+        let reg_unpacked = Reg1::from_be_bytes(&packed);
         assert_eq!(reg_unpacked.field0, true);
         assert_eq!(reg_unpacked.field1, 0xA);
 
@@ -55,11 +56,11 @@ mod tests {
         assert_eq!(reg_unpacked.field1, 0xA);
 
         // Try unpacking:
-        let reg_unpacked = Reg1::try_from_le_bytes(packed).unwrap();
+        let reg_unpacked = Reg1::try_from_le_bytes(&packed).unwrap();
         assert_eq!(reg_unpacked.field0, true);
         assert_eq!(reg_unpacked.field1, 0xA);
 
-        let reg_unpacked = Reg1::try_from_be_bytes(packed).unwrap();
+        let reg_unpacked = Reg1::try_from_be_bytes(&packed).unwrap();
         assert_eq!(reg_unpacked.field0, true);
         assert_eq!(reg_unpacked.field1, 0xA);
     }
@@ -77,10 +78,10 @@ mod tests {
             field4: 0xA,
         };
 
-        let b0 = (0x1 << 4)              // Always write
-            | ((Stat::Hot as u8) << 6)  // Field 1
-            | ((Field2::En as u8) << 0) // Field 2
-            | ((1 << 2)); // Field 3
+        let b0 = (0x1 << 4)  // Always write
+                | (0x3 << 6) // Field 1
+                | (0x3 << 0) // Field 2
+                | (1 << 2); // Field 3
         let b1 = (0xA) << 0;
 
         let expected_le: [u8; 2] = [b0, b1];
@@ -94,7 +95,7 @@ mod tests {
         packed_le[0] |= 0x3 << 4; // mess with always-write
         packed_le[1] |= 0x7 << (13 - 8); // mess with unused bits
 
-        let reg_unpacked = Reg2::try_from_le_bytes(packed_le).unwrap();
+        let reg_unpacked = Reg2::try_from_le_bytes(&packed_le).unwrap();
         assert_eq!(reg_unpacked.field1, Stat::Hot);
         assert_eq!(reg_unpacked.field2, Field2::En);
         assert_eq!(reg_unpacked.field3, true);
@@ -103,7 +104,7 @@ mod tests {
         let mut packed_be = packed_le;
         packed_be.reverse();
 
-        let reg_unpacked = Reg2::try_from_be_bytes(packed_be).unwrap();
+        let reg_unpacked = Reg2::try_from_be_bytes(&packed_be).unwrap();
         assert_eq!(reg_unpacked.field1, Stat::Hot);
         assert_eq!(reg_unpacked.field2, Field2::En);
         assert_eq!(reg_unpacked.field3, true);
@@ -138,14 +139,14 @@ mod tests {
         // Basic unpacking:
         let packed_le = reg.to_le_bytes();
 
-        let reg_unpacked = Reg3::from_le_bytes(packed_le);
+        let reg_unpacked = Reg3::from_le_bytes(&packed_le);
         assert_eq!(reg_unpacked.field0, 0xCBF);
         assert_eq!(reg_unpacked.field1, 0x81);
 
         let mut packed_be = packed_le;
         packed_be.reverse();
 
-        let reg_unpacked = Reg3::from_be_bytes(packed_be);
+        let reg_unpacked = Reg3::from_be_bytes(&packed_be);
         assert_eq!(reg_unpacked.field0, 0xCBF);
         assert_eq!(reg_unpacked.field1, 0x81);
 
@@ -164,11 +165,11 @@ mod tests {
         // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
         // `STAT` enum in field// `STAT` enum in fieldEN` enum in field 2 (bits 1-0) can only be 0x3
 
-        Reg2::try_from_le_bytes([(0x1 << 6) | 0x0, 0]).unwrap_err();
-        Reg2::try_from_le_bytes([(0x2 << 6) | 0x1, 0]).unwrap_err();
-        Reg2::try_from_le_bytes([(0x3 << 6) | 0x2, 0]).unwrap_err();
-        Reg2::try_from_le_bytes([(0x1 << 6) | 0x3, 0]).unwrap();
-        Reg2::try_from_le_bytes([(0x0 << 6) | 0x3, 0]).unwrap_err();
+        Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x0, 0]).unwrap_err();
+        Reg2::try_from_le_bytes(&[(0x2 << 6) | 0x1, 0]).unwrap_err();
+        Reg2::try_from_le_bytes(&[(0x3 << 6) | 0x2, 0]).unwrap_err();
+        Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x3, 0]).unwrap();
+        Reg2::try_from_le_bytes(&[(0x0 << 6) | 0x3, 0]).unwrap_err();
 
         Reg2::try_from((0x1 << 6) | 0x0).unwrap_err();
         Reg2::try_from((0x2 << 6) | 0x1).unwrap_err();
@@ -184,18 +185,18 @@ mod tests {
 
         // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
         // `EN` enum in field 2 (bits 1-0) can only be 0x3
-        let err = Reg2::try_from_le_bytes([(0x1 << 6) | 0x0, 0]).unwrap_err();
+        let err = Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x0, 0]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
 
-        let err = Reg2::try_from_le_bytes([(0x2 << 6) | 0x1, 0]).unwrap_err();
+        let err = Reg2::try_from_le_bytes(&[(0x2 << 6) | 0x1, 0]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
 
-        let err = Reg2::try_from_le_bytes([(0x3 << 6) | 0x2, 0]).unwrap_err();
+        let err = Reg2::try_from_le_bytes(&[(0x3 << 6) | 0x2, 0]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
 
-        Reg2::try_from_le_bytes([(0x1 << 6) | 0x3, 0]).unwrap();
+        Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x3, 0]).unwrap();
 
-        let err = Reg2::try_from_le_bytes([(0x0 << 6) | 0x3, 0]).unwrap_err();
+        let err = Reg2::try_from_le_bytes(&[(0x0 << 6) | 0x3, 0]).unwrap_err();
         assert!(err.contains("Stat unpack error"));
     }
 
@@ -204,17 +205,17 @@ mod tests {
         use crate::out::reg2::*;
         use crate::out::*;
 
-        TryInto::<Stat>::try_into(0_u8).unwrap_err();
-        TryInto::<Stat>::try_into(1_u8).unwrap();
-        TryInto::<Stat>::try_into(2_u8).unwrap();
-        TryInto::<Stat>::try_into(3_u8).unwrap();
-        TryInto::<Stat>::try_into(4_u8).unwrap_err();
+        Stat::try_from_le_bytes(&[0]).unwrap_err();
+        Stat::try_from_le_bytes(&[1]).unwrap();
+        Stat::try_from_le_bytes(&[2]).unwrap();
+        Stat::try_from_le_bytes(&[3]).unwrap();
+        Stat::try_from_le_bytes(&[4]).unwrap_err();
 
-        TryInto::<Field2>::try_into(0_u8).unwrap_err();
-        TryInto::<Field2>::try_into(1_u8).unwrap_err();
-        TryInto::<Field2>::try_into(2_u8).unwrap_err();
-        TryInto::<Field2>::try_into(3_u8).unwrap();
-        TryInto::<Field2>::try_into(4_u8).unwrap_err();
+        Field2::try_from_le_bytes(&[0]).unwrap_err();
+        Field2::try_from_le_bytes(&[1]).unwrap_err();
+        Field2::try_from_le_bytes(&[2]).unwrap_err();
+        Field2::try_from_le_bytes(&[3]).unwrap();
+        Field2::try_from_le_bytes(&[4]).unwrap_err();
     }
 
     #[test]
@@ -222,28 +223,28 @@ mod tests {
         use crate::out_errormsgs::reg2::*;
         use crate::out_errormsgs::*;
 
-        let err = TryInto::<Stat>::try_into(0_u8).unwrap_err();
+        let err = Stat::try_from_le_bytes(&[0]).unwrap_err();
         assert!(err.contains("Stat unpack error"));
 
-        TryInto::<Stat>::try_into(1_u8).unwrap();
-        TryInto::<Stat>::try_into(2_u8).unwrap();
-        TryInto::<Stat>::try_into(3_u8).unwrap();
+        Stat::try_from_le_bytes(&[1]).unwrap();
+        Stat::try_from_le_bytes(&[2]).unwrap();
+        Stat::try_from_le_bytes(&[3]).unwrap();
 
-        let err = TryInto::<Stat>::try_into(4_u8).unwrap_err();
+        let err = Stat::try_from_le_bytes(&[4]).unwrap_err();
         assert!(err.contains("Stat unpack error"));
 
-        let err = TryInto::<Field2>::try_into(0_u8).unwrap_err();
+        let err = Field2::try_from_le_bytes(&[0]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
 
-        let err = TryInto::<Field2>::try_into(1_u8).unwrap_err();
+        let err = Field2::try_from_le_bytes(&[1]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
 
-        let err = TryInto::<Field2>::try_into(2_u8).unwrap_err();
+        let err = Field2::try_from_le_bytes(&[2]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
 
-        TryInto::<Field2>::try_into(3_u8).unwrap();
+        Field2::try_from_le_bytes(&[3]).unwrap();
 
-        let err = TryInto::<Field2>::try_into(4_u8).unwrap_err();
+        let err = Field2::try_from_le_bytes(&[4]).unwrap_err();
         assert!(err.contains("Field2 unpack error"));
     }
 
@@ -266,20 +267,20 @@ mod tests {
         // Basic unpacking:
         let packed_le = reg.to_le_bytes();
 
-        let reg_unpacked = BasicSharedLayout::from_le_bytes(packed_le);
+        let reg_unpacked = BasicSharedLayout::from_le_bytes_lossy(&packed_le);
         assert_eq!(reg_unpacked.shared_field1, 0x4);
         assert_eq!(reg_unpacked.shared_field2, SharedField2::IsOne);
 
         let mut packed_be = packed_le;
         packed_be.reverse();
 
-        let reg_unpacked = BasicSharedLayout::from_be_bytes(packed_be);
+        let reg_unpacked = BasicSharedLayout::from_be_bytes_lossy(&packed_be);
         assert_eq!(reg_unpacked.shared_field1, 0x4);
         assert_eq!(reg_unpacked.shared_field2, SharedField2::IsOne);
 
         let packed_uint = u16::from_le_bytes(packed_le);
 
-        let reg_unpacked: BasicSharedLayout = packed_uint.into();
+        let reg_unpacked: BasicSharedLayout = packed_uint.try_into().unwrap();
         assert_eq!(reg_unpacked.shared_field1, 0x4);
         assert_eq!(reg_unpacked.shared_field2, SharedField2::IsOne);
     }
@@ -325,14 +326,14 @@ mod tests {
         let mut packed_le = reg.to_le_bytes();
         packed_le[0] |= 0xB8;
 
-        let reg_unpacked = RegLayoutField::from_le_bytes(packed_le);
+        let reg_unpacked = RegLayoutField::from_le_bytes(&packed_le);
         assert_eq!(reg_unpacked.layout_field.f1, 1);
         assert_eq!(reg_unpacked.layout_field.f2.f22, 0xFF);
 
         let mut packed_be = packed_le;
         packed_be.reverse();
 
-        let reg_unpacked = RegLayoutField::from_be_bytes(packed_be);
+        let reg_unpacked = RegLayoutField::from_be_bytes(&packed_be);
         assert_eq!(reg_unpacked.layout_field.f1, 1);
         assert_eq!(reg_unpacked.layout_field.f2.f22, 0xFF);
 
@@ -376,7 +377,7 @@ mod tests {
         assert_eq!(expected[0], reg.into());
 
         // Basic unpacking:
-        let reg_unpacked = RegSplitField::from_le_bytes(expected);
+        let reg_unpacked = RegSplitField::from_le_bytes(&expected);
         assert_eq!(reg_unpacked.split_field_1, 0b010001);
         assert_eq!(reg_unpacked.split_field_2, 0b100010);
     }
@@ -398,20 +399,20 @@ mod tests {
 
         // Basic unpacking:
         let packed = [0b101];
-        let reg_unpacked = RegSplitEnum::from_le_bytes(packed);
+        let reg_unpacked = RegSplitEnum::from_le_bytes(&packed);
         assert_eq!(reg_unpacked.split_enum, SplitEnum::Se3);
 
         let packed = [0b111];
-        let reg_unpacked = RegSplitEnum::from_le_bytes(packed);
+        let reg_unpacked = RegSplitEnum::from_le_bytes(&packed);
         assert_eq!(reg_unpacked.split_enum, SplitEnum::Se3);
 
         let packed = [0b1010];
-        let reg_unpacked = RegSplitEnum::from_le_bytes(packed);
+        let reg_unpacked = RegSplitEnum::from_le_bytes(&packed);
         assert_eq!(reg_unpacked.split_enum, SplitEnum::Se0);
 
         // Ensure that the split enum truncating conversion function covers all bits:
         for i in 0..255_u8 {
-            SplitEnum::truncated_from(i);
+            let _ = SplitEnum::try_from_le_bytes(&[i]); // check that 'unreachable' macro is never reached.
         }
     }
 
@@ -431,7 +432,7 @@ mod tests {
         assert_eq!(expected[0], reg.into());
 
         // Basic unpacking:
-        let reg_unpacked = RegSplitLayout::from_le_bytes(expected);
+        let reg_unpacked = RegSplitLayout::from_le_bytes(&expected);
         assert_eq!(reg_unpacked.split_layout.f1, 0x3);
         assert_eq!(reg_unpacked.split_layout.f2, 0x7);
     }

@@ -11,8 +11,8 @@ use std::{
 };
 
 use crate::bits::{
-    bitmask_from_range, bitmask_from_width, mask_to_bit_ranges, mask_to_bit_ranges_str, mask_to_bits, msb_pos,
-    unpositioned_mask,
+    bitmask_from_range, bitmask_from_width, bitwidth_to_width_bytes, mask_to_bit_ranges, mask_to_bit_ranges_str,
+    mask_to_bits, msb_pos, unpositioned_mask,
 };
 use crate::{bits::lsb_pos, error::Error, utils::numbers_as_ranges};
 
@@ -243,6 +243,11 @@ impl Enum {
         msb_pos(self.max_value()) + 1
     }
 
+    /// Minimum number of bytes required to represent all values in this enum.
+    pub fn min_width_bytes(&self) -> TypeBitwidth {
+        bitwidth_to_width_bytes(self.min_bitdwith())
+    }
+
     /// Check if enum can repreent every possible value of a N-bit number, where N is the
     /// minimum bitwidth of this enum.
     pub fn can_unpack_min_bitwidth(&self) -> bool {
@@ -251,6 +256,10 @@ impl Enum {
 
     pub fn max_value(&self) -> TypeValue {
         self.entries.values().map(|x| x.value).max().unwrap_or(0)
+    }
+
+    pub fn can_unpack_masked(&self) -> bool {
+        self.can_unpack_mask(self.occupied_bits())
     }
 
     pub fn decode(&self, val: TypeValue) -> Result<String, Error> {
@@ -263,10 +272,6 @@ impl Enum {
 
     pub fn occupied_bits(&self) -> TypeValue {
         self.entries.values().map(|x| x.value).reduce(|a, b| a | b).unwrap_or(0)
-    }
-
-    pub fn can_do_truncating_unpacking(&self) -> bool {
-        self.can_unpack_mask(self.occupied_bits())
     }
 }
 
@@ -451,7 +456,7 @@ impl Layout {
     }
 
     pub fn width_bytes(&self) -> TypeBitwidth {
-        (self.bitwidth + 7) / 8
+        bitwidth_to_width_bytes(self.bitwidth)
     }
 
     pub fn overview_text(&self, as_markdown: bool) -> String {

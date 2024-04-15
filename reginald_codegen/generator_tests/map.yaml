@@ -58,7 +58,7 @@ registers:
 
   REG_SHARED_LAYOUT_BASIC_1: !Register
     adr: 0x10
-    reset_val: 0x00
+    reset_val: 0x0
     layout: !SharedLayout BASIC_SHARED_LAYOUT
 
   REG_SHARED_LAYOUT_BASIC_2: !Register
@@ -140,6 +140,54 @@ registers:
           F2:
             bits: ["4-6"]
 
+  REG_FIELD_BIGGER_THAN_ENUM_1: !Register
+    adr: 0x21
+    bitwidth: 32
+    layout: !Layout
+      TINY_ENUM_1:
+        bits: ["0-3"]
+        accepts: !Enum
+          F0:
+            val: 0
+          F1:
+            val: 1
+
+  REG_FIELD_BIGGER_THAN_ENUM_2: !Register
+    adr: 0x21
+    bitwidth: 32
+    layout: !Layout
+      TINY_ENUM_2:
+        bits: ["0-31"]
+        accepts: !Enum
+          F0:
+            val: 0
+          F1:
+            val: 1
+
+  REG_FIELD_BIGGER_THAN_ENUM_3: !Register
+    adr: 0x21
+    bitwidth: 64
+    layout: !Layout
+      TINY_ENUM_3:
+        bits: ["0-63"]
+        accepts: !Enum
+          F0:
+            val: 0
+          F1:
+            val: 1
+
+  REG_FIELD_HUGE_ENUM: !Register
+    adr: 0x21
+    bitwidth: 64
+    layout: !Layout
+      HUGE_ENUM:
+        bits: ["0-63"]
+        accepts: !Enum
+          F0:
+            val: 0x0
+          F1:
+            val: 0xFFFFFFFFFFFFFFFF
+
   BLOCK: !RegisterBlock
     instances:
       BLOCK1: { adr: 0x10 }
@@ -157,7 +205,6 @@ registers:
         layout: !Layout
           VAL:
             bits: [6-0]
-
 
 enums:
   STAT:

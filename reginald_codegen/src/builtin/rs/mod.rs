@@ -4,8 +4,8 @@ use std::fmt::Write;
 
 use crate::{
     error::Error,
-    regmap::{Docs, Layout, TypeBitwidth},
-    utils::str_pad_to_length,
+    regmap::{Docs, Layout, TypeBitwidth, TypeValue},
+    utils::{grab_byte, str_pad_to_length, Endianess},
 };
 
 pub mod structs;
@@ -86,6 +86,45 @@ fn rs_layout_overview_comment(layout: &Layout, prefix: &str) -> String {
         .map(|x| String::from(prefix) + x)
         .collect::<Vec<String>>()
         .join("\n")
+}
+
+/// Convert a value to an array literal of given endianess
+fn array_literal(endian: Endianess, val: TypeValue, width_bytes: TypeBitwidth) -> String {
+    let mut bytes: Vec<String> = vec![];
+
+    for i in 0..width_bytes {
+        let byte = format!("0x{:X}", ((val >> (8 * i)) & 0xFF) as u8);
+        bytes.push(byte);
+    }
+
+    if matches!(endian, Endianess::Big) {
+        bytes.reverse();
+    }
+
+    format!("[{}]", bytes.join(", "))
+}
+
+/// Convert a value to an array literal of given endianess
+fn masked_array_literal(endian: Endianess, val_name: &str, mask: TypeValue, width_bytes: TypeBitwidth) -> String {
+    let mut bytes = vec![];
+
+    for i in 0..width_bytes {
+        let mask = grab_byte(Endianess::Little, mask, i, width_bytes);
+        let byte = if mask == 0 {
+            String::from("0")
+        } else if mask == 0xFF {
+            format!("{val_name}[{i}]")
+        } else {
+            format!("{val_name}[{i}] & 0x{mask:X}")
+        };
+        bytes.push(byte);
+    }
+
+    if matches!(endian, Endianess::Big) {
+        bytes.reverse();
+    }
+
+    format!("[{}]", bytes.join(", "))
 }
 
 pub const CONVERSION_TRAITS: &str = include_str!("../../../../reginald/src/lib.rs");

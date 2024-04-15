@@ -43,23 +43,23 @@ void test_basic_reg1(void) {
   TEST_ASSERT_EQUAL_HEX8_ARRAY(&expected_packed_reg, &packed_reg_be, 1);
 
   // Unpacking:
-
-  packed_reg_le |= 0x3 << 5; // unused bits
+  packed_reg_le |= 0x3 << 6; // unused bits
   reg = chip_reg1_unpack_le(&packed_reg_le);
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(true, reg.field0, "(field0)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xA, reg.field1, "(field1)");
 
-  packed_reg_be |= 0x3 << 5; // unused bits
+  packed_reg_be |= 0x3 << 6; // unused bits
   reg = chip_reg1_unpack_be(&packed_reg_le);
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(true, reg.field0, "(field0)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xA, reg.field1, "(field1)");
 
   // Try unpacking:
   memset(&reg, 0, sizeof(struct chip_reg1));
+  printf("0x%x\n", packed_reg_le);
 #ifdef TEST_SKIP_GENERIC_MACROS
-  TEST_ASSERT_EQUAL(chip_reg1_try_unpack_le(&packed_reg_le, &reg), 0);
+  TEST_ASSERT_EQUAL(0, chip_reg1_try_unpack_le(&packed_reg_le, &reg));
 #else
-  TEST_ASSERT_EQUAL(CHIP_TRY_UNPACK_LE(&packed_reg_le, &reg), 0);
+  TEST_ASSERT_EQUAL(0, CHIP_TRY_UNPACK_LE(&packed_reg_le, &reg));
 #endif
 
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(true, reg.field0, "(field0)");
@@ -67,9 +67,9 @@ void test_basic_reg1(void) {
 
   memset(&reg, 0, sizeof(struct chip_reg1));
 #ifdef TEST_SKIP_GENERIC_MACROS
-  TEST_ASSERT_EQUAL(chip_reg1_try_unpack_le(&packed_reg_be, &reg), 0);
+  TEST_ASSERT_EQUAL(0, chip_reg1_try_unpack_le(&packed_reg_be, &reg));
 #else
-  TEST_ASSERT_EQUAL(CHIP_TRY_UNPACK_BE(&packed_reg_be, &reg), 0);
+  TEST_ASSERT_EQUAL(0, CHIP_TRY_UNPACK_BE(&packed_reg_be, &reg));
 #endif
 
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(true, reg.field0, "(field0)");
@@ -93,6 +93,7 @@ void test_basic_reg2(void) {
              ),
       [1] = ((0xA) << 0), // Field 4
   };
+  printf("0: 0x%x, 1: 0x%x\r\n", expected_packed_reg_le[0], expected_packed_reg_le[1]);
   uint8_t expected_packed_reg_be[2] = {0};
   reverse_array(expected_packed_reg_le, expected_packed_reg_be, 2);
 
@@ -113,14 +114,14 @@ void test_basic_reg2(void) {
   reverse_array(packed_reg_le, packed_reg_be, 2);
 
   memset(&reg, 0, sizeof(struct chip_reg2));
-  TEST_ASSERT_EQUAL(chip_reg2_try_unpack_le(packed_reg_le, &reg), 0);
+  TEST_ASSERT_EQUAL(0, chip_reg2_try_unpack_le(packed_reg_le, &reg));
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(CHIP_STAT_HOT, reg.field1, "(field1)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(CHIP_FIELD2_EN, reg.field2, "(field2)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(true, reg.field3, "(field3)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xA, reg.field4, "(field4)");
 
   memset(&reg, 0, sizeof(struct chip_reg2));
-  TEST_ASSERT_EQUAL(chip_reg2_try_unpack_be(packed_reg_be, &reg), 0);
+  TEST_ASSERT_EQUAL(0, chip_reg2_try_unpack_be(packed_reg_be, &reg));
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(CHIP_STAT_HOT, reg.field1, "(field1)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(CHIP_FIELD2_EN, reg.field2, "(field2)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(true, reg.field3, "(field3)");
@@ -171,28 +172,28 @@ void test_basic_reg3(void) {
 
   // Try unpacking:
   memset(&reg, 0, sizeof(struct chip_reg3));
-  TEST_ASSERT_EQUAL(chip_reg3_try_unpack_le(packed_reg_le, &reg), 0);
+  TEST_ASSERT_EQUAL(0, chip_reg3_try_unpack_le(packed_reg_le, &reg));
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xCBF, reg.field0, "(field0)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x1F, reg.field1, "(field1)");
 
   memset(&reg, 0, sizeof(struct chip_reg3));
-  TEST_ASSERT_EQUAL(chip_reg3_try_unpack_be(packed_reg_be, &reg), 0);
+  TEST_ASSERT_EQUAL(0, chip_reg3_try_unpack_be(packed_reg_be, &reg));
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xCBF, reg.field0, "(field0)");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x1F, reg.field1, "(field1)");
 }
 
 void test_enum_validation(void) {
-  TEST_ASSERT_EQUAL(chip_is_stat_enum(0x0), false);
-  TEST_ASSERT_EQUAL(chip_is_stat_enum(0x1), true);
-  TEST_ASSERT_EQUAL(chip_is_stat_enum(0x2), true);
-  TEST_ASSERT_EQUAL(chip_is_stat_enum(0x3), true);
-  TEST_ASSERT_EQUAL(chip_is_stat_enum(0x4), false);
+  TEST_ASSERT_EQUAL(false, CHIP_IS_VALID_STAT(0x0));
+  TEST_ASSERT_EQUAL(true, CHIP_IS_VALID_STAT(0x1));
+  TEST_ASSERT_EQUAL(true, CHIP_IS_VALID_STAT(0x2));
+  TEST_ASSERT_EQUAL(true, CHIP_IS_VALID_STAT(0x3));
+  TEST_ASSERT_EQUAL(false, CHIP_IS_VALID_STAT(0x4));
 
-  TEST_ASSERT_EQUAL(chip_is_field2_enum(0x0), false);
-  TEST_ASSERT_EQUAL(chip_is_field2_enum(0x1), false);
-  TEST_ASSERT_EQUAL(chip_is_field2_enum(0x2), false);
-  TEST_ASSERT_EQUAL(chip_is_field2_enum(0x3), true);
-  TEST_ASSERT_EQUAL(chip_is_field2_enum(0x4), false);
+  TEST_ASSERT_EQUAL(false, CHIP_IS_VALID_FIELD2(0x0));
+  TEST_ASSERT_EQUAL(false, CHIP_IS_VALID_FIELD2(0x1));
+  TEST_ASSERT_EQUAL(false, CHIP_IS_VALID_FIELD2(0x2));
+  TEST_ASSERT_EQUAL(true, CHIP_IS_VALID_FIELD2(0x3));
+  TEST_ASSERT_EQUAL(false, CHIP_IS_VALID_FIELD2(0x4));
 }
 
 void test_shared_layout_basic(void) {

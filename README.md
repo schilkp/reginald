@@ -3,20 +3,23 @@
 Philipp Schilk
 2022-2024
 
+### HOW TO HANDLE Packing of non-byte multiple size fields? Truncation OK?
+
+### HOW TO HANDLE Large enums - espc in C?
+    Should there be an upper bound?
+    In C, support enums-as-defines?
+        - Instead of doing try-unpack in C, do only a validate? Or only expose a validate?
+        - Provide options to:
+            - Always make enums defines,
+            - Only make enums above a given size defines,
+    In C, ADD static assert to output that checks that all int is large enough to hold the max_enum_bitwidth? Or 
+    that checks int is large enough to hold the max enum value that is smaller or eq. to max_enum_bitwidth?
+
 ### TODO:
 
-- Restructure:
-    - `reginald_codegen`: CLI + Code generators
-    - `reginald`: Traits
-    - Future:
-        - `reginald_derive`: Packed struct derive macros
-        - `reginald_gui`: GUI Tool
-
-- Derive:
-    - Design attribute "interface"
-    - Implement attribute parsing (without extra crate, probably?)
-    - Implement actual derive logic
-    - Implement codegen backend
+- Derive crate impl
+- rs-derive generator
+- Port codegen generator tests to integration tests
 
 ### IDEAS:
 
@@ -24,13 +27,20 @@ Philipp Schilk
     - Arrays
     - Bytes? Or is just just an u8 array?
     - Signed int?
+    - Sparse/Compressed Enum?
+        - "Compress" list of values to linear repr
+        - Binary values:
+            - 0x00000 -> Stored as 0x0 in struct
+            - 0x12312 -> Stored as 0x1 in struct
+            - 0xFFFFF -> Stored as 0xF in struct
+    - Sparse/Compressed Uint?
 
 - No limit on max reg size?
     - YAML/Json limits -> Allow int & string in 'type value' fields?
     - What 'bigint' crate?
         - Probably rework convert/regmap + generators first?
         - Even needed? Just do everything as uint8 arrays?
-    - Define maximum enum/field size?
+    - Define maximum enum/field size -> Split into TypeFieldValue & TypeRegisterValue
 
 - Input/processor option to stuff empty fields with reserved fields
 - Input/processor option to stuff enums to allow full conversion
@@ -59,68 +69,12 @@ Philipp Schilk
     - (( LE/BE Uints? Needed? ))
     - (( LE/BE Enums? Needed? ))
 
-### RUST API NOTES:
-
-bitfield-struct:
-
-```rust
-#[bitfield(u64)]
-#[derive(PartialEq, Eq)] // <- Attributes after `bitfield` are carried over
-struct MyBitfield {
-    /// Defaults to 16 bits for u16
-    int: u16,
-    /// Interpreted as 1 bit flag, with a custom default value
-    #[bits(default = true)]
-    flag: bool,
-    /// Custom bit size
-    #[bits(1)]
-    tiny: u8,
-    /// Sign extend for signed integers
-    #[bits(13)]
-    negative: i16,
-    /// Supports any type with `into_bits`/`from_bits` functions
-    #[bits(16)]
-    custom: CustomEnum,
-    /// Public field -> public accessor functions
-    #[bits(10)]
-    pub public: usize,
-    /// Also supports read-only fields
-    #[bits(1, access = RO)]
-    read_only: bool,
-    /// And write-only fields
-    #[bits(1, access = WO)]
-    write_only: bool,
-    /// Padding
-    #[bits(5)]
-    __: u8,
-}
-
-let raw: u64 = val.into();
-```
-
-https://github.com/ProfFan/dw3000-ng/blob/RUST/src/ll.rs
-https://github.com/jkelleyrtp/dw1000-rs
-rust embedded matrix
-
-# Packed structs libs:
-
-### Packed Struct:
-    - https://docs.rs/packed_struct/latest/packed_struct/
-    - Strange API? What does read/write only do?
-
-### Bitfield struct:
-    - https://crates.io/crates/bitfield-struct
-
-### Reginald features:
-    - Support both big-endian and little-endian serialisation on the same struct.
-    - Always-write is zero-size/zero overhead
-    - Support also byte array extraction
-    - Support non-try unpacking
-    - YAML/autogen support.
-
-    - CONSIDER:
-        - Look at packed-structs msb0/lsb0 capabilites? Specify bit order? Specify 
-
+### Structure
+    - `reginald_codegen`: CLI + Code generators
+    - `reginald`: Traits
+    - `reginald_derive`: Packed struct derive macros
+    - `reginald_py`: Python distribution + bindings
+    - `reginald_gui`: GUI Tool
 
 ### References:
 C++ Code generator with classes:
