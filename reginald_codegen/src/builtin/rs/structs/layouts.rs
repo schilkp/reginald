@@ -4,7 +4,6 @@ use super::*;
 
 use crate::{
     bits::{lsb_pos, mask_to_bit_ranges_str, unpositioned_mask},
-    builtin::rs::masked_array_literal,
     error::Error,
     regmap::{FieldType, Layout},
     utils::{
@@ -309,38 +308,23 @@ fn generate_layout_impl_from_bytes(
         "_val"
     };
 
-    match layout_impl(layout) {
-        FromBytesImpl::FromBytes => {
-            writeln!(out)?;
-            writeln!(out, "impl {trait_prefix}FromBytes<{width_bytes}> for {struct_name} {{")?;
-            writeln!(out, "    fn from_le_bytes({val_in_sig}: &[u8; {width_bytes}]) -> Self {{")?;
-            if !trait_prefix.is_empty() {
-                writeln!(out, "        use {trait_prefix}FromBytes;")?;
-                writeln!(out, "        use {trait_prefix}FromBytesLossy;")?;
-            }
+    if layout.can_always_unpack() {
+        writeln!(out)?;
+        writeln!(out, "impl {trait_prefix}FromBytes<{width_bytes}> for {struct_name} {{")?;
+        writeln!(out, "    fn from_le_bytes({val_in_sig}: &[u8; {width_bytes}]) -> Self {{")?;
+        if !trait_prefix.is_empty() {
+            writeln!(out, "        use {trait_prefix}FromBytes;")?;
+            writeln!(out, "        use {trait_prefix}FromMaskedBytes;")?;
         }
-        FromBytesImpl::FromBytesLossy => {
-            writeln!(out)?;
-            writeln!(out, "impl {trait_prefix}FromBytesLossy<{width_bytes}> for {struct_name} {{")?;
-            writeln!(out, "    fn from_le_bytes_lossy({val_in_sig}: &[u8; {width_bytes}]) -> Self {{")?;
-            if !trait_prefix.is_empty() {
-                writeln!(out, "        use {trait_prefix}FromBytes;")?;
-                writeln!(out, "        use {trait_prefix}FromBytesLossy;")?;
-            }
-        }
-        FromBytesImpl::TryFromBytes => {
-            writeln!(out)?;
-            writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {struct_name} {{")?;
-            writeln!(out, "    type Error = {error_type};")?;
-            writeln!(
-                out,
-                "    fn try_from_le_bytes({val_in_sig}: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{"
-            )?;
-            if !trait_prefix.is_empty() {
-                writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
-                writeln!(out, "        use {trait_prefix}FromBytes;")?;
-                writeln!(out, "        use {trait_prefix}FromBytesLossy;")?;
-            }
+    } else {
+        writeln!(out)?;
+        writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {struct_name} {{")?;
+        writeln!(out, "    type Error = {error_type};")?;
+        writeln!(out, "    fn try_from_le_bytes({val_in_sig}: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
+        if !trait_prefix.is_empty() {
+            writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
+            writeln!(out, "        use {trait_prefix}FromBytes;")?;
+            writeln!(out, "        use {trait_prefix}FromMaskedBytes;")?;
         }
     }
 
@@ -408,10 +392,10 @@ fn generate_layout_impl_from_bytes(
     }
 
     // Struct initialiser to return:
-    if matches!(layout_impl(layout), FromBytesImpl::TryFromBytes) {
-        writeln!(out, "Ok(Self {{")?;
-    } else {
+    if layout.can_always_unpack() {
         writeln!(out, "Self {{")?;
+    } else {
+        writeln!(out, "Ok(Self {{")?;
     }
 
     for field in layout.fields_with_content() {
@@ -437,8 +421,8 @@ fn generate_layout_impl_from_bytes(
                     FromBytesImpl::FromBytes => {
                         writeln!(out, "  {field_name}: {enum_name}::from_le_bytes(&{array_name}),")?;
                     }
-                    FromBytesImpl::FromBytesLossy => {
-                        writeln!(out, "  {field_name}: {enum_name}::from_le_bytes_lossy(&{array_name}),")?;
+                    FromBytesImpl::FromMaskedBytes => {
+                        writeln!(out, "  {field_name}: {enum_name}::from_masked_le_bytes(&{array_name}),")?;
                     }
                     FromBytesImpl::TryFromBytes => {
                         writeln!(out, "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name})?,")?;
@@ -448,16 +432,10 @@ fn generate_layout_impl_from_bytes(
             FieldType::Layout(l) => {
                 let layout_name = prefix_with_super(inp, &rs_pascalcase(&l.name), l.is_local, in_module);
                 let array_name = rs_snakecase(&field.name);
-                match layout_impl(l) {
-                    FromBytesImpl::FromBytes => {
-                        writeln!(out, "  {field_name}: {layout_name}::from_le_bytes(&{array_name}),")?;
-                    }
-                    FromBytesImpl::FromBytesLossy => {
-                        writeln!(out, "  {field_name}: {layout_name}::from_le_bytes_lossy(&{array_name}),")?;
-                    }
-                    FromBytesImpl::TryFromBytes => {
-                        writeln!(out, "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name})?,")?;
-                    }
+                if l.can_always_unpack() {
+                    writeln!(out, "  {field_name}: {layout_name}::from_le_bytes(&{array_name}),")?;
+                } else {
+                    writeln!(out, "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name})?,")?;
                 }
             }
             FieldType::Fixed(_) => unreachable!(),
@@ -466,37 +444,13 @@ fn generate_layout_impl_from_bytes(
 
     out.decrease_indent(2);
     // Close struct, function and impl:
-    if matches!(layout_impl(layout), FromBytesImpl::TryFromBytes) {
-        writeln!(out, "        }})")?;
-    } else {
+    if layout.can_always_unpack() {
         writeln!(out, "        }}")?;
+    } else {
+        writeln!(out, "        }})")?;
     }
     writeln!(out, "    }}")?;
     writeln!(out, "}}")?;
-
-    if matches!(layout_impl(layout), FromBytesImpl::FromBytesLossy) {
-        writeln!(out)?;
-        writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {struct_name} {{")?;
-        writeln!(out, "    type Error = {error_type};")?;
-        writeln!(out)?;
-        writeln!(out, "    fn try_from_le_bytes(val: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
-        if !trait_prefix.is_empty() {
-            writeln!(out, "        use {trait_prefix}FromBytesLossy;")?;
-        }
-        let bytes_outside = masked_array_literal(Endianess::Little, "val", !layout.occupied_mask(), width_bytes);
-        writeln!(out, "        let bytes_outside = {bytes_outside};")?;
-        writeln!(out, "        if bytes_outside == [0; {width_bytes}] {{")?;
-        writeln!(out, "            Ok(Self::from_le_bytes_lossy(val))")?;
-        writeln!(out, "        }} else {{")?;
-        if inp.opts.unpacking_error_msg {
-            writeln!(out, "            Err(\"{} unpack error\")", rs_pascalcase(&layout.name))?;
-        } else {
-            writeln!(out, "            Err(())")?;
-        }
-        writeln!(out, "        }}")?;
-        writeln!(out, "    }}")?;
-        writeln!(out, "}}")?;
-    }
 
     Ok(())
 }
@@ -545,47 +499,44 @@ fn generate_layout_impl_uint_conv(
 
     // Bytes -> Struct:
 
-    match layout_impl(layout) {
-        FromBytesImpl::FromBytes => {
-            writeln!(out)?;
-            writeln!(out, "impl From<{uint_type}> for {struct_name} {{")?;
-            writeln!(out, "    fn from(value: {uint_type}) -> Self {{")?;
-            if !trait_prefix.is_empty() {
-                writeln!(out, "        use {trait_prefix}FromBytes;")?;
-            }
-            if uint_width_bytes == layout.width_bytes() {
-                writeln!(out, "        Self::from_le_bytes(&value.to_le_bytes())")?;
-            } else {
-                writeln!(out, "        let mut bytes = [0; {}];", layout.width_bytes())?;
-                writeln!(out, "        bytes.copy_from_slice(&(value.to_le_bytes()[0..{}]));", layout.width_bytes())?;
-                writeln!(out, "        Self::from_le_bytes(bytes)")?;
-            }
-            writeln!(out, "    }}")?;
-            writeln!(out, "}}")?;
+    if layout.can_always_unpack() {
+        writeln!(out)?;
+        writeln!(out, "impl From<{uint_type}> for {struct_name} {{")?;
+        writeln!(out, "    fn from(value: {uint_type}) -> Self {{")?;
+        if !trait_prefix.is_empty() {
+            writeln!(out, "        use {trait_prefix}FromBytes;")?;
         }
-        FromBytesImpl::TryFromBytes | FromBytesImpl::FromBytesLossy => {
-            writeln!(out)?;
-            writeln!(out, "impl TryFrom<{uint_type}> for {struct_name} {{")?;
-            if inp.opts.unpacking_error_msg {
-                writeln!(out, "    type Error = &'static str;")?;
-            } else {
-                writeln!(out, "    type Error = ();")?;
-            }
-            writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
-            if !trait_prefix.is_empty() {
-                writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
-            }
-            if uint_width_bytes == layout.width_bytes() {
-                writeln!(out, "        Self::try_from_le_bytes(&value.to_le_bytes())")?;
-            } else {
-                writeln!(out, "        let mut bytes = [0; {}];", layout.width_bytes())?;
-                writeln!(out, "        bytes.copy_from_slice(&(value.to_le_bytes()[0..{}]));", layout.width_bytes())?;
-                writeln!(out, "        Self::try_from_le_bytes(&bytes)")?;
-            }
-            writeln!(out, "    }}")?;
-            writeln!(out, "}}")?;
+        if uint_width_bytes == layout.width_bytes() {
+            writeln!(out, "        Self::from_le_bytes(&value.to_le_bytes())")?;
+        } else {
+            writeln!(out, "        let mut bytes = [0; {}];", layout.width_bytes())?;
+            writeln!(out, "        bytes.copy_from_slice(&(value.to_le_bytes()[0..{}]));", layout.width_bytes())?;
+            writeln!(out, "        Self::from_le_bytes(bytes)")?;
         }
-    };
+        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
+    } else {
+        writeln!(out)?;
+        writeln!(out, "impl TryFrom<{uint_type}> for {struct_name} {{")?;
+        if inp.opts.unpacking_error_msg {
+            writeln!(out, "    type Error = &'static str;")?;
+        } else {
+            writeln!(out, "    type Error = ();")?;
+        }
+        writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
+        if !trait_prefix.is_empty() {
+            writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
+        }
+        if uint_width_bytes == layout.width_bytes() {
+            writeln!(out, "        Self::try_from_le_bytes(&value.to_le_bytes())")?;
+        } else {
+            writeln!(out, "        let mut bytes = [0; {}];", layout.width_bytes())?;
+            writeln!(out, "        bytes.copy_from_slice(&(value.to_le_bytes()[0..{}]));", layout.width_bytes())?;
+            writeln!(out, "        Self::try_from_le_bytes(&bytes)")?;
+        }
+        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
+    }
     Ok(())
 }
 

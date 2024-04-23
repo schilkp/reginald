@@ -267,14 +267,14 @@ mod tests {
         // Basic unpacking:
         let packed_le = reg.to_le_bytes();
 
-        let reg_unpacked = BasicSharedLayout::from_le_bytes_lossy(&packed_le);
+        let reg_unpacked = BasicSharedLayout::from_le_bytes(&packed_le);
         assert_eq!(reg_unpacked.shared_field1, 0x4);
         assert_eq!(reg_unpacked.shared_field2, SharedField2::IsOne);
 
         let mut packed_be = packed_le;
         packed_be.reverse();
 
-        let reg_unpacked = BasicSharedLayout::from_be_bytes_lossy(&packed_be);
+        let reg_unpacked = BasicSharedLayout::from_be_bytes(&packed_be);
         assert_eq!(reg_unpacked.shared_field1, 0x4);
         assert_eq!(reg_unpacked.shared_field2, SharedField2::IsOne);
 

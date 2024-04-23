@@ -247,9 +247,10 @@ fn prefix_with_super(inp: &Input, s: &str, is_local: bool, in_module: bool) -> S
     }
 }
 
+#[allow(clippy::enum_variant_names)]
 enum FromBytesImpl {
     FromBytes,
-    FromBytesLossy,
+    FromMaskedBytes,
     TryFromBytes,
 }
 
@@ -257,17 +258,7 @@ fn enum_impl(e: &Enum) -> FromBytesImpl {
     if e.can_unpack_min_bitwidth() && [8, 16, 32, 64, 128].contains(&e.min_bitdwith()) {
         FromBytesImpl::FromBytes
     } else if e.can_unpack_masked() {
-        FromBytesImpl::FromBytesLossy
-    } else {
-        FromBytesImpl::TryFromBytes
-    }
-}
-
-fn layout_impl(l: &Layout) -> FromBytesImpl {
-    if l.can_always_unpack() && [8, 16, 32, 64, 128].contains(&l.bitwidth) {
-        FromBytesImpl::FromBytes
-    } else if l.can_always_unpack() {
-        FromBytesImpl::FromBytesLossy
+        FromBytesImpl::FromMaskedBytes
     } else {
         FromBytesImpl::TryFromBytes
     }

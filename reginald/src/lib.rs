@@ -72,34 +72,34 @@ where
 }
 
 // Bytes to struct conversion (infallible, but possibly lossy):
-pub trait FromBytesLossy<const N: usize>: Sized {
+pub trait FromMaskedBytes<const N: usize>: Sized {
     #[inline(always)]
-    fn from_le_bytes_lossy(val: &[u8; N]) -> Self {
+    fn from_masked_le_bytes(val: &[u8; N]) -> Self {
         let mut val = *val;
         val.reverse();
-        Self::from_be_bytes_lossy(&val)
+        Self::from_masked_be_bytes(&val)
     }
 
     #[inline(always)]
-    fn from_be_bytes_lossy(val: &[u8; N]) -> Self {
+    fn from_masked_be_bytes(val: &[u8; N]) -> Self {
         let mut val = *val;
         val.reverse();
-        Self::from_le_bytes_lossy(&val)
+        Self::from_masked_le_bytes(&val)
     }
 }
 
 // Implement possibly conversion for infallible conversion:
-impl<const N: usize, T> FromBytesLossy<N> for T
+impl<const N: usize, T> FromMaskedBytes<N> for T
 where
     T: FromBytes<N>,
 {
     #[inline(always)]
-    fn from_le_bytes_lossy(val: &[u8; N]) -> Self {
+    fn from_masked_le_bytes(val: &[u8; N]) -> Self {
         Self::from_le_bytes(val)
     }
 
     #[inline(always)]
-    fn from_be_bytes_lossy(val: &[u8; N]) -> Self {
+    fn from_masked_be_bytes(val: &[u8; N]) -> Self {
         Self::from_be_bytes(val)
     }
 }
