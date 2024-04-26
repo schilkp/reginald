@@ -1,9 +1,10 @@
 use std::fmt::Write;
 
+use reginald_utils::str_table;
+
 use crate::{
     error::Error,
     regmap::{Register, RegisterBlock, RegisterBlockMember},
-    utils::str_table,
     writer::header_writer::HeaderWriter,
 };
 

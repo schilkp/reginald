@@ -2,12 +2,12 @@ use std::{fmt::Write, path::Path};
 
 #[cfg(feature = "cli")]
 use clap::Parser;
+use reginald_utils::str_table;
 
 use crate::{
     bits::lsb_pos,
     error::Error,
     regmap::{FieldType, Layout, Register, RegisterBlock, RegisterBlockMember, RegisterMap},
-    utils::{filename, str_table},
 };
 
 use super::{c_generate_section_header_comment, c_layout_overview_comment, c_macro};
@@ -69,10 +69,14 @@ fn generate_header(
     }
 
     writeln!(out, "/**")?;
-    writeln!(out, " * @file {}", filename(output_file)?)?;
+    writeln!(out, " * @file {}", output_file.to_string_lossy())?;
     writeln!(out, " * @brief {}", map.name)?;
     if let Some(input_file) = &map.from_file {
-        writeln!(out, " * @note do not edit directly: generated using reginald from {}.", filename(input_file)?)?;
+        writeln!(
+            out,
+            " * @note do not edit directly: generated using reginald from {}.",
+            input_file.to_string_lossy()
+        )?;
     } else {
         writeln!(out, " * @note do not edit directly: generated using reginald.",)?;
     }
@@ -90,8 +94,8 @@ fn generate_header(
         }
     }
     writeln!(out, " */")?;
-    writeln!(out, "#ifndef REGINALD_{}", c_macro(&filename(output_file)?))?;
-    writeln!(out, "#define REGINALD_{}", c_macro(&filename(output_file)?))?;
+    writeln!(out, "#ifndef REGINALD_{}", c_macro(&output_file.to_string_lossy()))?;
+    writeln!(out, "#define REGINALD_{}", c_macro(&output_file.to_string_lossy()))?;
     writeln!(out)?;
     writeln!(out, "#include <stdint.h>")?;
     for include in &opts.add_include {
@@ -305,7 +309,7 @@ fn generate_layout_defines(out: &mut dyn Write, map: &RegisterMap, layout: &Layo
 
 fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     writeln!(out)?;
-    writeln!(out, "#endif /* REGINALD_{} */", c_macro(&filename(output_file)?))?;
+    writeln!(out, "#endif /* REGINALD_{} */", c_macro(&output_file.to_string_lossy()))?;
 
     if opts.clang_format_guard {
         writeln!(out, "// clang-format on")?;

@@ -4,6 +4,8 @@ mod registers;
 
 use std::{fmt::Write, path::Path, rc::Rc};
 
+use reginald_utils::str_pad_to_length;
+
 #[cfg(feature = "cli")]
 use clap::{Parser, ValueEnum};
 
@@ -11,7 +13,7 @@ use crate::{
     bits::{lsb_pos, mask_width, unpositioned_mask},
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField, RegisterMap, TypeBitwidth, TypeValue},
-    utils::{filename, packed_byte_to_field_transform, str_pad_to_length, Endianess, ShiftDirection},
+    utils::{packed_byte_to_field_transform, Endianess, ShiftDirection},
     writer::header_writer::HeaderWriter,
 };
 
@@ -234,10 +236,14 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
 
     // Doxy file comment:
     writeln!(out, "/**")?;
-    writeln!(out, " * @file {}", filename(inp.output_file)?)?;
+    writeln!(out, " * @file {}", inp.output_file.to_string_lossy())?;
     writeln!(out, " * @brief {}", inp.map.name)?;
     if let Some(input_file) = &inp.map.from_file {
-        writeln!(out, " * @note do not edit directly: generated using reginald from {}.", filename(input_file)?)?;
+        writeln!(
+            out,
+            " * @note do not edit directly: generated using reginald from {}.",
+            input_file.to_string_lossy()
+        )?;
     } else {
         writeln!(out, " * @note do not edit directly: generated using reginald.",)?;
     }
@@ -264,8 +270,8 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
 
     // Include guard
     if inp.opts.include_guards {
-        writeln!(out, "#ifndef REGINALD_{}", c_macro(&filename(inp.output_file)?))?;
-        writeln!(out, "#define REGINALD_{}", c_macro(&filename(inp.output_file)?))?;
+        writeln!(out, "#ifndef REGINALD_{}", c_macro(&inp.output_file.to_string_lossy()))?;
+        writeln!(out, "#define REGINALD_{}", c_macro(&inp.output_file.to_string_lossy()))?;
     }
 
     // Includes
@@ -288,7 +294,7 @@ fn generate_footer(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     writeln!(out)?;
 
     if inp.opts.include_guards {
-        writeln!(out, "#endif /* REGINALD_{} */", c_macro(&filename(inp.output_file)?))?;
+        writeln!(out, "#endif /* REGINALD_{} */", c_macro(&inp.output_file.to_string_lossy()))?;
     }
 
     // Clang format:

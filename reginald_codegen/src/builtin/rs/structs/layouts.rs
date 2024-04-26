@@ -8,10 +8,12 @@ use crate::{
     regmap::{FieldType, Layout},
     utils::{
         field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
-        packed_byte_to_field_byte_transform, remove_wrapping_parens, Endianess, ShiftDirection,
+        packed_byte_to_field_byte_transform, Endianess, ShiftDirection,
     },
     writer::indent_writer::IndentWriter,
 };
+
+use reginald_utils::remove_wrapping_parens;
 
 use super::{rs_pascalcase, rs_snakecase};
 

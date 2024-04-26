@@ -5,11 +5,41 @@
 - Implement actual derive logic
 
 
-## What to derive:
+## What to derive: (STAGE 1)
 
-- Pack for structs
-- TryUnpack for structs
-- Unpack for structs
+- `ToBytes`
+    - For structs
+    - For enums
+- `TryFromBytes`
+    - For structs
+    - For enums
+- `FromBytes`
+    - For structs
+    - For enums
+- `FromBytesMasked`
+    - For enums
+
+- attributes:
+    - `trait_width_bytes` (usize)
+        - Fields (non-primitve)
+    - `masked`
+        - Fields (enums)
+    - `val` (u128 or byte array)
+        - enum entries
+
+## What to derive STAGE 2:
+
+   - `default` (u128 or byte array)
+       - Struct
+
+- `ExtractField`
+    - For structs
+    - For 'phantim structs? or just proc macro?'
+- `InsertField`
+    - For structs
+    - For 'phantim structs? or just proc macro?'
+- Uint conversion traits
+    - For structs, enums
 
 ## RUST API NOTES:
 
@@ -72,6 +102,3 @@ rust embedded matrix
 
     - CONSIDER:
         - Look at packed-structs msb0/lsb0 capabilites? Specify bit order? Specify 
-
-
-

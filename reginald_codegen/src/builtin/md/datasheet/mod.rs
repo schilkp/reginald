@@ -9,7 +9,6 @@ use crate::{
         access_str, DecodedField, FieldType, FlattenedLayoutField, Layout, LayoutField, Register, RegisterMap,
         TypeValue,
     },
-    utils::filename,
 };
 
 use super::md_table;
@@ -32,7 +31,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
 fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
     if let Some(input_file) = &map.from_file {
         writeln!(out)?;
-        writeln!(out, "Generated from listing file: {}.", filename(input_file)?)?;
+        writeln!(out, "Generated from listing file: {}.", input_file.to_string_lossy())?;
     }
     if let Some(author) = &map.author {
         writeln!(out)?;

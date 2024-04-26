@@ -1,4 +1,6 @@
-use crate::{error::Error, utils::table_col_width};
+use reginald_utils::table_col_width;
+
+use crate::error::Error;
 use std::fmt::Write;
 
 pub mod datasheet;

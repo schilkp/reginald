@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [ "schilkp/rust" ]
+    branches: ["schilkp/rust"]
 
 jobs:
   cargo-test:
@@ -17,18 +17,27 @@ jobs:
       - name: Cargo Test
         run: cargo test --all
 
-  fmt_clippy_check:
+  fmt-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          components: clippy, rustfmt
+          components: rustfmt
+      - name: Format Check
+        run: cargo fmt -- --check
+
+  clippy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: clippy
       - name: Lint
         run: cargo clippy --all-features -- -D warnings
-      - name: Format
-        run: cargo fmt -- --check
 
   generator-test:
     runs-on: ubuntu-latest
