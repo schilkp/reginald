@@ -9,7 +9,7 @@ use crate::{
     builtin::rs::rs_const,
     error::Error,
     regmap::{Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterMap, TypeValue},
-    utils::{filename, grab_byte, packed_byte_to_field_transform, Endianess},
+    utils::{grab_byte, packed_byte_to_field_transform, Endianess},
     writer::header_writer::HeaderWriter,
 };
 use clap::Parser;
@@ -179,7 +179,7 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
 
     // Generated-with-reginald note, including original file name if known:
     if let Some(input_file) = &inp.map.from_file {
-        writeln!(out, "//! Generated using reginald from `{}`.", filename(input_file)?)?;
+        writeln!(out, "//! Generated using reginald from `{}`.", input_file.to_string_lossy())?;
     } else {
         writeln!(out, "//! Generated using reginald.")?;
     }

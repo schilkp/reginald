@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::regmap::{TypeBitwidth, TypeValue, MAX_BITWIDTH};
-use crate::utils::numbers_as_ranges;
+use reginald_utils::numbers_as_ranges;
 
 /// Generate a bitmask of specified width
 ///
@@ -59,7 +59,7 @@ pub fn bitmask_is_contigous(mask: TypeValue) -> bool {
     }
 }
 
-/// Determines the position of the most significant '1;
+/// Determines the position of the most significant '1'
 ///
 /// Example:
 /// ```rust
@@ -79,7 +79,7 @@ pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
     }
 }
 
-/// Determines the position of the most significant '1;
+/// Determines the position of the least significant '1'
 ///
 /// Example:
 /// ```rust
@@ -169,11 +169,20 @@ pub fn mask_to_bits(mask: TypeValue) -> Vec<TypeBitwidth> {
 
 /// Convert a bit mask to a list of inclusive ranges that cover all bits that
 /// are set.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::mask_to_bit_ranges;
+/// assert_eq!(mask_to_bit_ranges(0b000000), vec![]);
+/// assert_eq!(mask_to_bit_ranges(0b000001), vec![0..=0]);
+/// assert_eq!(mask_to_bit_ranges(0b101110), vec![1..=3, 5..=5]);
+/// ```
 pub fn mask_to_bit_ranges(mask: TypeValue) -> Vec<RangeInclusive<TypeBitwidth>> {
     numbers_as_ranges(mask_to_bits(mask))
 }
 
 /// Convert a bit mask to a string that explains which bits are set using a list of ranges.
+///
 /// Example:
 /// ```rust
 /// # use reginald_codegen::bits::mask_to_bit_ranges_str;
@@ -198,6 +207,14 @@ pub fn mask_to_bit_ranges_str(mask: TypeValue) -> String {
 }
 
 /// Number of bytes required to store an N-bit value.
+///
+/// Example:
+/// ```rust
+/// # use reginald_codegen::bits::bitwidth_to_width_bytes;
+/// assert_eq!(bitwidth_to_width_bytes(7), 1);
+/// assert_eq!(bitwidth_to_width_bytes(8), 1);
+/// assert_eq!(bitwidth_to_width_bytes(9), 2);
+/// ```
 pub fn bitwidth_to_width_bytes(bitwidth: TypeBitwidth) -> TypeBitwidth {
     (bitwidth + 7) / 8
 }

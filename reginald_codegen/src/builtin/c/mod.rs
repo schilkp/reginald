@@ -3,10 +3,10 @@ use std::fmt::Write;
 use crate::{
     error::Error,
     regmap::{Docs, Layout, TypeBitwidth},
-    utils::str_pad_to_length,
 };
 use lazy_static::lazy_static;
 use regex::Regex;
+use reginald_utils::str_pad_to_length;
 
 pub mod funcpack;
 pub mod macromap;

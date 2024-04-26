@@ -2,8 +2,10 @@ use crate::{
     bits::mask_width,
     error::Error,
     regmap::{validate::validate_docs, Layout},
-    utils::join_with_underscore,
 };
+
+use reginald_utils::join_with_underscore;
+
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
@@ -712,7 +714,7 @@ mod tests {
                 adr: 0x1000
                 layout: !Layout
         ";
-        let map = RegisterMap::from_yaml_str(&yaml).unwrap();
+        let map = RegisterMap::from_yaml_str(yaml).unwrap();
         assert!(map.registers.get("REG").unwrap().layout.bitwidth == 8);
 
         let yaml = "
@@ -724,7 +726,7 @@ mod tests {
                 adr: 0x1000
                 layout: !Layout
         ";
-        let map = RegisterMap::from_yaml_str(&yaml).unwrap();
+        let map = RegisterMap::from_yaml_str(yaml).unwrap();
         assert!(map.registers.get("REG").unwrap().layout.bitwidth == 10);
 
         let yaml = "
@@ -737,7 +739,7 @@ mod tests {
                 bitwidth: 12
                 layout: !Layout
         ";
-        let map = RegisterMap::from_yaml_str(&yaml).unwrap();
+        let map = RegisterMap::from_yaml_str(yaml).unwrap();
         assert!(map.registers.get("REG").unwrap().layout.bitwidth == 12);
 
         let yaml = "
@@ -747,7 +749,7 @@ mod tests {
                 adr: 0x1000
                 layout: !Layout
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("Unknown bitwidth:"));
     }
@@ -761,7 +763,7 @@ mod tests {
                 adr: 0x1000
                 layout: !SharedLayout DoesNotExist
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("Shared layout 'DoesNotExist' not found."));
 
@@ -776,7 +778,7 @@ mod tests {
                         bits: [0]
                         accepts: !SharedEnum DoesNotExist
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("Shared enum 'DoesNotExist' not found."));
 
@@ -791,7 +793,7 @@ mod tests {
                         bits: [0]
                         accepts: !SharedLayout DoesNotExist
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("Shared layout 'DoesNotExist' not found."));
     }
@@ -813,7 +815,7 @@ mod tests {
                                     C:
                                         bits: [\"6-0\"]
         ";
-        let map = RegisterMap::from_yaml_str(&yaml).unwrap();
+        let map = RegisterMap::from_yaml_str(yaml).unwrap();
         let layout_a = map.layouts.get("A").unwrap();
         let field_b = layout_a.fields.get("B").unwrap();
         let layout_b = match &field_b.accepts {
@@ -841,7 +843,7 @@ mod tests {
                 adr: 0x01
                 layout: !SharedLayout My_CoOl_LayOut
         ";
-        let map = RegisterMap::from_yaml_str(&yaml).unwrap();
+        let map = RegisterMap::from_yaml_str(yaml).unwrap();
         let reg_a_fields = map
             .registers
             .get("A")
@@ -872,7 +874,7 @@ mod tests {
                         bits: [0,1]
                         accepts: !SharedLayout My_CoOl_LayOut
         ";
-        let map = RegisterMap::from_yaml_str(&yaml).unwrap();
+        let map = RegisterMap::from_yaml_str(yaml).unwrap();
         let parent_field = map
             .registers
             .get("A")

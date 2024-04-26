@@ -10,11 +10,13 @@ use std::{
     rc::Rc,
 };
 
+use reginald_utils::numbers_as_ranges;
+
 use crate::bits::{
     bitmask_from_range, bitmask_from_width, bitwidth_to_width_bytes, mask_to_bit_ranges, mask_to_bit_ranges_str,
     mask_to_bits, msb_pos, unpositioned_mask,
 };
-use crate::{bits::lsb_pos, error::Error, utils::numbers_as_ranges};
+use crate::{bits::lsb_pos, error::Error};
 
 use self::convert::convert_map;
 
@@ -793,7 +795,7 @@ mod tests {
                 RegisterBitrange {
                     bits: 0..=0,
                     content: Some(RegisterBitrangeContent {
-                        field: &layout.fields["A".into()],
+                        field: &layout.fields["A"],
                         is_split: true,
                         subfield_mask: 0b1
                     }),
@@ -805,7 +807,7 @@ mod tests {
                 RegisterBitrange {
                     bits: 3..=3,
                     content: Some(RegisterBitrangeContent {
-                        field: &layout.fields["A".into()],
+                        field: &layout.fields["A"],
                         is_split: true,
                         subfield_mask: 0b1000
                     })
@@ -817,7 +819,7 @@ mod tests {
                 RegisterBitrange {
                     bits: 12..=15,
                     content: Some(RegisterBitrangeContent {
-                        field: &layout.fields["B".into()],
+                        field: &layout.fields["B"],
                         is_split: false,
                         subfield_mask: 0b1111
                     })
@@ -843,16 +845,16 @@ mod tests {
 
         for val in 0..8 {
             println!("0b{val:b}");
-            assert_eq!(e.can_unpack_mask(val), true);
+            assert!(e.can_unpack_mask(val));
         }
 
         for val in 0..8 {
             println!("base val: 0b{val:b}");
-            assert_eq!(e.can_unpack_mask(0b1000 | val), false);
-            assert_eq!(e.can_unpack_mask(0b110101000 | val), false);
+            assert!(!e.can_unpack_mask(0b1000 | val));
+            assert!(!e.can_unpack_mask(0b110101000 | val));
         }
 
-        assert_eq!(e.can_unpack_mask(TypeValue::MAX), false);
+        assert!(!e.can_unpack_mask(TypeValue::MAX));
     }
 
     #[test]
@@ -905,10 +907,10 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(e.can_unpack_min_bitwidth(), true);
+        assert!(e.can_unpack_min_bitwidth());
 
         e.entries.remove("E4").unwrap();
-        assert_eq!(e.can_unpack_min_bitwidth(), false);
+        assert!(!e.can_unpack_min_bitwidth());
 
         let e = Enum {
             entries: BTreeMap::from([(
@@ -920,6 +922,6 @@ mod tests {
             )]),
             ..Default::default()
         };
-        assert_eq!(e.can_unpack_min_bitwidth(), false);
+        assert!(!e.can_unpack_min_bitwidth());
     }
 }

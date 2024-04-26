@@ -9,7 +9,6 @@ use crate::{
     builtin::md::md_table,
     error::Error,
     regmap::{Register, RegisterMap, TypeAdr, TypeValue},
-    utils::filename,
 };
 
 use super::generate_register_infos;
@@ -102,7 +101,7 @@ fn generate_overview(
 
     if let Some(input_file) = &map.from_file {
         writeln!(out)?;
-        writeln!(out, "Generated from listing file: {}.", filename(input_file)?)?;
+        writeln!(out, "Generated from listing file: {}.", input_file.to_string_lossy())?;
     }
     if let Some(author) = &map.author {
         writeln!(out)?;

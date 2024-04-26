@@ -1,11 +1,12 @@
 use lazy_static::lazy_static;
 use regex::Regex;
+use reginald_utils::str_pad_to_length;
 use std::fmt::Write;
 
 use crate::{
     error::Error,
     regmap::{Docs, Layout, TypeBitwidth, TypeValue},
-    utils::{grab_byte, str_pad_to_length, Endianess},
+    utils::{grab_byte, Endianess},
 };
 
 pub mod structs;

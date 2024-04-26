@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_catch_zero_bitwidth() {
-        let err = validate_bitwidth(0, "".into()).unwrap_err();
+        let err = validate_bitwidth(0, "").unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("zero"));
     }
@@ -317,9 +317,9 @@ mod tests {
     #[test]
     fn test_catch_large_bitwidth() {
         // Max:
-        validate_bitwidth(MAX_BITWIDTH, "".into()).unwrap();
+        validate_bitwidth(MAX_BITWIDTH, "").unwrap();
         // Outside max:
-        let err = validate_bitwidth(MAX_BITWIDTH + 1, "".into()).unwrap_err();
+        let err = validate_bitwidth(MAX_BITWIDTH + 1, "").unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("greater than the maximal bitwidth"));
     }
@@ -327,9 +327,9 @@ mod tests {
     #[test]
     fn test_catch_large_bitpos() {
         // Max:
-        validate_bitpos(MAX_BITWIDTH - 1, "".into()).unwrap();
+        validate_bitpos(MAX_BITWIDTH - 1, "").unwrap();
         // Outside max:
-        let err = validate_bitpos(MAX_BITWIDTH, "".into()).unwrap_err();
+        let err = validate_bitpos(MAX_BITWIDTH, "").unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("outside the maximal bitwidth"));
     }
@@ -341,7 +341,7 @@ mod tests {
                 brief: Some("Test".into()),
                 doc: Some("Test".into()),
             },
-            "".into(),
+            "",
         )
         .unwrap();
 
@@ -351,7 +351,7 @@ mod tests {
                 brief: Some("".into()),
                 doc: None,
             },
-            "".into(),
+            "",
         )
         .unwrap_err();
 
@@ -361,7 +361,7 @@ mod tests {
                 brief: None,
                 doc: Some("".into()),
             },
-            "".into(),
+            "",
         )
         .unwrap_err();
 
@@ -371,7 +371,7 @@ mod tests {
                 brief: Some("Hi\nThere!".into()),
                 doc: None,
             },
-            "".into(),
+            "",
         )
         .unwrap_err();
     }
@@ -389,7 +389,7 @@ mod tests {
                 layout: !Layout
 
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("Reset value"));
         assert!(format!("{}", err).contains("does not fit"));
@@ -408,7 +408,7 @@ mod tests {
                     A:
                         bits: [8]
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("is outside the 8-bit layout"));
     }
@@ -428,7 +428,7 @@ mod tests {
                         bits: [3]
 
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("that are already occupied"));
     }
@@ -448,7 +448,7 @@ mod tests {
                             A:
                                 val: 0x4
         ";
-        let err = RegisterMap::from_yaml_str(&yaml).unwrap_err();
+        let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("does not fit into"));
 
@@ -489,7 +489,7 @@ mod tests {
             }
         }
         ";
-        let err = RegisterMap::from_hjson_str(&hjson).unwrap_err();
+        let err = RegisterMap::from_hjson_str(hjson).unwrap_err();
         println!("{}", err);
         assert!(format!("{}", err).contains("does not fit into"));
     }

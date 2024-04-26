@@ -4,5 +4,7 @@ resolver = "2"
 
 members = [
     "reginald",
-    "reginald_codegen",
+    "reginald_codegen", 
+    "reginald_utils",
+    "reginald_derive",
 ]

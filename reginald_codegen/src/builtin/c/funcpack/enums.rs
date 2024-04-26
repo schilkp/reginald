@@ -3,8 +3,9 @@ use std::fmt::Write;
 use crate::{
     error::Error,
     regmap::{Docs, Enum, TypeValue},
-    utils::numbers_as_ranges,
 };
+
+use reginald_utils::numbers_as_ranges;
 
 use super::{c_code, c_generate_doxy_comment, c_macro, generate_multiline_macro, is_enabled, Element, Input};
 
