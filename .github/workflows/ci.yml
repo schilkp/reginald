@@ -12,8 +12,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-      - name: Build
-        run: cargo build
       - name: Cargo Test
         run: cargo test --all
 
@@ -47,7 +45,5 @@ jobs:
         with:
           toolchain: stable
       - uses: carlosperate/arm-none-eabi-gcc-action@v1
-      - name: Build
-        run: cargo build
       - name: Run Generator tests.
         run: bash ${{github.workspace}}/reginald_codegen/generator_tests/run_tests.bash
