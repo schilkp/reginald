@@ -11,7 +11,6 @@ struct Reg {
 }
 
 #[derive(ToBytes)]
-#[reginald(fixed_bits = (2, 1))]
 enum E {
     #[reginald(value = 0)]
     Variant0 = 0,
@@ -35,7 +34,7 @@ mod tests {
             field1: E::Variant3,
         };
 
-        let mut expected: [u8; 1] = [0b111 << 3 | 0b101 << 0];
+        let mut expected: [u8; 1] = [0b011 << 3 | 0b001 << 0];
 
         assert_eq!(expected, reg.to_le_bytes());
         expected.reverse();

@@ -1,5 +1,7 @@
 mod parse;
 
+use std::collections::HashSet;
+
 use proc_macro2::Ident;
 use reginald_utils::{bits::Bits, RangeStyle};
 use syn::parse::{Parse, ParseStream};
@@ -53,6 +55,7 @@ pub struct Field {
     pub name: Ident,
     pub bits: Bits,
     pub field_type: FieldType,
+    pub field_type_name: Ident,
 }
 
 #[derive(Debug, Clone)]
@@ -174,6 +177,7 @@ fn convert_field(field_info: &StructFieldInfo) -> syn::Result<Field> {
     Ok(Field {
         name: field_info.name.clone(),
         bits: field_info.bits_attr.clone(),
+        field_type_name: field_info.field_type_name.clone(),
         field_type,
     })
 }
@@ -206,7 +210,6 @@ impl UInt {
 pub struct EnumDeriveInput {
     pub name: Ident,
     pub width_bytes: usize,
-    pub fixed_bits: FixedBits,
     pub variants: Vec<Variant>,
 }
 
@@ -246,25 +249,6 @@ fn parse_enum_derive_input(input: &syn::DeriveInput, enum_data: &syn::DataEnum) 
             }
         }
 
-        // Check for collision with fixed bits:
-        for fixed_bit in &enum_info.fixed_bits_attr_orig {
-            let overlap = &value.inner & &fixed_bit.inner;
-            if overlap.is_nonzero() {
-                let overlap_str = overlap.to_bit_ranges_str(RangeStyle::RustInclusive);
-                return spanned_err!(
-                    value,
-                    "Reginald: Variant collides with fixed bits. Overlapping bits: [{overlap_str}]"
-                )
-                .map_err(|mut x| {
-                    attach_spanned_error!(
-                        x,
-                        fixed_bit,
-                        "Reginald: Fixed bits collide with variant. Overlapping bits: [{overlap_str}]"
-                    )
-                });
-            }
-        }
-
         variant_vals.push(value.clone());
     }
 
@@ -276,15 +260,10 @@ fn parse_enum_derive_input(input: &syn::DeriveInput, enum_data: &syn::DataEnum) 
         })
     }
 
-    let min_width_bytes_variants = variants.iter().map(|x| x.value.width_bytes()).max().unwrap_or(0);
-    let min_width_bytes_fixed = enum_info.fixed_bits_attr.mask.width_bytes();
-    let min_width_bytes = usize::max(min_width_bytes_variants, min_width_bytes_fixed);
+    let min_width_bytes = variants.iter().map(|x| x.value.width_bytes()).max().unwrap_or(0);
     let width_bytes = if let Some(width_bytes) = enum_info.width_bytes_attr {
         if width_bytes.inner < min_width_bytes {
-            return spanned_err!(
-                width_bytes,
-                "Reginald: Given width is too small to contain all variants and fixed bits."
-            );
+            return spanned_err!(width_bytes, "Reginald: Given width is too small to contain all variants.");
         }
         width_bytes.inner
     } else {
@@ -294,9 +273,28 @@ fn parse_enum_derive_input(input: &syn::DeriveInput, enum_data: &syn::DataEnum) 
     Ok(ReginaldDeriveInput::Enum(EnumDeriveInput {
         name: enum_info.name,
         width_bytes,
-        fixed_bits: enum_info.fixed_bits_attr.clone(),
         variants,
     }))
+}
+
+impl EnumDeriveInput {
+    pub fn can_always_unpack_mask(&self, unpos_mask: &Bits) -> bool {
+        // All enum values that fit into the mask:
+        let enum_vals: HashSet<Bits> = self
+            .variants
+            .iter()
+            .map(|x| x.value.clone())
+            .filter(|x| x.clear_mask(unpos_mask).is_zero())
+            .collect();
+
+        // Number of values the mask can represent:
+        let mask_bit_count = unpos_mask.to_bit_positions().len();
+        let mask_vals_count = 2_u128.pow(mask_bit_count.try_into().unwrap());
+
+        let enum_vals_count: u128 = enum_vals.len().try_into().unwrap();
+
+        mask_vals_count == enum_vals_count
+    }
 }
 
 // ==== Utils ==================================================================

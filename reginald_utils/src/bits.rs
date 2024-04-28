@@ -36,7 +36,7 @@ impl Endianess {
     }
 }
 
-#[derive(Clone, PartialEq, Default)]
+#[derive(Clone, PartialEq, Default, Hash, Eq)]
 pub struct Bits {
     digits: Vec<u32>,
 }

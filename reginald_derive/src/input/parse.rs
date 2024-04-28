@@ -73,6 +73,7 @@ pub fn parse_struct(inp: &DeriveInput) -> syn::Result<StructInfo> {
 pub struct StructFieldInfo {
     pub name: Ident,
     pub field_type: WithTokens<FieldTypeInfo>,
+    pub field_type_name: Ident,
     pub bits_attr: Bits,
     pub bits_attr_orig: Vec<WithTokens<Bits>>,
     pub trait_width_bytes_attr: Option<WithTokens<usize>>,
@@ -117,8 +118,8 @@ pub fn parse_struct_field(inp: &Field) -> syn::Result<StructFieldInfo> {
                 let val = WithTokens::new(Box::new(name_value.clone()), parse_usize(&name_value.value)?);
                 check_for_repeated_attr(&trait_width_bytes_attr, &val)?;
                 trait_width_bytes_attr = Some(val);
-            } else if meta.path().is_ident("type") {
-                // #[reginald(type=u8)]
+            } else if meta.path().is_ident("is") {
+                // #[reginald(is=u8)]
                 let name_value = meta.require_name_value()?;
                 let val = WithTokens::new(Box::new(name_value.clone()), parse_type_attr(&name_value.value)?);
                 check_for_repeated_attr(&type_attr, &val)?;
@@ -163,6 +164,10 @@ pub fn parse_struct_field(inp: &Field) -> syn::Result<StructFieldInfo> {
 
     let field_type = WithTokens::new(Box::new(ty.path.clone()), field_type);
 
+    let Some(field_type_name) = ty.path.get_ident().cloned() else {
+        return spanned_err!(ty, "Reginald: Field has no type.");
+    };
+
     let name: Ident = inp
         .ident
         .clone()
@@ -171,6 +176,7 @@ pub fn parse_struct_field(inp: &Field) -> syn::Result<StructFieldInfo> {
     Ok(StructFieldInfo {
         name,
         field_type,
+        field_type_name,
         bits_attr: bits,
         bits_attr_orig: bits_attrs_orig,
         trait_width_bytes_attr,
@@ -184,14 +190,11 @@ pub fn parse_struct_field(inp: &Field) -> syn::Result<StructFieldInfo> {
 pub struct EnumInfo {
     pub name: Ident,
     pub width_bytes_attr: Option<WithTokens<usize>>,
-    pub fixed_bits_attr: FixedBits,
-    pub fixed_bits_attr_orig: Vec<WithTokens<Bits>>,
 }
 
 pub fn parse_enum(inp: &DeriveInput) -> syn::Result<EnumInfo> {
     // ==== Attributes ====
     let mut width_bytes_attr: Option<WithTokens<usize>> = None;
-    let mut fixed_bits_attrs: Vec<WithTokens<FixedBits>> = vec![];
 
     for attr in inp.attrs.iter().filter(|x| x.path().is_ident("reginald")) {
         let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
@@ -202,39 +205,17 @@ pub fn parse_enum(inp: &DeriveInput) -> syn::Result<EnumInfo> {
                 let new = WithTokens::new(Box::new(name_value.clone()), parse_usize(&name_value.value)?);
                 check_for_repeated_attr(&width_bytes_attr, &new)?;
                 width_bytes_attr = Some(new);
-            } else if meta.path().is_ident("fixed_bits") {
-                // #[reginald(fixed_bits = (1, 0))]
-                // #[reginald(fixed_bits = ([1, 4..=20], 0))]
-                let name_value = meta.require_name_value()?;
-                let fixed_bits_attr = parse_fixed_bit_tuple(&name_value.value)?;
-                fixed_bits_attrs.push(WithTokens::new(Box::new(name_value.clone()), fixed_bits_attr));
             } else {
                 return spanned_err!(&meta.path(), "Reginald: Unknown enum attribute.");
             };
         }
     }
 
-    check_for_bits_overlap(&Vec::from_iter(fixed_bits_attrs.iter().map(|x| x.map(|x| x.mask.clone()))), "Fixed bits")?;
-    let mut mask = Bits::new();
-    let mut value = Bits::new();
-    let mut fixed_bits_orig = vec![];
-    for piece in fixed_bits_attrs {
-        mask |= &piece.inner.mask;
-        value |= &piece.inner.value;
-        fixed_bits_orig.push(piece.map(|x| x.mask.clone()));
-    }
-    let fixed_bits = FixedBits { value, mask };
-
     // === Info ====
 
     let name = inp.ident.clone();
 
-    Ok(EnumInfo {
-        name,
-        width_bytes_attr,
-        fixed_bits_attr: fixed_bits,
-        fixed_bits_attr_orig: fixed_bits_orig,
-    })
+    Ok(EnumInfo { name, width_bytes_attr })
 }
 
 // ==== Enum Variant ===========================================================
