@@ -13,9 +13,9 @@ struct Reg {
 #[derive(ToBytes)]
 enum E {
     #[reginald(value = 0)]
-    Variant0 = 0,
+    Variant0,
     #[reginald(value = 1)]
-    Variant1 = 1,
+    Variant1,
     #[reginald(value = 2)]
     Variant2,
     #[reginald(value = 3)]

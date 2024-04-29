@@ -1,6 +1,6 @@
 mod parse;
 
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Display};
 
 use proc_macro2::Ident;
 use reginald_utils::{bits::Bits, RangeStyle};
@@ -167,6 +167,34 @@ fn convert_field(field_info: &StructFieldInfo) -> syn::Result<Field> {
         }
     };
 
+    let field_type_tokens = if let Some(type_attr) = &field_info.type_attr {
+        &type_attr.tokens
+    } else {
+        &field_info.field_type.tokens
+    };
+
+    // Error if specified bits is incompatible with field type:
+    let bitwidth = field_info.bits_attr.bitwidth();
+    match &field_type {
+        FieldType::Bool => {
+            if bitwidth > 1 {
+                return spanned_err!(
+                    field_type_tokens,
+                    "Reginald: A boolean field can only be 1 bit wide, but this field is {bitwidth} bits wide.",
+                );
+            }
+        }
+        FieldType::UInt(u) => {
+            if bitwidth > u.width_bytes() * 8 {
+                return spanned_err!(
+                    field_type_tokens,
+                    "Reginald: A {u} field can only be 1 bit wide. but this field is {bitwidth} bits wide.",
+                );
+            }
+        }
+        FieldType::Trait(_) => (),
+    }
+
     // Error if trait width is specified but field is not a trait field:
     if let Some(width_attr) = &field_info.trait_width_bytes_attr {
         if !matches!(field_type, FieldType::Trait(_)) {
@@ -185,7 +213,7 @@ fn convert_field(field_info: &StructFieldInfo) -> syn::Result<Field> {
 impl FieldType {
     pub fn trait_width_bytes(&self) -> usize {
         match self {
-            FieldType::UInt(u) => u.trait_width_bytes(),
+            FieldType::UInt(u) => u.width_bytes(),
             FieldType::Trait(t) => t.trait_width_bytes,
             FieldType::Bool => 1,
         }
@@ -193,7 +221,7 @@ impl FieldType {
 }
 
 impl UInt {
-    pub fn trait_width_bytes(&self) -> usize {
+    pub fn width_bytes(&self) -> usize {
         match self {
             UInt::U8 => 1,
             UInt::U16 => 2,
@@ -201,6 +229,19 @@ impl UInt {
             UInt::U64 => 8,
             UInt::U128 => 16,
         }
+    }
+}
+
+impl Display for UInt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            UInt::U8 => "u8",
+            UInt::U16 => "u16",
+            UInt::U32 => "u32",
+            UInt::U64 => "u64",
+            UInt::U128 => "u128",
+        };
+        f.write_str(s)
     }
 }
 

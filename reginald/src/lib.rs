@@ -1,13 +1,9 @@
+use core::fmt::{Debug, Display};
 use core::{convert::Infallible, usize};
 
 // Struct to bytes converstion:
 pub trait ToBytes<const N: usize>: Sized {
-    #[inline(always)]
-    fn to_le_bytes(&self) -> [u8; N] {
-        let mut val = self.to_be_bytes();
-        val.reverse();
-        val
-    }
+    fn to_le_bytes(&self) -> [u8; N];
 
     #[inline(always)]
     fn to_be_bytes(&self) -> [u8; N] {
@@ -21,12 +17,7 @@ pub trait ToBytes<const N: usize>: Sized {
 pub trait TryFromBytes<const N: usize>: Sized {
     type Error;
 
-    #[inline(always)]
-    fn try_from_le_bytes(val: &[u8; N]) -> Result<Self, Self::Error> {
-        let mut val = *val;
-        val.reverse();
-        Self::try_from_be_bytes(&val)
-    }
+    fn try_from_le_bytes(val: &[u8; N]) -> Result<Self, Self::Error>;
 
     #[inline(always)]
     fn try_from_be_bytes(val: &[u8; N]) -> Result<Self, Self::Error> {
@@ -38,12 +29,7 @@ pub trait TryFromBytes<const N: usize>: Sized {
 
 // Bytes to struct conversion (infallible):
 pub trait FromBytes<const N: usize>: Sized {
-    #[inline(always)]
-    fn from_le_bytes(val: &[u8; N]) -> Self {
-        let mut val = *val;
-        val.reverse();
-        Self::from_be_bytes(&val)
-    }
+    fn from_le_bytes(val: &[u8; N]) -> Self;
 
     #[inline(always)]
     fn from_be_bytes(val: &[u8; N]) -> Self {
@@ -73,12 +59,7 @@ where
 
 // Bytes to struct conversion (infallible, but possibly lossy):
 pub trait FromMaskedBytes<const N: usize>: Sized {
-    #[inline(always)]
-    fn from_masked_le_bytes(val: &[u8; N]) -> Self {
-        let mut val = *val;
-        val.reverse();
-        Self::from_masked_be_bytes(&val)
-    }
+    fn from_masked_le_bytes(val: &[u8; N]) -> Self;
 
     #[inline(always)]
     fn from_masked_be_bytes(val: &[u8; N]) -> Self {
@@ -93,7 +74,6 @@ impl<const N: usize, T> FromMaskedBytes<N> for T
 where
     T: FromBytes<N>,
 {
-    #[inline(always)]
     fn from_masked_le_bytes(val: &[u8; N]) -> Self {
         Self::from_le_bytes(val)
     }
@@ -101,6 +81,18 @@ where
     #[inline(always)]
     fn from_masked_be_bytes(val: &[u8; N]) -> Self {
         Self::from_be_bytes(val)
+    }
+}
+
+// Errors:
+#[derive(Debug, PartialEq, Clone)]
+pub struct FromBytesError {
+    pub pos: usize,
+}
+
+impl Display for FromBytesError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Failed to unpack field at bit {}", self.pos)
     }
 }
 

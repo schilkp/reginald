@@ -9,11 +9,8 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0.79"
 quote = "1.0.36"
-syn = { version = "2.0.58", features = ["full", "extra-traits"] } ##DON'T NEED EXTRA FEATURES?
+syn = { version = "2.0.58", features = ["full"] }
 reginald_utils = { path = "../reginald_utils" }
-
-
-prettyplease = "0.2.19" ##REMOVEW
 
 [dev-dependencies]
 reginald = { path = "../reginald" }

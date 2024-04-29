@@ -295,12 +295,6 @@ fn generate_layout_impl_from_bytes(
     let width_bytes = layout.width_bytes();
     let trait_prefix = trait_prefix(inp, in_module);
 
-    let error_type = if inp.opts.unpacking_error_msg {
-        "&'static str"
-    } else {
-        "()"
-    };
-
     let mut out = IndentWriter::new(out, "    ");
 
     // Prevent unused var warnings:
@@ -321,7 +315,7 @@ fn generate_layout_impl_from_bytes(
     } else {
         writeln!(out)?;
         writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {struct_name} {{")?;
-        writeln!(out, "    type Error = {error_type};")?;
+        writeln!(out, "    type Error = {trait_prefix}FromBytesError;")?;
         writeln!(out, "    fn try_from_le_bytes({val_in_sig}: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
         if !trait_prefix.is_empty() {
             writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
@@ -402,6 +396,7 @@ fn generate_layout_impl_from_bytes(
 
     for field in layout.fields_with_content() {
         let field_name = rs_snakecase(&field.name);
+        let field_pos = lsb_pos(field.mask);
         writeln!(out, "  // {} @ {struct_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
 
         match &field.accepts {
@@ -427,7 +422,11 @@ fn generate_layout_impl_from_bytes(
                         writeln!(out, "  {field_name}: {enum_name}::from_masked_le_bytes(&{array_name}),")?;
                     }
                     FromBytesImpl::TryFromBytes => {
-                        writeln!(out, "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name})?,")?;
+                        if field_pos != 0 {
+                            writeln!(out, "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name}).map_err(|x| Self::Error {{pos: x.pos + {field_pos}}})?,")?;
+                        } else {
+                            writeln!(out, "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name})?,")?;
+                        }
                     }
                 }
             }
@@ -436,6 +435,8 @@ fn generate_layout_impl_from_bytes(
                 let array_name = rs_snakecase(&field.name);
                 if l.can_always_unpack() {
                     writeln!(out, "  {field_name}: {layout_name}::from_le_bytes(&{array_name}),")?;
+                } else if field_pos != 0 {
+                    writeln!(out, "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name}).map_err(|x| Self::Error {{pos: x.pos + {field_pos}}})?,")?;
                 } else {
                     writeln!(out, "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name})?,")?;
                 }
@@ -520,11 +521,7 @@ fn generate_layout_impl_uint_conv(
     } else {
         writeln!(out)?;
         writeln!(out, "impl TryFrom<{uint_type}> for {struct_name} {{")?;
-        if inp.opts.unpacking_error_msg {
-            writeln!(out, "    type Error = &'static str;")?;
-        } else {
-            writeln!(out, "    type Error = ();")?;
-        }
+        writeln!(out, "    type Error = {trait_prefix}FromBytesError;")?;
         writeln!(out, "    fn try_from(value: {uint_type}) -> Result<Self, Self::Error> {{")?;
         if !trait_prefix.is_empty() {
             writeln!(out, "        use {trait_prefix}TryFromBytes;")?;

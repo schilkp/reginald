@@ -30,8 +30,7 @@ mod tests {
     #[test]
     fn from_bytes() {
         let mut packed: [u8; 1] = [
-            (0x0 << 0)  // Field 0
-            | (0x1 << 2)  // Field 1
+            (0x1 << 2)  // Field 1
             | (0x2 << 4)  // Field 2
             | (0x3 << 6), // Field 3
         ];

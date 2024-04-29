@@ -34,12 +34,6 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum, in
     let width_bytes = e.min_width_bytes();
     let trait_prefix = trait_prefix(inp, in_module);
 
-    let error_type = if inp.opts.unpacking_error_msg {
-        "&'static str"
-    } else {
-        "()"
-    };
-
     match enum_impl(e) {
         FromBytesImpl::FromBytes => {
             writeln!(out)?;
@@ -86,7 +80,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum, in
 
             writeln!(out)?;
             writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {enum_name} {{")?;
-            writeln!(out, "    type Error = {error_type};")?;
+            writeln!(out, "    type Error = {trait_prefix}FromBytesError;")?;
             writeln!(out)?;
             writeln!(out, "    fn try_from_le_bytes(val: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
             if !trait_prefix.is_empty() {
@@ -97,11 +91,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum, in
             writeln!(out, "        if bytes_outside == [0; {width_bytes}] {{")?;
             writeln!(out, "            Ok(Self::from_masked_le_bytes(val))")?;
             writeln!(out, "        }} else {{")?;
-            if inp.opts.unpacking_error_msg {
-                writeln!(out, "            Err(\"{} unpack error\")", rs_pascalcase(&e.name))?;
-            } else {
-                writeln!(out, "            Err(())")?;
-            }
+            writeln!(out, "            Err(Self::Error {{pos: 0}})")?;
             writeln!(out, "        }}")?;
             writeln!(out, "    }}")?;
             writeln!(out, "}}")?;
@@ -109,7 +99,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum, in
         FromBytesImpl::TryFromBytes => {
             writeln!(out)?;
             writeln!(out, "impl {trait_prefix}TryFromBytes<{width_bytes}> for {enum_name} {{")?;
-            writeln!(out, "    type Error = {error_type};")?;
+            writeln!(out, "    type Error = {trait_prefix}FromBytesError;")?;
             // Conversion:
             writeln!(out)?;
             writeln!(out, "    fn try_from_le_bytes(val: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
@@ -122,11 +112,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum, in
                     rs_pascalcase(&entry.name)
                 )?;
             }
-            if inp.opts.unpacking_error_msg {
-                writeln!(out, "            _ => Err(\"{} unpack error\"),", rs_pascalcase(&e.name))?;
-            } else {
-                writeln!(out, "            _ => Err(()),")?;
-            }
+            writeln!(out, "            _ => Err(Self::Error {{pos: 0}})")?;
             writeln!(out, "        }}")?;
             writeln!(out, "    }}")?;
 

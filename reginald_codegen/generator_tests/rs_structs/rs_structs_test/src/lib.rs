@@ -7,7 +7,6 @@
 #![allow(clippy::inline_always)]
 
 pub mod out;
-pub mod out_errormsgs;
 
 // Unused. Included to ensure they compile:
 pub mod out_crate_traits;
@@ -163,41 +162,19 @@ mod tests {
         use crate::out::*;
 
         // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
-        // `STAT` enum in field// `STAT` enum in fieldEN` enum in field 2 (bits 1-0) can only be 0x3
+        // `EN` enum in field 2 (bits 1-0) can only be 0x3.
+        
+        // Correct `STAT`, different `EN`:
+        assert_eq!(Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x0, 0]).unwrap_err().pos, 0);
+        assert_eq!(Reg2::try_from_le_bytes(&[(0x2 << 6) | 0x1, 0]).unwrap_err().pos, 0);
+        assert_eq!(Reg2::try_from_le_bytes(&[(0x3 << 6) | 0x2, 0]).unwrap_err().pos, 0);
+        Reg2::try_from_le_bytes(           &[(0x1 << 6) | 0x3, 0]).unwrap();
 
-        Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x0, 0]).unwrap_err();
-        Reg2::try_from_le_bytes(&[(0x2 << 6) | 0x1, 0]).unwrap_err();
-        Reg2::try_from_le_bytes(&[(0x3 << 6) | 0x2, 0]).unwrap_err();
-        Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x3, 0]).unwrap();
-        Reg2::try_from_le_bytes(&[(0x0 << 6) | 0x3, 0]).unwrap_err();
-
-        Reg2::try_from((0x1 << 6) | 0x0).unwrap_err();
-        Reg2::try_from((0x2 << 6) | 0x1).unwrap_err();
-        Reg2::try_from((0x3 << 6) | 0x2).unwrap_err();
+        // Correct `EN`, different `STAT`:
+        assert_eq!(Reg2::try_from((0x0 << 6) | 0x3).unwrap_err().pos, 6);
         Reg2::try_from((0x1 << 6) | 0x3).unwrap();
-        Reg2::try_from((0x0 << 6) | 0x3).unwrap_err();
-    }
-
-    #[test]
-    fn register_validation_error_msg() {
-        use crate::out_errormsgs::reg2::*;
-        use crate::out_errormsgs::*;
-
-        // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
-        // `EN` enum in field 2 (bits 1-0) can only be 0x3
-        let err = Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x0, 0]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
-
-        let err = Reg2::try_from_le_bytes(&[(0x2 << 6) | 0x1, 0]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
-
-        let err = Reg2::try_from_le_bytes(&[(0x3 << 6) | 0x2, 0]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
-
-        Reg2::try_from_le_bytes(&[(0x1 << 6) | 0x3, 0]).unwrap();
-
-        let err = Reg2::try_from_le_bytes(&[(0x0 << 6) | 0x3, 0]).unwrap_err();
-        assert!(err.contains("Stat unpack error"));
+        Reg2::try_from((0x2 << 6) | 0x3).unwrap();
+        Reg2::try_from((0x3 << 6) | 0x3).unwrap();
     }
 
     #[test]
@@ -205,47 +182,17 @@ mod tests {
         use crate::out::reg2::*;
         use crate::out::*;
 
-        Stat::try_from_le_bytes(&[0]).unwrap_err();
+        assert_eq!(Stat::try_from_le_bytes(&[0]).unwrap_err().pos, 0);
         Stat::try_from_le_bytes(&[1]).unwrap();
         Stat::try_from_le_bytes(&[2]).unwrap();
         Stat::try_from_le_bytes(&[3]).unwrap();
-        Stat::try_from_le_bytes(&[4]).unwrap_err();
+        assert_eq!(Stat::try_from_le_bytes(&[4]).unwrap_err().pos, 0);
 
-        Field2::try_from_le_bytes(&[0]).unwrap_err();
-        Field2::try_from_le_bytes(&[1]).unwrap_err();
-        Field2::try_from_le_bytes(&[2]).unwrap_err();
+        assert_eq!(Field2::try_from_le_bytes(&[0]).unwrap_err().pos, 0);
+        assert_eq!(Field2::try_from_le_bytes(&[1]).unwrap_err().pos, 0);
+        assert_eq!(Field2::try_from_le_bytes(&[2]).unwrap_err().pos, 0);
         Field2::try_from_le_bytes(&[3]).unwrap();
-        Field2::try_from_le_bytes(&[4]).unwrap_err();
-    }
-
-    #[test]
-    fn enum_validation_error_msgs() {
-        use crate::out_errormsgs::reg2::*;
-        use crate::out_errormsgs::*;
-
-        let err = Stat::try_from_le_bytes(&[0]).unwrap_err();
-        assert!(err.contains("Stat unpack error"));
-
-        Stat::try_from_le_bytes(&[1]).unwrap();
-        Stat::try_from_le_bytes(&[2]).unwrap();
-        Stat::try_from_le_bytes(&[3]).unwrap();
-
-        let err = Stat::try_from_le_bytes(&[4]).unwrap_err();
-        assert!(err.contains("Stat unpack error"));
-
-        let err = Field2::try_from_le_bytes(&[0]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
-
-        let err = Field2::try_from_le_bytes(&[1]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
-
-        let err = Field2::try_from_le_bytes(&[2]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
-
-        Field2::try_from_le_bytes(&[3]).unwrap();
-
-        let err = Field2::try_from_le_bytes(&[4]).unwrap_err();
-        assert!(err.contains("Field2 unpack error"));
+        assert_eq!(Field2::try_from_le_bytes(&[4]).unwrap_err().pos, 0);
     }
 
     #[test]
