@@ -18,13 +18,6 @@ cargo run --quiet --color always -p "reginald_codegen" --                    \
     --enum-derive=Debug --enum-derive=PartialEq                              \
     --struct-derive=Debug --struct-derive=Clone
 
-echo "Generating (unpacking error msgs)..."
-cargo run --quiet --color always -p "reginald_codegen" --                    \
-    gen -i ../map.yaml -o rs_structs_test/src/out_errormsgs.rs rs-structs    \
-    --enum-derive=Debug --enum-derive=PartialEq                              \
-    --struct-derive=Debug --struct-derive=Clone                              \
-    --unpacking-error-msg=true
-
 echo "Generating (external traits)..."
 cargo run --quiet --color always -p "reginald_codegen" --                    \
     gen -i ../map.yaml -o rs_structs_test/src/out_ext_traits.rs rs-structs   \

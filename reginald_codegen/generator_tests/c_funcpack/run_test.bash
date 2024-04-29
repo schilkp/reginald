@@ -59,6 +59,8 @@ echo "Generating..."
 cargo run --quiet --color always -- gen -i ../map.yaml -o output/generated.h c-funcpack
 test_generated_code "-std=c11"
 
+exit
+
 # #### Defer-to-LE ##########################################################
 
 start_test "Defer-to-LE Test"

@@ -33,13 +33,6 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub address_type: Option<String>,
 
-    /// Include static string error messages for unpacking errors.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "false"))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub unpacking_error_msg: bool,
-
     /// Split registers and register blocks into seperate modules.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
@@ -72,6 +65,17 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub add_use: Vec<String>,
+
+    /// Module attributes that should be added at the top of the generated file.
+    ///
+    /// For example, a value of `allow(dead_code)` will result in `#![allow(dead_code)]` to be
+    /// added to to the beginning of the generated module.
+    ///
+    /// May be given multiple times.
+    #[cfg_attr(feature = "cli", arg(long))]
+    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    pub add_attribute: Vec<String>,
 
     /// Use an external definition of the `ToBytes`/`FromBytes`/`TryFromBytes` traits,
     ///
@@ -172,6 +176,9 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     writeln!(out, "#![allow(clippy::unnecessary_cast)]")?;
     writeln!(out, "#![allow(clippy::module_name_repetitions)]")?;
     writeln!(out, "#![allow(unused_imports)]")?;
+    for attr in &inp.opts.add_attribute {
+        writeln!(out, "#![{}]", attr)?;
+    }
 
     // Top doc comment:
     writeln!(out, "//! `{}` Registers", inp.map.name)?;

@@ -8,6 +8,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 #[command(name = "reginald")]
+#[allow(clippy::large_enum_variant)]
 enum Cli {
     Gen(cmd::gen::Command),
     Completion(cmd::completion::Command),
