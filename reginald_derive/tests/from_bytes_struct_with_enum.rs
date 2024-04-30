@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use reginald_derive::{FromBytes, FromMaskedBytes};
+use reginald::{FromBytes, FromMaskedBytes};
 
 #[derive(FromBytes, PartialEq, Debug)]
 struct Reg {

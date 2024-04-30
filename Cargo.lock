@@ -260,6 +260,9 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 [[package]]
 name = "reginald"
 version = "0.1.0"
+dependencies = [
+ "reginald_derive",
+]
 
 [[package]]
 name = "reginald_codegen"

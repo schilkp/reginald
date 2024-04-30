@@ -3,4 +3,8 @@ name = "reginald"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+derive     = ["dep:reginald_derive"]
+
 [dependencies]
+reginald_derive = { path = "../reginald_derive" , optional = true }

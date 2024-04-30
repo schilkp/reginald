@@ -1,4 +1,4 @@
-use reginald_derive::ToBytes;
+use reginald::ToBytes;
 
 #[derive(ToBytes)]
 struct Reg {

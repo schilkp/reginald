@@ -13,4 +13,4 @@ syn = { version = "2.0.58", features = ["full"] }
 reginald_utils = { path = "../reginald_utils" }
 
 [dev-dependencies]
-reginald = { path = "../reginald" }
+reginald = { path = "../reginald", features = ["derive"] }
