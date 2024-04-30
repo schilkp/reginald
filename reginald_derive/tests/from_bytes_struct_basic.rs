@@ -1,4 +1,4 @@
-use reginald_derive::FromBytes;
+use reginald::FromBytes;
 
 #[derive(FromBytes, Debug, PartialEq)]
 #[reginald(width_bytes = 2)]

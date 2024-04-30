@@ -1,4 +1,4 @@
-use reginald_derive::FromMaskedBytes;
+use reginald::FromMaskedBytes;
 
 #[derive(Debug, PartialEq, FromMaskedBytes)]
 #[reginald(width_bytes = 2)]

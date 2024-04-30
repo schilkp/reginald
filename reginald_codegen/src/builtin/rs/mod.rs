@@ -128,4 +128,4 @@ fn masked_array_literal(endian: Endianess, val_name: &str, mask: TypeValue, widt
     format!("[{}]", bytes.join(", "))
 }
 
-pub const CONVERSION_TRAITS: &str = include_str!("../../../../reginald/src/lib.rs");
+pub const CONVERSION_TRAITS: &str = include_str!("../../../../reginald/src/traits.rs");
