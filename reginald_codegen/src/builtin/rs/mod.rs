@@ -5,7 +5,7 @@ use std::fmt::Write;
 
 use crate::{
     error::Error,
-    regmap::{Docs, Layout, TypeBitwidth, TypeValue},
+    regmap::{Docs, TypeBitwidth, TypeValue},
     utils::{grab_byte, Endianess},
 };
 
@@ -60,6 +60,19 @@ fn generate_doc_comment(out: &mut dyn Write, docs: &Docs, prefix: &str) -> Resul
     Ok(())
 }
 
+fn generate_extended_doc_comment(out: &mut dyn Write, docs: &Docs, prefix: &str, extra: &[&str]) -> Result<(), Error> {
+    let mut comment = String::new();
+    generate_doc_comment(&mut comment, docs, prefix)?;
+    if !comment.is_empty() {
+        writeln!(&mut comment, "{prefix}///")?;
+    }
+    for line in extra {
+        writeln!(&mut comment, "{prefix}/// {line}")?;
+    }
+    write!(out, "{}", comment)?;
+    Ok(())
+}
+
 fn rs_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, Error> {
     match width {
         1..=8 => Ok("u8".to_string()),
@@ -78,15 +91,6 @@ fn rs_header_comment(title: &str) -> String {
 fn rs_generate_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Error> {
     writeln!(out, "{}", rs_header_comment(title))?;
     Ok(())
-}
-
-fn rs_layout_overview_comment(layout: &Layout, prefix: &str) -> String {
-    layout
-        .overview_text(true)
-        .lines()
-        .map(|x| String::from(prefix) + x)
-        .collect::<Vec<String>>()
-        .join("\n")
 }
 
 /// Convert a value to an array literal of given endianess

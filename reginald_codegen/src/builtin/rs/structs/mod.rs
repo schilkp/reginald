@@ -17,8 +17,8 @@ use clap::Parser;
 use self::layouts::LayoutStructKind;
 
 use super::{
-    generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment,
-    rs_layout_overview_comment, rs_pascalcase, rs_snakecase, CONVERSION_TRAITS,
+    generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment, rs_pascalcase,
+    rs_snakecase, CONVERSION_TRAITS,
 };
 
 // ====== Generator Opts =======================================================
@@ -224,7 +224,7 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     regs.sort_by_key(|x| x.adr);
     for reg in regs {
         let adr = format!("0x{:02X}", reg.adr);
-        let name = format!("[{}]", rs_pascalcase(&reg.name));
+        let name = format!("[`{}`]", rs_pascalcase(&reg.name));
         let brief = reg.docs.brief.clone().unwrap_or("".to_string());
         rows.push(vec![adr, name, brief]);
     }
