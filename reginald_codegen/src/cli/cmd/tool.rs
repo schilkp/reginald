@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
+use crate::{builtin::rs::CONVERSION_TRAITS, error::Error};
 use clap::Parser;
-use reginald_codegen::{builtin::rs::CONVERSION_TRAITS, error::Error};
 
 #[derive(Parser, Debug)]
 #[command(about = "Built-in tools and utilities")]

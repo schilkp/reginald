@@ -1,7 +1,5 @@
+use reginald_codegen::cli;
 use std::process::ExitCode;
-
-#[cfg(feature = "cli")]
-mod cli;
 
 #[cfg(feature = "cli")]
 fn main() -> ExitCode {

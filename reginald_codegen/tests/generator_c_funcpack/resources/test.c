@@ -1,6 +1,6 @@
 #include "Unity/unity.h"
 #include "Unity/unity_internals.h"
-#include "output/generated.h"
+#include "out.h"
 #include <string.h>
 
 void reverse_array(uint8_t *from, uint8_t *to, size_t len) {
@@ -55,7 +55,6 @@ void test_basic_reg1(void) {
 
   // Try unpacking:
   memset(&reg, 0, sizeof(struct chip_reg1));
-  printf("0x%x\n", packed_reg_le);
 #ifdef TEST_SKIP_GENERIC_MACROS
   TEST_ASSERT_EQUAL(0, chip_reg1_try_unpack_le(&packed_reg_le, &reg));
 #else
@@ -93,7 +92,6 @@ void test_basic_reg2(void) {
              ),
       [1] = ((0xA) << 0), // Field 4
   };
-  printf("0: 0x%x, 1: 0x%x\r\n", expected_packed_reg_le[0], expected_packed_reg_le[1]);
   uint8_t expected_packed_reg_be[2] = {0};
   reverse_array(expected_packed_reg_le, expected_packed_reg_be, 2);
 

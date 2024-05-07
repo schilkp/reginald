@@ -28,4 +28,5 @@ similar        = { version = "2.4.0",   features = ["inline"], optional = true }
 console        = { version = "0.15.8",  features = [],         optional = true }
 
 [dev-dependencies]
+tempfile          = "3.10.1"
 pretty_assertions = "1.4.0"

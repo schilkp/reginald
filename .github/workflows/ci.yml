@@ -45,5 +45,7 @@ jobs:
         with:
           toolchain: stable
       - uses: carlosperate/arm-none-eabi-gcc-action@v1
-      - name: Run Generator tests.
+      - name: Run old generator tests.
         run: bash ${{github.workspace}}/reginald_codegen/generator_tests/run_tests.bash
+      - name: Run generator tests.
+        run: REGINALD_TEST_C_FUNCPACK_ADDITIONAL_COMPILERS=arm-none-eabi-gcc cargo test --workspace -- --ignored

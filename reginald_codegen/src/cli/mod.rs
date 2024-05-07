@@ -1,4 +1,4 @@
-mod cmd;
+pub mod cmd;
 mod diff;
 
 use std::process::ExitCode;

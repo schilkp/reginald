@@ -1,7 +1,7 @@
 use std::io;
 
+use crate::error::Error;
 use clap::{CommandFactory, Parser};
-use reginald_codegen::error::Error;
 
 use crate::cli::Cli;
 

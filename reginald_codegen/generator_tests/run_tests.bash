@@ -22,10 +22,6 @@ cargo build
 echo_green "DONE"
 
 echo
-echo_cyan "=== TESTING C FUNCPACK ==="
-bash ./c_funcpack/run_test.bash || fail
-
-echo
 echo_cyan "=== TESTING RS STRUCTS ==="
 bash ./rs_structs/run_test.bash || fail
 

@@ -7,3 +7,5 @@ out.c
 out.rs
 
 testproj/
+
+tarpaulin-report.html
