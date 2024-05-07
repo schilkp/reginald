@@ -63,16 +63,16 @@ pub struct GeneratorOpts {
     /// and the (un)packing functions must still be used.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().registers_as_bitfields))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub registers_as_bitfields: bool,
 
-    /// Max enum bitwidth before it is represented using macros instead of an enum. (default: 31)
+    /// Max enum bitwidth before it is represented using macros instead of an enum.
     ///
     /// Set to zero to have all enums be represented using macros.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "31"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().max_enum_bitwidth))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub max_enum_bitwidth: TypeBitwidth,
 
@@ -89,7 +89,7 @@ pub struct GeneratorOpts {
     /// May be disabled if splitting code into header and source.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().funcs_static_inline))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub funcs_static_inline: bool,
 
@@ -98,21 +98,21 @@ pub struct GeneratorOpts {
     /// May be enabled if splitting code into header and source.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "false"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().funcs_as_prototypes))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub funcs_as_prototypes: bool,
 
     /// Surround file with a clang-format off guard
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().clang_format_guard))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub clang_format_guard: bool,
 
     /// Generate include guard
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().include_guards))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub include_guards: bool,
 
@@ -143,6 +143,24 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     #[cfg_attr(feature = "cli", arg(conflicts_with("only_generate")))]
     pub dont_generate: Vec<Element>,
+}
+
+impl Default for GeneratorOpts {
+    fn default() -> Self {
+        Self {
+            endian: vec![],
+            defer_to_endian: None,
+            registers_as_bitfields: false,
+            max_enum_bitwidth: 31,
+            add_include: vec![],
+            funcs_static_inline: true,
+            funcs_as_prototypes: false,
+            clang_format_guard: true,
+            include_guards: true,
+            only_generate: vec![],
+            dont_generate: vec![],
+        }
+    }
 }
 
 // ====== Generator ============================================================

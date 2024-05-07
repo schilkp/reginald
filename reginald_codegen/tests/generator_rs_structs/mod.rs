@@ -24,16 +24,6 @@ fn run_reginald(output_name: &str, opts: GeneratorOpts) {
     .unwrap();
 }
 
-const GENERATOR_OPTS_DEFAULT: GeneratorOpts = GeneratorOpts {
-    address_type: None,
-    struct_derive: vec![],
-    raw_enum_derive: vec![],
-    add_use: vec![],
-    add_attribute: vec![],
-    external_traits: None,
-    generate_uint_conversion: true,
-};
-
 // ==== Tests ==================================================================
 
 #[test]
@@ -47,7 +37,7 @@ fn generator_rs_structs() {
         GeneratorOpts {
             struct_derive: vec!["Debug".to_string(), "Clone".to_string()],
             raw_enum_derive: vec!["Debug".to_string(), "PartialEq".to_string()],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -55,7 +45,7 @@ fn generator_rs_structs() {
         "out_ext_traits.rs",
         GeneratorOpts {
             external_traits: Some("crate::out::".to_string()),
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -63,7 +53,7 @@ fn generator_rs_structs() {
         "out_crate_traits.rs",
         GeneratorOpts {
             external_traits: Some("reginald::".to_string()),
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 

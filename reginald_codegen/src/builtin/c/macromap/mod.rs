@@ -20,7 +20,7 @@ pub struct GeneratorOpts {
     /// Surround header with a clang-format off guard
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().clang_format_guard))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub clang_format_guard: bool,
 
@@ -31,6 +31,15 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub add_include: Vec<String>,
+}
+
+impl Default for GeneratorOpts {
+    fn default() -> Self {
+        Self {
+            clang_format_guard: true,
+            add_include: vec![],
+        }
+    }
 }
 
 // ====== Generator ============================================================
