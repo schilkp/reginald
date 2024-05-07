@@ -7,57 +7,32 @@ use crate::{builtin::rs::array_literal, error::Error, utils::Endianess, writer::
 use super::rs_pascalcase;
 
 pub fn generate_register(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
-    let mut out = IndentWriter::new(out, "    ");
+    writeln!(out)?;
 
-    writeln!(&mut out)?;
-
-    // If seperate modules are enabled, generate module doc comment
-    // and open module:
-    if inp.opts.split_into_modules {
-        writeln!(out, "/// `{}` Register", register.name)?;
-        generate_register_header(&mut out, register, "///")?;
-        writeln!(&mut out, "pub mod {} {{", rs_snakecase(&register.name))?;
-        out.push_indent();
-    } else {
-        rs_generate_header_comment(&mut out, &format!("`{}` Register", register.name))?;
-        generate_register_header(&mut out, register, "//")?;
-    }
-
-    // Track if we are currently in a sub-module
-    let in_module = inp.opts.split_into_modules;
+    rs_generate_header_comment(out, &format!("`{}` Register", register.name))?;
+    generate_register_header(out, register, "//")?;
 
     if register.layout.is_local {
         // If the layout is local to this register, generate it and associate all properties to it:
         // Layout struct:
-        generate_register_struct(&mut out, inp, register, in_module)?;
+        generate_register_struct(out, inp, register)?;
     } else {
         // Otherwise generate a newtype to contain the register properties:
-        generate_register_newtype(&mut out, inp, register, in_module)?;
-        generate_register_impl(&mut out, inp, register, true, in_module)?;
-    }
-
-    // Close module if opened.
-    if inp.opts.split_into_modules {
-        out.pop_indent();
-        writeln!(&mut out, "}}")?;
+        generate_register_newtype(out, inp, register)?;
+        generate_register_impl(out, inp, register, true)?;
     }
 
     Ok(())
 }
 
-pub fn generate_register_struct(
-    out: &mut dyn Write,
-    inp: &Input,
-    register: &Register,
-    in_module: bool,
-) -> Result<(), Error> {
+pub fn generate_register_struct(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
     let mut out = HeaderWriter::new(out);
 
     // If the layout is local to this register, generate it and associate all properties to it:
     // Layout struct:
-    layouts::generate_layout_struct(&mut out, inp, &register.layout, Some(register), in_module)?;
+    layouts::generate_layout_struct(&mut out, inp, &register.layout, Some(register))?;
 
-    generate_register_impl(&mut out, inp, register, false, in_module)?;
+    generate_register_impl(&mut out, inp, register, false)?;
 
     out.push_section_with_header(&["\n", "// Register-specific enums:", "\n"]);
     for e in register.layout.nested_local_enums() {
@@ -67,29 +42,24 @@ pub fn generate_register_struct(
 
     out.push_section_with_header(&["\n", "// Register-specific sub-layouts:", "\n"]);
     for local_layout in register.layout.nested_local_layouts() {
-        layouts::generate_layout_struct(&mut out, inp, local_layout, None, in_module)?;
+        layouts::generate_layout_struct(&mut out, inp, local_layout, None)?;
     }
     out.pop_section();
 
     out.push_section_with_header(&["\n", "// Conversion functions:", "\n"]);
-    layouts::generate_layout_impls(&mut out, inp, &register.layout, in_module)?;
+    layouts::generate_layout_impls(&mut out, inp, &register.layout)?;
     for e in register.layout.nested_local_enums() {
-        enums::generate_enum_impls(&mut out, inp, e, in_module)?;
+        enums::generate_enum_impls(&mut out, inp, e)?;
     }
     for layout in register.layout.nested_local_layouts() {
-        layouts::generate_layout_impls(&mut out, inp, layout, in_module)?;
+        layouts::generate_layout_impls(&mut out, inp, layout)?;
     }
     out.pop_section();
 
     Ok(())
 }
 
-pub fn generate_register_newtype(
-    out: &mut dyn Write,
-    inp: &Input,
-    register: &Register,
-    in_module: bool,
-) -> Result<(), Error> {
+pub fn generate_register_newtype(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
     // Struct doc comment:
     writeln!(out)?;
     writeln!(out, "/// `{}` Register", register.name)?;
@@ -108,8 +78,7 @@ pub fn generate_register_newtype(
         writeln!(out, "#[derive({derives})]")?;
     }
 
-    let layout_name =
-        prefix_with_super(inp, &rs_pascalcase(&register.layout.name), register.layout.is_local, in_module);
+    let layout_name = rs_pascalcase(&register.layout.name);
 
     // Struct proper:
     writeln!(out, "pub struct {} ({layout_name});", rs_pascalcase(&register.name))?;
@@ -136,13 +105,12 @@ pub fn generate_register_impl(
     inp: &Input,
     register: &Register,
     is_newtype: bool,
-    in_module: bool,
 ) -> Result<(), Error> {
     let reg_name = &register.name;
     let struct_name = rs_pascalcase(reg_name);
     let byte_width = register.layout.width_bytes();
     let address_type = &inp.address_type;
-    let trait_prefix = trait_prefix(inp, in_module);
+    let trait_prefix = trait_prefix(inp);
 
     // ==== Properties ====:
     writeln!(out)?;
@@ -171,7 +139,7 @@ pub fn generate_register_impl(
         let mut init_str = String::new();
         let mut init = IndentWriter::new(&mut init_str, "    ");
 
-        if generate_reset_val(inp, &mut init, &register.layout, *reset_val, is_newtype, in_module, true).is_err() {
+        if generate_reset_val(&mut init, &register.layout, *reset_val, is_newtype, true).is_err() {
             return Ok(());
         };
         drop(init);
@@ -195,52 +163,34 @@ pub fn generate_register_impl(
 }
 
 pub fn generate_register_block(out: &mut dyn Write, inp: &Input, block: &RegisterBlock) -> Result<(), Error> {
-    let mut out = IndentWriter::new(out, "    ");
-
-    writeln!(&mut out)?;
+    writeln!(out)?;
 
     // If seperate modules are enabled, generate module doc comment
     // and open module:
-    if inp.opts.split_into_modules {
-        writeln!(out, "/// `{}` Register Block", block.name)?;
-        generate_register_block_header(&mut out, block, "///")?;
-        writeln!(&mut out, "pub mod {} {{", rs_snakecase(&block.name))?;
-        out.push_indent();
-    } else {
-        rs_generate_header_comment(&mut out, &format!("`{}` Register Block", block.name))?;
-        generate_register_block_header(&mut out, block, "//")?;
-    }
-
-    // Track if we are currently in a sub-module
-    let in_module = inp.opts.split_into_modules;
+    rs_generate_header_comment(out, &format!("`{}` Register Block", block.name))?;
+    generate_register_block_header(out, block, "//")?;
 
     // Shared register block properties
-    generate_register_block_properties(&mut out, inp, block)?;
+    generate_register_block_properties(out, inp, block)?;
 
     // Members:
     for member in block.members.values() {
-        writeln!(&mut out)?;
-        rs_generate_header_comment(&mut out, &format!("`{}` Register Block Member `{}`", &block.name, &member.name))?;
+        writeln!(out)?;
+        rs_generate_header_comment(out, &format!("`{}` Register Block Member `{}`", &block.name, &member.name))?;
 
         if member.layout.is_local {
-            layouts::generate_layout(&mut out, inp, &member.layout, in_module)?;
+            layouts::generate_layout(out, inp, &member.layout)?;
         }
 
         if !block.instances.is_empty() {
-            writeln!(&mut out)?;
-            writeln!(&mut out, "// Instances:")?;
+            writeln!(out)?;
+            writeln!(out, "// Instances:")?;
             for block_instance in block.instances.values() {
                 let member_instance = &block_instance.registers[&member.name];
-                generate_register_newtype(&mut out, inp, member_instance, in_module)?;
-                generate_register_impl(&mut out, inp, member_instance, true, in_module)?;
+                generate_register_newtype(out, inp, member_instance)?;
+                generate_register_impl(out, inp, member_instance, true)?;
             }
         }
-    }
-
-    // Close module if opened.
-    if inp.opts.split_into_modules {
-        out.pop_indent();
-        writeln!(&mut out, "}}")?;
     }
 
     Ok(())
@@ -325,18 +275,16 @@ pub fn generate_register_block_properties(
 }
 
 fn generate_reset_val(
-    inp: &Input,
     out: &mut IndentWriter,
     layout: &Layout,
     val: TypeValue,
     is_newtype: bool,
-    in_module: bool,
     is_top: bool,
 ) -> Result<(), Error> {
     if !is_newtype && is_top {
         writeln!(out, "Self {{")?;
     } else {
-        writeln!(out, "{} {{", prefix_with_super(inp, &rs_pascalcase(&layout.name), layout.is_local, in_module))?;
+        writeln!(out, "{} {{", rs_pascalcase(&layout.name))?;
     }
 
     out.push_indent();
@@ -347,7 +295,7 @@ fn generate_reset_val(
         write!(out, "{}: ", rs_snakecase(&field.name))?;
 
         if let FieldType::Layout(layout) = &field.accepts {
-            generate_reset_val(inp, out, layout, field_val, false, in_module, false)?;
+            generate_reset_val(out, layout, field_val, false, false)?;
         } else {
             match field.decode_value(field_val)? {
                 crate::regmap::DecodedField::UInt(val) => {
@@ -361,11 +309,7 @@ fn generate_reset_val(
                         unreachable!()
                     };
 
-                    // If this is a newtyp struct, the enum is defined with the layout, not with this
-                    // newtype.
-                    let is_local = !is_newtype && e.is_local;
-
-                    let enum_name = prefix_with_super(inp, &rs_pascalcase(&e.name), is_local, in_module);
+                    let enum_name = rs_pascalcase(&e.name);
                     write!(out, "{}::{}", enum_name, rs_pascalcase(&entry))?;
                 }
                 crate::regmap::DecodedField::Fixed { .. } => unreachable!(),

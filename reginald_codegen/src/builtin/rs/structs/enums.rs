@@ -28,11 +28,11 @@ pub(super) fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Resul
 }
 
 /// Generate conversion impls.
-pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum, in_module: bool) -> Result<(), Error> {
+pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {
     // Smallest uint type that can be used to represent the enum's content:
     let enum_name = rs_pascalcase(&e.name);
     let width_bytes = e.min_width_bytes();
-    let trait_prefix = trait_prefix(inp, in_module);
+    let trait_prefix = trait_prefix(inp);
 
     match enum_impl(e) {
         FromBytesImpl::FromBytes => {

@@ -26,7 +26,6 @@ fn run_reginald(output_name: &str, opts: GeneratorOpts) {
 
 const GENERATOR_OPTS_DEFAULT: GeneratorOpts = GeneratorOpts {
     address_type: None,
-    split_into_modules: true,
     struct_derive: vec![],
     raw_enum_derive: vec![],
     add_use: vec![],
@@ -64,14 +63,6 @@ fn generator_rs_structs() {
         "out_crate_traits.rs",
         GeneratorOpts {
             external_traits: Some("reginald::".to_string()),
-            ..GENERATOR_OPTS_DEFAULT
-        },
-    );
-
-    run_reginald(
-        "out_flat.rs",
-        GeneratorOpts {
-            split_into_modules: false,
             ..GENERATOR_OPTS_DEFAULT
         },
     );
