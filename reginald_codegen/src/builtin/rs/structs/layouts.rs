@@ -5,7 +5,7 @@ use super::*;
 use crate::{
     bits::{lsb_pos, mask_to_bit_ranges_str, unpositioned_mask},
     error::Error,
-    regmap::{FieldType, Layout},
+    regmap::{FieldType, Layout, RegisterBlockMember},
     utils::{
         field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
         packed_byte_to_field_byte_transform, Endianess, ShiftDirection,
@@ -17,70 +17,78 @@ use reginald_utils::remove_wrapping_parens;
 
 use super::{rs_pascalcase, rs_snakecase};
 
+pub enum LayoutStructKind<'a> {
+    Layout,
+    RegisterLayout(&'a Register),
+    RegisterBlockMemberStruct(&'a RegisterBlockMember),
+}
+
 // Generate content for a layout struct
-pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
+pub fn generate_layout(
+    out: &mut dyn Write,
+    inp: &Input,
+    layout: &Layout,
+    kind: &LayoutStructKind,
+) -> Result<(), Error> {
     let mut out = HeaderWriter::new(out);
 
     // Layout struct:
-    generate_layout_struct(&mut out, inp, layout, None)?;
+    generate_layout_struct(&mut out, inp, layout, kind)?;
 
-    out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
+    let comment_str = match kind {
+        LayoutStructKind::Layout => "Layout",
+        LayoutStructKind::RegisterLayout(_) => "Register",
+        LayoutStructKind::RegisterBlockMemberStruct(_) => "Block Member",
+    };
 
+    out.push_section_with_header(&["\n", &format!("// {comment_str}-specific sub-layouts:")]);
     for e in layout.nested_local_enums() {
         enums::generate_enum(&mut out, inp, e)?;
     }
+    out.pop_section();
 
+    out.push_section_with_header(&["\n", &format!("// {comment_str}-specific enums:")]);
     for local_layout in layout.nested_local_layouts() {
-        generate_layout_struct(&mut out, inp, local_layout, None)?;
+        generate_layout_struct(&mut out, inp, local_layout, &LayoutStructKind::Layout)?;
     }
-
     out.pop_section();
-    out.push_section_with_header(&["\n", "// Conversion functions:", "\n"]);
-
-    generate_layout_impls(&mut out, inp, layout)?;
-
-    for e in layout.nested_local_enums() {
-        enums::generate_enum_impls(&mut out, inp, e)?;
-    }
-
-    for layout in layout.nested_local_layouts() {
-        generate_layout_impls(&mut out, inp, layout)?;
-    }
-
-    out.pop_section();
-
     Ok(())
 }
 
 /// Generate a layout struct (which may possiblly serve double-duty
 /// as a register struct).
-pub fn generate_layout_struct(
+fn generate_layout_struct(
     out: &mut dyn Write,
     inp: &Input,
     layout: &Layout,
-    for_register: Option<&Register>,
+    kind: &LayoutStructKind,
 ) -> Result<(), Error> {
     // Struct doc comment:
     writeln!(out)?;
-    if let Some(reg) = for_register {
-        writeln!(out, "/// `{}` Register", reg.name)?;
-        writeln!(out, "///")?;
-        writeln!(out, "/// Address: 0x{:X}", reg.adr)?;
-        if let Some(reset_val) = reg.reset_val {
-            writeln!(out, "/// Reset Value: 0x{:X}", reset_val)?;
+    match kind {
+        LayoutStructKind::RegisterLayout(reg) => {
+            writeln!(out, "/// `{}` Register", reg.name)?;
+            writeln!(out, "///")?;
+            writeln!(out, "/// Address: 0x{:X}", reg.adr)?;
+            if let Some(reset_val) = reg.reset_val {
+                writeln!(out, "/// Reset Value: 0x{:X}", reset_val)?;
+            }
         }
-    } else {
-        writeln!(out, "/// `{}`", layout.name)?;
+        LayoutStructKind::RegisterBlockMemberStruct(member) => {
+            writeln!(out, "/// `{}` Register Block Member", member.name)?;
+            // TODO more info here.
+        }
+        LayoutStructKind::Layout => {
+            writeln!(out, "/// `{}`", layout.name)?;
+        }
     }
     if !layout.docs.is_empty() {
         writeln!(out, "///")?;
         write!(out, "{}", layout.docs.as_multiline("/// "))?;
     }
-    if for_register.is_some() {
-        writeln!(out, "///")?;
-        writeln!(out, "/// Fields:")?;
-        writeln!(out, "{}", rs_layout_overview_comment(layout, "/// "))?;
-    }
+    writeln!(out, "///")?;
+    writeln!(out, "/// Fields:")?;
+    writeln!(out, "{}", rs_layout_overview_comment(layout, "/// "))?;
 
     // Struct derives:
     if !inp.opts.struct_derive.is_empty() {
@@ -104,7 +112,7 @@ pub fn generate_layout_struct(
 }
 
 /// Type of a field inside a register struct.
-pub fn register_layout_member_type(field: &LayoutField) -> Result<String, Error> {
+fn register_layout_member_type(field: &LayoutField) -> Result<String, Error> {
     match &field.accepts {
         FieldType::UInt => rs_fitting_unsigned_type(mask_width(field.mask)),
         FieldType::Bool => Ok("bool".to_string()),
@@ -123,7 +131,7 @@ pub fn generate_layout_impls(out: &mut dyn Write, inp: &Input, layout: &Layout) 
     Ok(())
 }
 
-pub fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
+fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
     let struct_name = rs_pascalcase(&layout.name);
     let width_bytes = layout.width_bytes();
     let trait_prefix = trait_prefix(inp);

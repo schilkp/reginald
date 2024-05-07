@@ -10,51 +10,16 @@ pub fn generate_register(out: &mut dyn Write, inp: &Input, register: &Register) 
     writeln!(out)?;
 
     rs_generate_header_comment(out, &format!("`{}` Register", register.name))?;
-    generate_register_header(out, register, "//")?;
 
-    if register.layout.is_local {
+    if register.layout.is_local && register.from_block.is_none() {
         // If the layout is local to this register, generate it and associate all properties to it:
-        // Layout struct:
-        generate_register_struct(out, inp, register)?;
+        layouts::generate_layout(out, inp, &register.layout, &LayoutStructKind::RegisterLayout(register))?;
+        generate_register_impl(out, inp, register, false)?;
     } else {
         // Otherwise generate a newtype to contain the register properties:
         generate_register_newtype(out, inp, register)?;
         generate_register_impl(out, inp, register, true)?;
     }
-
-    Ok(())
-}
-
-pub fn generate_register_struct(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
-    let mut out = HeaderWriter::new(out);
-
-    // If the layout is local to this register, generate it and associate all properties to it:
-    // Layout struct:
-    layouts::generate_layout_struct(&mut out, inp, &register.layout, Some(register))?;
-
-    generate_register_impl(&mut out, inp, register, false)?;
-
-    out.push_section_with_header(&["\n", "// Register-specific enums:", "\n"]);
-    for e in register.layout.nested_local_enums() {
-        enums::generate_enum(&mut out, inp, e)?;
-    }
-    out.pop_section();
-
-    out.push_section_with_header(&["\n", "// Register-specific sub-layouts:", "\n"]);
-    for local_layout in register.layout.nested_local_layouts() {
-        layouts::generate_layout_struct(&mut out, inp, local_layout, None)?;
-    }
-    out.pop_section();
-
-    out.push_section_with_header(&["\n", "// Conversion functions:", "\n"]);
-    layouts::generate_layout_impls(&mut out, inp, &register.layout)?;
-    for e in register.layout.nested_local_enums() {
-        enums::generate_enum_impls(&mut out, inp, e)?;
-    }
-    for layout in register.layout.nested_local_layouts() {
-        layouts::generate_layout_impls(&mut out, inp, layout)?;
-    }
-    out.pop_section();
 
     Ok(())
 }
@@ -83,20 +48,6 @@ pub fn generate_register_newtype(out: &mut dyn Write, inp: &Input, register: &Re
     // Struct proper:
     writeln!(out, "pub struct {} ({layout_name});", rs_pascalcase(&register.name))?;
 
-    Ok(())
-}
-
-pub fn generate_register_header(out: &mut dyn Write, register: &Register, comment_str: &str) -> Result<(), Error> {
-    writeln!(out, "{comment_str} `{}` Register", register.name)?;
-    writeln!(out, "{comment_str}")?;
-    writeln!(out, "{comment_str} Address: 0x{:X}", register.adr)?;
-    if let Some(reset_val) = register.reset_val {
-        writeln!(out, "{comment_str} Value: 0x{:X}", reset_val)?;
-    }
-    if !register.docs.is_empty() {
-        writeln!(out, "{comment_str}")?;
-        write!(out, "{}", register.docs.as_multiline(&(comment_str.to_string() + " ")))?;
-    }
     Ok(())
 }
 
@@ -165,8 +116,6 @@ pub fn generate_register_impl(
 pub fn generate_register_block(out: &mut dyn Write, inp: &Input, block: &RegisterBlock) -> Result<(), Error> {
     writeln!(out)?;
 
-    // If seperate modules are enabled, generate module doc comment
-    // and open module:
     rs_generate_header_comment(out, &format!("`{}` Register Block", block.name))?;
     generate_register_block_header(out, block, "//")?;
 
@@ -179,17 +128,7 @@ pub fn generate_register_block(out: &mut dyn Write, inp: &Input, block: &Registe
         rs_generate_header_comment(out, &format!("`{}` Register Block Member `{}`", &block.name, &member.name))?;
 
         if member.layout.is_local {
-            layouts::generate_layout(out, inp, &member.layout)?;
-        }
-
-        if !block.instances.is_empty() {
-            writeln!(out)?;
-            writeln!(out, "// Instances:")?;
-            for block_instance in block.instances.values() {
-                let member_instance = &block_instance.registers[&member.name];
-                generate_register_newtype(out, inp, member_instance)?;
-                generate_register_impl(out, inp, member_instance, true)?;
-            }
+            layouts::generate_layout(out, inp, &member.layout, &LayoutStructKind::RegisterBlockMemberStruct(member))?;
         }
     }
 
