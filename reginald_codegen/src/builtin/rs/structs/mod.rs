@@ -33,13 +33,6 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub address_type: Option<String>,
 
-    /// Split registers and register blocks into seperate modules.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    pub split_into_modules: bool,
-
     /// Trait to derive on all register structs.
     ///
     /// May be given multiple times.
@@ -138,7 +131,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
     out.push_section_with_header(&["\n", &rs_header_comment("Shared Enums"), "\n"]);
     for shared_enum in inp.map.shared_enums() {
         enums::generate_enum(&mut out, &inp, shared_enum)?;
-        enums::generate_enum_impls(&mut out, &inp, shared_enum, false)?;
+        enums::generate_enum_impls(&mut out, &inp, shared_enum)?;
     }
     out.pop_section();
 
@@ -147,7 +140,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
     for layout in inp.map.shared_layouts() {
         writeln!(&mut out)?;
         writeln!(&mut out, "{}", &rs_header_comment(&format!("`{}` Shared Layout", layout.name)))?;
-        layouts::generate_layout(&mut out, &inp, layout, false)?;
+        layouts::generate_layout(&mut out, &inp, layout)?;
     }
 
     // ===== Individual Registers: =====
@@ -235,22 +228,11 @@ fn generate_traits(out: &mut dyn Write) -> Result<(), Error> {
 /// Decide trait prefix. If an external override is given, use that.
 /// Otherwise, use the local definition (Which may be in the parent
 /// module)
-fn trait_prefix(inp: &Input, in_module: bool) -> String {
+fn trait_prefix(inp: &Input) -> String {
     if let Some(overide) = &inp.opts.external_traits {
         String::from(overide)
-    } else if in_module {
-        String::from("super::")
     } else {
         String::new()
-    }
-}
-
-/// Prefix a given identifier with `super::` if required.
-fn prefix_with_super(inp: &Input, s: &str, is_local: bool, in_module: bool) -> String {
-    if inp.opts.split_into_modules && !is_local && in_module {
-        format!("super::{s}")
-    } else {
-        String::from(s)
     }
 }
 

@@ -11,14 +11,12 @@ pub mod out;
 // Unused. Included to ensure they compile:
 pub mod out_crate_traits;
 pub mod out_ext_traits;
-pub mod out_flat;
 
 #[cfg(test)]
 mod tests {
 
     #[test]
     fn test_basic_reg1() {
-        use crate::out::reg1::*;
         use crate::out::*;
 
         // Basic packing:
@@ -66,7 +64,6 @@ mod tests {
 
     #[test]
     fn test_basic_reg2() {
-        use crate::out::reg2::*;
         use crate::out::*;
 
         // Basic packing:
@@ -120,7 +117,6 @@ mod tests {
 
     #[test]
     fn test_basic_reg3() {
-        use crate::out::reg3::*;
         use crate::out::*;
 
         // Basic packing:
@@ -158,7 +154,6 @@ mod tests {
 
     #[test]
     fn register_validation() {
-        use crate::out::reg2::*;
         use crate::out::*;
 
         // `STAT` enum in field 1 (bits 7-6) can only be 0x1-0x3.
@@ -179,7 +174,6 @@ mod tests {
 
     #[test]
     fn enum_validation() {
-        use crate::out::reg2::*;
         use crate::out::*;
 
         assert_eq!(Stat::try_from_le_bytes(&[0]).unwrap_err().pos, 0);
@@ -234,7 +228,6 @@ mod tests {
 
     #[test]
     fn test_fixed_accross_byte() {
-        use crate::out::reg_fixed_across_bytes::*;
         use crate::out::*;
 
         // Packing:
@@ -251,7 +244,6 @@ mod tests {
 
     #[test]
     fn test_layout_fields() {
-        use crate::out::reg_layout_field::*;
         use crate::out::*;
 
         // Basic packing:
@@ -293,7 +285,6 @@ mod tests {
 
     #[test]
     fn test_nested_only_fixed() {
-        use crate::out::reg_nested_only_fixed::*;
         use crate::out::*;
 
         // Basic packing:
@@ -309,7 +300,6 @@ mod tests {
 
     #[test]
     fn test_split_field() {
-        use crate::out::reg_split_field::*;
         use crate::out::*;
 
         // Basic packing:
@@ -331,7 +321,6 @@ mod tests {
 
     #[test]
     fn test_split_enum() {
-        use crate::out::reg_split_enum::*;
         use crate::out::*;
 
         // Basic packing:
@@ -365,7 +354,6 @@ mod tests {
 
     #[test]
     fn test_split_layout() {
-        use crate::out::reg_split_layout::*;
         use crate::out::*;
 
         // Basic packing:

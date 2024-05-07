@@ -18,11 +18,11 @@ use reginald_utils::remove_wrapping_parens;
 use super::{rs_pascalcase, rs_snakecase};
 
 // Generate content for a layout struct
-pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout, in_module: bool) -> Result<(), Error> {
+pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
     let mut out = HeaderWriter::new(out);
 
     // Layout struct:
-    generate_layout_struct(&mut out, inp, layout, None, in_module)?;
+    generate_layout_struct(&mut out, inp, layout, None)?;
 
     out.push_section_with_header(&["\n", "// Layout-specific enums and sub-layouts:", "\n"]);
 
@@ -31,20 +31,20 @@ pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout, in_mod
     }
 
     for local_layout in layout.nested_local_layouts() {
-        generate_layout_struct(&mut out, inp, local_layout, None, in_module)?;
+        generate_layout_struct(&mut out, inp, local_layout, None)?;
     }
 
     out.pop_section();
     out.push_section_with_header(&["\n", "// Conversion functions:", "\n"]);
 
-    generate_layout_impls(&mut out, inp, layout, in_module)?;
+    generate_layout_impls(&mut out, inp, layout)?;
 
     for e in layout.nested_local_enums() {
-        enums::generate_enum_impls(&mut out, inp, e, in_module)?;
+        enums::generate_enum_impls(&mut out, inp, e)?;
     }
 
     for layout in layout.nested_local_layouts() {
-        generate_layout_impls(&mut out, inp, layout, in_module)?;
+        generate_layout_impls(&mut out, inp, layout)?;
     }
 
     out.pop_section();
@@ -59,7 +59,6 @@ pub fn generate_layout_struct(
     inp: &Input,
     layout: &Layout,
     for_register: Option<&Register>,
-    in_module: bool,
 ) -> Result<(), Error> {
     // Struct doc comment:
     writeln!(out)?;
@@ -93,7 +92,7 @@ pub fn generate_layout_struct(
     writeln!(out, "pub struct {} {{", rs_pascalcase(&layout.name))?;
 
     for field in layout.fields_with_content() {
-        let field_type = register_layout_member_type(inp, field, in_module)?;
+        let field_type = register_layout_member_type(field)?;
         let field_name = rs_snakecase(&field.name);
         generate_doc_comment(out, &field.docs, "    ")?;
         writeln!(out, "    pub {field_name}: {field_type},")?;
@@ -105,34 +104,29 @@ pub fn generate_layout_struct(
 }
 
 /// Type of a field inside a register struct.
-pub fn register_layout_member_type(inp: &Input, field: &LayoutField, in_module: bool) -> Result<String, Error> {
+pub fn register_layout_member_type(field: &LayoutField) -> Result<String, Error> {
     match &field.accepts {
         FieldType::UInt => rs_fitting_unsigned_type(mask_width(field.mask)),
         FieldType::Bool => Ok("bool".to_string()),
-        FieldType::Enum(e) => Ok(prefix_with_super(inp, &rs_pascalcase(&e.name), e.is_local, in_module)),
-        FieldType::Layout(l) => Ok(prefix_with_super(inp, &rs_pascalcase(&l.name), l.is_local, in_module)),
+        FieldType::Enum(e) => Ok(rs_pascalcase(&e.name)),
+        FieldType::Layout(l) => Ok(rs_pascalcase(&l.name)),
         FieldType::Fixed(_) => panic!("Fixed layout field has no type"),
     }
 }
 
-pub fn generate_layout_impls(out: &mut dyn Write, inp: &Input, layout: &Layout, in_module: bool) -> Result<(), Error> {
-    generate_layout_impl_to_bytes(inp, out, layout, in_module)?;
-    generate_layout_impl_from_bytes(inp, out, layout, in_module)?;
+pub fn generate_layout_impls(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
+    generate_layout_impl_to_bytes(inp, out, layout)?;
+    generate_layout_impl_from_bytes(inp, out, layout)?;
     if inp.opts.generate_uint_conversion {
-        generate_layout_impl_uint_conv(inp, out, layout, in_module)?;
+        generate_layout_impl_uint_conv(inp, out, layout)?;
     }
     Ok(())
 }
 
-pub fn generate_layout_impl_to_bytes(
-    inp: &Input,
-    out: &mut dyn Write,
-    layout: &Layout,
-    in_module: bool,
-) -> Result<(), Error> {
+pub fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
     let struct_name = rs_pascalcase(&layout.name);
     let width_bytes = layout.width_bytes();
-    let trait_prefix = trait_prefix(inp, in_module);
+    let trait_prefix = trait_prefix(inp);
 
     let mut out = IndentWriter::new(out, "    ");
 
@@ -285,15 +279,10 @@ pub fn generate_layout_impl_to_bytes(
     Ok(())
 }
 
-fn generate_layout_impl_from_bytes(
-    inp: &Input,
-    out: &mut dyn Write,
-    layout: &Layout,
-    in_module: bool,
-) -> Result<(), Error> {
+fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
     let struct_name = rs_pascalcase(&layout.name);
     let width_bytes = layout.width_bytes();
-    let trait_prefix = trait_prefix(inp, in_module);
+    let trait_prefix = trait_prefix(inp);
 
     let mut out = IndentWriter::new(out, "    ");
 
@@ -411,7 +400,7 @@ fn generate_layout_impl_from_bytes(
                 writeln!(out, "  {field_name}: {numeric_value} != 0,")?;
             }
             FieldType::Enum(e) => {
-                let enum_name = prefix_with_super(inp, &rs_pascalcase(&e.name), e.is_local, in_module);
+                let enum_name = rs_pascalcase(&e.name);
                 let array_name = rs_snakecase(&field.name);
 
                 match enum_impl(e) {
@@ -431,7 +420,7 @@ fn generate_layout_impl_from_bytes(
                 }
             }
             FieldType::Layout(l) => {
-                let layout_name = prefix_with_super(inp, &rs_pascalcase(&l.name), l.is_local, in_module);
+                let layout_name = rs_pascalcase(&l.name);
                 let array_name = rs_snakecase(&field.name);
                 if l.can_always_unpack() {
                     writeln!(out, "  {field_name}: {layout_name}::from_le_bytes(&{array_name}),")?;
@@ -458,14 +447,9 @@ fn generate_layout_impl_from_bytes(
     Ok(())
 }
 
-fn generate_layout_impl_uint_conv(
-    inp: &Input,
-    out: &mut dyn Write,
-    layout: &Layout,
-    in_module: bool,
-) -> Result<(), Error> {
+fn generate_layout_impl_uint_conv(inp: &Input, out: &mut dyn Write, layout: &Layout) -> Result<(), Error> {
     let struct_name = rs_pascalcase(&layout.name);
-    let trait_prefix = trait_prefix(inp, in_module);
+    let trait_prefix = trait_prefix(inp);
 
     let (uint_type, uint_width_bytes) = match layout.width_bytes() {
         1 => ("u8", 1),

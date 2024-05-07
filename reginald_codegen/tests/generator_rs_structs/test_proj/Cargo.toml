@@ -1,5 +1,5 @@
 [package]
-name = "rs_struct_no_deps_test"
+name = "rs_structs_test"
 version = "0.1.0"
 edition = "2021"
 
