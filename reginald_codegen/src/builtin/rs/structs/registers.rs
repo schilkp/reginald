@@ -30,12 +30,12 @@ pub fn generate_register_newtype(out: &mut dyn Write, inp: &Input, register: &Re
     writeln!(out, "/// `{}` Register", register.name)?;
     writeln!(out, "///")?;
     writeln!(out, "/// Address: 0x{:X}", register.adr)?;
-    if !register.docs.is_empty() {
+    if let Some(reset_val) = register.reset_val {
         writeln!(out, "///")?;
-        write!(out, "{}", register.docs.as_multiline("/// "))?;
+        writeln!(out, "/// Reset Value: 0x{:X}", reset_val)?;
     }
     writeln!(out, "///")?;
-    writeln!(out, "/// Uses `{}` layout.", rs_pascalcase(&register.layout.name))?;
+    writeln!(out, "/// Uses [`{}`] layout.", rs_pascalcase(&register.layout.name))?;
 
     // Register derives:
     if !inp.opts.struct_derive.is_empty() {

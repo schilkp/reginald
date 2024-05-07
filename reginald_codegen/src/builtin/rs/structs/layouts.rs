@@ -3,7 +3,8 @@ use std::fmt::Write;
 use super::*;
 
 use crate::{
-    bits::{lsb_pos, mask_to_bit_ranges_str, unpositioned_mask},
+    bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, mask_to_bit_ranges_str, unpositioned_mask},
+    builtin::rs::generate_extended_doc_comment,
     error::Error,
     regmap::{FieldType, Layout, RegisterBlockMember},
     utils::{
@@ -71,12 +72,12 @@ fn generate_layout_struct(
             writeln!(out, "///")?;
             writeln!(out, "/// Address: 0x{:X}", reg.adr)?;
             if let Some(reset_val) = reg.reset_val {
+                writeln!(out, "///")?;
                 writeln!(out, "/// Reset Value: 0x{:X}", reset_val)?;
             }
         }
         LayoutStructKind::RegisterBlockMemberStruct(member) => {
             writeln!(out, "/// `{}` Register Block Member", member.name)?;
-            // TODO more info here.
         }
         LayoutStructKind::Layout => {
             writeln!(out, "/// `{}`", layout.name)?;
@@ -86,9 +87,21 @@ fn generate_layout_struct(
         writeln!(out, "///")?;
         write!(out, "{}", layout.docs.as_multiline("/// "))?;
     }
-    writeln!(out, "///")?;
-    writeln!(out, "/// Fields:")?;
-    writeln!(out, "{}", rs_layout_overview_comment(layout, "/// "))?;
+
+    if layout.contains_fixed_bits() {
+        writeln!(out, "///")?;
+        writeln!(out, "/// Fixed bits:")?;
+        for range in mask_to_bit_ranges(layout.fixed_bits_mask()) {
+            let range_str = if range.start() == range.end() {
+                format!("{}", range.start())
+            } else {
+                format!("{}:{}", range.end(), range.start())
+            };
+
+            let value = (layout.fixed_bits_val() >> range.start()) & bitmask_from_range(&range);
+            writeln!(out, "/// - `[{range_str}]` = 0b{value:b}")?;
+        }
+    }
 
     // Struct derives:
     if !inp.opts.struct_derive.is_empty() {
@@ -102,7 +115,12 @@ fn generate_layout_struct(
     for field in layout.fields_with_content() {
         let field_type = register_layout_member_type(field)?;
         let field_name = rs_snakecase(&field.name);
-        generate_doc_comment(out, &field.docs, "    ")?;
+        generate_extended_doc_comment(
+            out,
+            &field.docs,
+            "    ",
+            &[&format!("Bits: `[{}]`", mask_to_bit_ranges_str(field.mask))],
+        )?;
         writeln!(out, "    pub {field_name}: {field_type},")?;
     }
 
