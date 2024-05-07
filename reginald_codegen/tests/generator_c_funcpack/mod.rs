@@ -114,20 +114,6 @@ fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
     .unwrap();
 }
 
-const GENERATOR_OPTS_DEFAULT: GeneratorOpts = GeneratorOpts {
-    endian: vec![],
-    defer_to_endian: None,
-    registers_as_bitfields: true,
-    max_enum_bitwidth: 31,
-    add_include: vec![],
-    funcs_static_inline: true,
-    funcs_as_prototypes: false,
-    clang_format_guard: true,
-    include_guards: true,
-    only_generate: vec![],
-    dont_generate: vec![],
-};
-
 // ==== Tests ==================================================================
 
 #[test]
@@ -140,7 +126,7 @@ fn generator_c_funcpack_c99() {
         "out.h",
         GeneratorOpts {
             dont_generate: vec![Element::GenericMacros],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -158,7 +144,7 @@ fn generator_c_funcpack_c11() {
         &d,
         "out.h",
         GeneratorOpts {
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -177,7 +163,7 @@ fn generator_c_funcpack_defer_to_le() {
         "out.h",
         GeneratorOpts {
             defer_to_endian: Some(Endianess::Little),
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -196,7 +182,7 @@ fn generator_c_funcpack_defer_to_be() {
         "out.h",
         GeneratorOpts {
             defer_to_endian: Some(Endianess::Big),
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -216,7 +202,7 @@ fn generator_c_funcpack_split_header_source() {
         GeneratorOpts {
             funcs_as_prototypes: true,
             funcs_static_inline: false,
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -228,7 +214,7 @@ fn generator_c_funcpack_split_header_source() {
             add_include: vec!["out.h".to_string()],
             include_guards: false,
             only_generate: vec![Element::StructConversionFuncs],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -247,7 +233,7 @@ fn generator_c_funcpack_split_headers() {
         "out_enum.h",
         GeneratorOpts {
             only_generate: vec![Element::Enums],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -257,7 +243,7 @@ fn generator_c_funcpack_split_headers() {
         GeneratorOpts {
             only_generate: vec![Element::EnumValidationMacros],
             add_include: vec!["out_enum.h".to_string()],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -267,7 +253,7 @@ fn generator_c_funcpack_split_headers() {
         GeneratorOpts {
             only_generate: vec![Element::Structs],
             add_include: vec!["out_enum_validation.h".to_string()],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -277,7 +263,7 @@ fn generator_c_funcpack_split_headers() {
         GeneratorOpts {
             only_generate: vec![Element::StructConversionFuncs],
             add_include: vec!["out_structs.h".to_string()],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -287,7 +273,7 @@ fn generator_c_funcpack_split_headers() {
         GeneratorOpts {
             only_generate: vec![Element::RegisterProperties],
             add_include: vec!["out_struct_conv.h".to_string()],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 
@@ -297,7 +283,7 @@ fn generator_c_funcpack_split_headers() {
         GeneratorOpts {
             only_generate: vec![Element::GenericMacros],
             add_include: vec!["out_reg_props.h".to_string()],
-            ..GENERATOR_OPTS_DEFAULT
+            ..GeneratorOpts::default()
         },
     );
 

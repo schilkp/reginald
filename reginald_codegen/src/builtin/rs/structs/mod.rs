@@ -87,9 +87,23 @@ pub struct GeneratorOpts {
     /// register, if one exists.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value = "true"))]
+    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().generate_uint_conversion))]
     #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
     pub generate_uint_conversion: bool,
+}
+
+impl Default for GeneratorOpts {
+    fn default() -> Self {
+        Self {
+            address_type: None,
+            struct_derive: vec![],
+            raw_enum_derive: vec![],
+            add_use: vec![],
+            add_attribute: vec![],
+            external_traits: None,
+            generate_uint_conversion: true,
+        }
+    }
 }
 
 // ====== Generator ============================================================
