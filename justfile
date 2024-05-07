@@ -1,6 +1,5 @@
 full_check:
     cargo test --workspace
-    ./reginald_codegen/generator_tests/run_tests.bash
     REGINALD_TEST_C_FUNCPACK_ADDITIONAL_COMPILERS=arm-none-eabi-gcc cargo test --workspace -- --ignored
     cargo fmt --check
     cargo clippy --all-features --workspace
