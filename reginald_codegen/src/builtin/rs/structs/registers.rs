@@ -46,7 +46,7 @@ pub fn generate_register_newtype(out: &mut dyn Write, inp: &Input, register: &Re
     let layout_name = rs_pascalcase(&register.layout.name);
 
     // Struct proper:
-    writeln!(out, "pub struct {} ({layout_name});", rs_pascalcase(&register.name))?;
+    writeln!(out, "pub struct {} (pub {layout_name});", rs_pascalcase(&register.name))?;
 
     Ok(())
 }
