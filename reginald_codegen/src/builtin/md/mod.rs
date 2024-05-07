@@ -5,7 +5,7 @@ use std::fmt::Write;
 
 pub mod datasheet;
 
-pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), Error> {
+pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>, line_prefix: &str) -> Result<(), Error> {
     if rows.len() < 2 {
         return Err(Error::GeneratorError(format!(
             "Cannot generate markdown table from {} rows, need at least 2.",
@@ -15,17 +15,17 @@ pub fn md_table(out: &mut dyn Write, rows: &Vec<Vec<String>>) -> Result<(), Erro
 
     let col_widths = table_col_width(rows);
 
-    md_table_row(out, &rows[0], &col_widths)?;
-    md_sep_row(out, &col_widths)?;
+    md_table_row(out, &rows[0], &col_widths, line_prefix)?;
+    md_sep_row(out, &col_widths, line_prefix)?;
     for col in rows.iter().skip(1) {
-        md_table_row(out, col, &col_widths)?;
+        md_table_row(out, col, &col_widths, line_prefix)?;
     }
 
     Ok(())
 }
 
-fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result<(), Error> {
-    write!(out, "| ")?;
+fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize], line_prefix: &str) -> Result<(), Error> {
+    write!(out, "{line_prefix}| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
         let col = row.get(col_idx).map_or(String::new(), std::borrow::ToOwned::to_owned);
         if col_idx != 0 {
@@ -38,8 +38,8 @@ fn md_table_row(out: &mut dyn Write, row: &[String], widths: &[usize]) -> Result
     Ok(())
 }
 
-fn md_sep_row(out: &mut dyn Write, widths: &[usize]) -> Result<(), Error> {
-    write!(out, "| ")?;
+fn md_sep_row(out: &mut dyn Write, widths: &[usize], line_prefix: &str) -> Result<(), Error> {
+    write!(out, "{line_prefix}| ")?;
     for (col_idx, width) in widths.iter().enumerate() {
         if col_idx != 0 {
             write!(out, " | ")?;
@@ -68,12 +68,13 @@ mod tests {
                 vec!["A".into(), "B".into(), "CCCC".into()],
                 vec![":)".into(), "!".into()],
             ],
+            "~",
         )
         .unwrap();
-        let should = "| 1  | 22222 | 3    |\n\
-                      | -- | ----- | ---- |\n\
-                      | A  | B     | CCCC |\n\
-                      | :) | !     |      |\n";
+        let should = "~| 1  | 22222 | 3    |\n\
+                      ~| -- | ----- | ---- |\n\
+                      ~| A  | B     | CCCC |\n\
+                      ~| :) | !     |      |\n";
         assert_eq!(is, should);
     }
 }

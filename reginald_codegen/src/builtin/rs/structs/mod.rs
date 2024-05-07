@@ -6,7 +6,7 @@ use std::fmt::Write;
 
 use crate::{
     bits::{lsb_pos, mask_width, msb_pos},
-    builtin::rs::rs_const,
+    builtin::{md::md_table, rs::rs_const},
     error::Error,
     regmap::{Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterMap, TypeValue},
     utils::{grab_byte, packed_byte_to_field_transform, Endianess},
@@ -174,23 +174,23 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     }
 
     // Top doc comment:
-    writeln!(out, "//! `{}` Registers", inp.map.name)?;
-    writeln!(out, "//!")?;
-
-    // Generated-with-reginald note, including original file name if known:
-    if let Some(input_file) = &inp.map.from_file {
-        writeln!(out, "//! Generated using reginald from `{}`.", input_file.to_string_lossy())?;
-    } else {
-        writeln!(out, "//! Generated using reginald.")?;
-    }
-
-    // Indicate which generator was used:
-    writeln!(out, "//! Generator: rs-structs")?;
+    writeln!(out, "//! # `{}` Registers.", inp.map.name)?;
 
     // Map top-level documentation:
     if !inp.map.docs.is_empty() {
         writeln!(out, "//!")?;
         write!(out, "{}", inp.map.docs.as_multiline("//! "))?;
+    }
+
+    // Generated-with-reginald note, including original file name if known:
+    writeln!(out, "//!")?;
+    writeln!(out, "//! ## Infos")?;
+    if let Some(input_file) = &inp.map.from_file {
+        writeln!(out, "//!")?;
+        writeln!(out, "//! Generated using reginald from `{}`.", input_file.to_string_lossy())?;
+    } else {
+        writeln!(out, "//!")?;
+        writeln!(out, "//! Generated using reginald.")?;
     }
 
     // Map author and note:
@@ -206,6 +206,21 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
         }
     }
 
+    writeln!(out, "//!")?;
+    writeln!(out, "//! ## Register Overview")?;
+    let mut rows = vec![];
+    rows.push(vec!["Address".to_string(), "Name".to_string(), "Brief".to_string()]);
+    let mut regs: Vec<_> = inp.map.registers.values().collect();
+    regs.sort_by_key(|x| x.adr);
+    for reg in regs {
+        let adr = format!("0x{:02X}", reg.adr);
+        let name = format!("[{}]", rs_pascalcase(&reg.name));
+        let brief = reg.docs.brief.clone().unwrap_or("".to_string());
+        rows.push(vec![adr, name, brief]);
+    }
+    md_table(out, &rows, "//! ")?;
+
+    // Additional uses:
     if !inp.opts.add_use.is_empty() {
         writeln!(out)?;
         for add_use in &inp.opts.add_use {
