@@ -14,6 +14,8 @@ use crate::{
 };
 use clap::Parser;
 
+use self::layouts::LayoutStructKind;
+
 use super::{
     generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment,
     rs_layout_overview_comment, rs_pascalcase, rs_snakecase, CONVERSION_TRAITS,
@@ -126,39 +128,47 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
     // File header/preamble:
     generate_header(&mut out, &inp)?;
 
-    // ===== Shared enums: =====
-
-    out.push_section_with_header(&["\n", &rs_header_comment("Shared Enums"), "\n"]);
-    for shared_enum in inp.map.shared_enums() {
-        enums::generate_enum(&mut out, &inp, shared_enum)?;
-        enums::generate_enum_impls(&mut out, &inp, shared_enum)?;
-    }
-    out.pop_section();
-
-    // ===== Shared layouts: =====
-
-    for layout in inp.map.shared_layouts() {
-        writeln!(&mut out)?;
-        writeln!(&mut out, "{}", &rs_header_comment(&format!("`{}` Shared Layout", layout.name)))?;
-        layouts::generate_layout(&mut out, &inp, layout)?;
+    // ===== Traits: =====
+    if inp.opts.external_traits.is_none() {
+        generate_traits(&mut out)?;
     }
 
-    // ===== Individual Registers: =====
-
-    for register in inp.map.individual_registers() {
-        registers::generate_register(&mut out, &inp, register)?;
+    // ===== Registers: =====
+    let mut regs: Vec<_> = inp.map.registers.values().collect();
+    regs.sort_by_key(|x| x.adr);
+    for reg in regs {
+        registers::generate_register(&mut out, &inp, reg)?;
     }
 
     // ===== Register Blocks: =====
-
     for block in inp.map.register_blocks.values() {
         registers::generate_register_block(&mut out, &inp, block)?;
     }
 
-    // ===== Traits: =====
+    // ===== Shared enums: =====
+    out.push_section_with_header(&["\n", &rs_header_comment("Shared Enums"), "\n"]);
+    for shared_enum in inp.map.shared_enums() {
+        enums::generate_enum(&mut out, &inp, shared_enum)?;
+    }
+    out.pop_section();
 
-    if inp.opts.external_traits.is_none() {
-        generate_traits(&mut out)?;
+    // ===== Shared layouts: =====
+    for layout in inp.map.shared_layouts() {
+        writeln!(&mut out)?;
+        writeln!(&mut out, "{}", &rs_header_comment(&format!("`{}` Shared Layout", layout.name)))?;
+        layouts::generate_layout(&mut out, &inp, layout, &LayoutStructKind::Layout)?;
+    }
+
+    // ===== Conversion functions: =====
+    for e in inp.map.enums.values() {
+        writeln!(&mut out)?;
+        writeln!(&mut out, "{}", &rs_header_comment(&format!("`{}` Enum Conversion Functions", e.name)))?;
+        enums::generate_enum_impls(&mut out, &inp, e)?;
+    }
+    for layout in inp.map.layouts.values() {
+        writeln!(&mut out)?;
+        writeln!(&mut out, "{}", &rs_header_comment(&format!("`{}` Layout Conversion Functions", layout.name)))?;
+        layouts::generate_layout_impls(&mut out, &inp, layout)?;
     }
 
     Ok(())
