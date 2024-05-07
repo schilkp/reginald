@@ -142,7 +142,7 @@ fn generate_overview(
         }
     }
     writeln!(out)?;
-    md_table(out, &rows)?;
+    md_table(out, &rows, "")?;
     Ok(())
 }
 

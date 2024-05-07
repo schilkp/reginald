@@ -60,7 +60,7 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
         rows.push(vec![adr, name, brief]);
     }
     writeln!(out)?;
-    md_table(out, &rows)?;
+    md_table(out, &rows, "")?;
 
     Ok(())
 }
@@ -245,9 +245,9 @@ fn generate_layout_table(out: &mut dyn Write, layout: &Layout, value: Option<Typ
     }
 
     if value.is_some() {
-        md_table(out, &vec![row_bits, row_field, row_access, row_state, row_decode])
+        md_table(out, &vec![row_bits, row_field, row_access, row_state, row_decode], "")
     } else {
-        md_table(out, &vec![row_bits, row_field, row_access])
+        md_table(out, &vec![row_bits, row_field, row_access], "")
     }
 }
 
