@@ -790,7 +790,7 @@
             },
             THM_DTLS: {
               bits: [2, 1, 0],
-              doc: "Battery Temperature Details. Valid only when CHGIN_DTLS[1:0] = 0b11.",
+              doc: "Battery Temperature Details. Valid only when CHGIN_DTLS = 0b11.",
               access: ["R"],
               accepts: {
                 Enum: {
@@ -802,24 +802,24 @@
                     val: 1,
                     doc:
                       '''
-                      Battery is cold as programmed by THM_COLD[1:0].
+                      Battery is cold as programmed by THM_COLD.
 
                       If thermistor and charger are enabled while the battery is cold, a battery temperature fault occurs.
                       '''
                   },
                   THM_COOL: {
                     val: 2,
-                    doc: "Battery is cool as programmed by THM_COOL[1:0]."
+                    doc: "Battery is cool as programmed by THM_COOL."
                   },
                   THM_WARM: {
                     val: 3,
-                    doc: "Battery is warm as programmed by THM_WARM[1:0]."
+                    doc: "Battery is warm as programmed by THM_WARM."
                   },
                   THM_HOT: {
                     val: 4,
                     doc:
                       '''
-                      Battery is hot as programmed by THM_HOT[1:0].
+                      Battery is hot as programmed by THM_HOT.
 
                       If thermistor and charger are enabled while the battery is hot, a battery temperature fault occurs.
                       '''
