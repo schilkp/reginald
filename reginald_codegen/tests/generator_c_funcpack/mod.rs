@@ -16,12 +16,13 @@ const ADDITIONAL_COMPILERS: Option<&str> = option_env!("REGINALD_TEST_C_FUNCPACK
 
 fn test_generated_code(test_dir: &TempDir, extra_cflags: &[&str], extra_sources: &[&str]) {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let resources_dir = manifest_dir.join(PathBuf::from("tests/generator_c_funcpack/resources"));
+    let test_resources_dir = manifest_dir.join(PathBuf::from("tests/generator_c_funcpack/resources"));
+    let shared_resources_dir = manifest_dir.join(PathBuf::from("tests/resources"));
 
     // Sources:
     let mut sources = vec![];
-    sources.push(resources_dir.join("test.c").to_str().unwrap().to_string());
-    sources.push(resources_dir.join("Unity/unity.c").to_str().unwrap().to_string());
+    sources.push(test_resources_dir.join("test.c").to_str().unwrap().to_string());
+    sources.push(shared_resources_dir.join("Unity/unity.c").to_str().unwrap().to_string());
     sources.append(&mut extra_sources.iter().map(|x| x.to_string()).collect());
 
     // c flags:
@@ -33,8 +34,10 @@ fn test_generated_code(test_dir: &TempDir, extra_cflags: &[&str], extra_sources:
     cflags.push("-Warith-conversion".to_string());
     cflags.push("-Wint-conversion".to_string());
     cflags.push("-Werror".to_string());
+    // include test resources dir (for test files):
+    cflags.push(format!("-I{}", test_resources_dir.to_str().unwrap()));
     // include resources dir (for test framework):
-    cflags.push(format!("-I{}", resources_dir.to_str().unwrap()));
+    cflags.push(format!("-I{}", shared_resources_dir.to_str().unwrap()));
     // include test dir (for generated files):
     cflags.push(format!("-I{}", test_dir.path().to_str().unwrap()));
     // Extra c flags:
@@ -54,6 +57,10 @@ fn test_generated_code(test_dir: &TempDir, extra_cflags: &[&str], extra_sources:
     compile_args.push(test_exe.to_string());
 
     println!("Compiling...");
+    println!("Args:");
+    for arg in &compile_args {
+        println!("  {}", arg);
+    }
     let compile_output = Command::new("gcc").args(&compile_args).output().unwrap();
     print_cmd_output(&compile_output);
     assert!(compile_output.status.success());
@@ -104,14 +111,21 @@ fn finish_test(d: TempDir) {
 }
 
 fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
+    let output_path = d.path().to_owned().join(PathBuf::from(output_name));
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let artifacts_dir = manifest_dir.join(PathBuf::from("tests/generator_c_funcpack/artifacts"));
+
     gen::cmd(gen::Command {
         input: TEST_MAP_FILE.to_owned(),
-        output: d.path().to_owned().join(PathBuf::from(output_name)),
+        output: output_path.clone(),
         overwrite_map_name: None,
         verify: false,
         generator: Generator::CFuncpack(opts),
     })
     .unwrap();
+
+    fs::create_dir_all(&artifacts_dir).unwrap();
+    fs::copy(output_path, artifacts_dir.join(PathBuf::from(output_name))).unwrap();
 }
 
 // ==== Tests ==================================================================

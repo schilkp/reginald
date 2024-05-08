@@ -1,4 +1,5 @@
 mod generator_c_funcpack;
+mod generator_c_macromap;
 mod generator_rs_structs;
 
 use std::{path::PathBuf, process::Output};
