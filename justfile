@@ -1,6 +1,6 @@
 full_check:
     cargo test --workspace
-    REGINALD_TEST_C_FUNCPACK_ADDITIONAL_COMPILERS=arm-none-eabi-gcc cargo test --workspace -- --ignored
+    REGINALD_TEST_C_FUNCPACK_ADDITIONAL_COMPILERS=arm-none-eabi-gcc cargo test --workspace -- --ignored --show-output
     cargo fmt --check
     cargo clippy --all-features --workspace
     @echo "ALL CHECKS OK"

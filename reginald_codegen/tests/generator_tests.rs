@@ -17,14 +17,19 @@ fn find_test_map_file() -> PathBuf {
 }
 
 pub fn print_cmd_output(out: &Output) {
-    println!("EXIT STATUS:");
-    println!("{}", &out.status);
+    println!("  {}", &out.status);
     if !out.stdout.is_empty() {
-        println!("STDOUT:");
-        println!("{}", String::from_utf8(out.stdout.clone()).unwrap());
+        println!("  stdout:");
+        let stdout = String::from_utf8(out.stdout.clone()).unwrap();
+        for line in stdout.lines() {
+            println!("   > {line}");
+        }
     }
     if !out.stderr.is_empty() {
-        println!("STDERR:");
-        println!("{}", String::from_utf8(out.stderr.clone()).unwrap());
+        println!("  stderr:");
+        let stderr = String::from_utf8(out.stderr.clone()).unwrap();
+        for line in stderr.lines() {
+            println!("   > {line}");
+        }
     }
 }
