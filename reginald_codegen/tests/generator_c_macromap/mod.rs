@@ -50,19 +50,21 @@ fn test_generated_code(test_dir: &TempDir, extra_cflags: &[&str], extra_sources:
     compile_args.push("-o".to_string());
     compile_args.push(test_exe.to_string());
 
-    println!("Compiling...");
-    println!("Args:");
+    println!("  GCC host args:");
     for arg in &compile_args {
-        println!("  {}", arg);
+        println!("    {}", arg);
     }
+    println!("  Compiling for host...");
     let compile_output = Command::new("gcc").args(&compile_args).output().unwrap();
     print_cmd_output(&compile_output);
     assert!(compile_output.status.success());
 
-    println!("Testing...");
+    println!("  Running tests...");
     let test_output = Command::new(test_exe).output().unwrap();
     print_cmd_output(&test_output);
     assert!(test_output.status.success());
+
+    println!("  >>> OK!");
 }
 
 fn finish_test(d: TempDir) {
