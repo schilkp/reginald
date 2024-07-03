@@ -11,8 +11,10 @@ path              = "src/main.rs"
 required-features = ["cli"]
 
 [features]
-default = ["cli"]
-cli     = ["dep:clap", "dep:clap_complete", "dep:similar", "dep:console"]
+default         = ["cli"]
+cli             = ["dep:clap", "dep:clap_complete", "dep:similar", "dep:console"]
+test_gen_output = []
+test_insta      = []
 
 [dependencies]
 reginald_utils = { path = "../reginald_utils", features = ["clap"] }
@@ -30,3 +32,4 @@ console        = { version = "0.15.8",  features = [],         optional = true }
 [dev-dependencies]
 tempfile          = "3.10.1"
 pretty_assertions = "1.4.0"
+insta             = "1.39.0"

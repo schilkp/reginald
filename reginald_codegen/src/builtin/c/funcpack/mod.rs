@@ -252,9 +252,15 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
         writeln!(out, "// clang-format off")?;
     }
 
+    let output_file_name = inp
+        .output_file
+        .file_name()
+        .ok_or(Error::GeneratorError("Failed to extract file name from output path!".to_string()))?
+        .to_string_lossy();
+
     // Doxy file comment:
     writeln!(out, "/**")?;
-    writeln!(out, " * @file {}", inp.output_file.to_string_lossy())?;
+    writeln!(out, " * @file {output_file_name}")?;
     writeln!(out, " * @brief {}", inp.map.name)?;
     if let Some(input_file) = &inp.map.from_file {
         writeln!(
@@ -288,8 +294,8 @@ fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
 
     // Include guard
     if inp.opts.include_guards {
-        writeln!(out, "#ifndef REGINALD_{}", c_macro(&inp.output_file.to_string_lossy()))?;
-        writeln!(out, "#define REGINALD_{}", c_macro(&inp.output_file.to_string_lossy()))?;
+        writeln!(out, "#ifndef REGINALD_{}", c_macro(&output_file_name))?;
+        writeln!(out, "#define REGINALD_{}", c_macro(&output_file_name))?;
     }
 
     // Includes
@@ -311,8 +317,14 @@ fn generate_footer(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     // Include guard:
     writeln!(out)?;
 
+    let output_file_name = inp
+        .output_file
+        .file_name()
+        .ok_or(Error::GeneratorError("Failed to extract file name from output path!".to_string()))?
+        .to_string_lossy();
+
     if inp.opts.include_guards {
-        writeln!(out, "#endif /* REGINALD_{} */", c_macro(&inp.output_file.to_string_lossy()))?;
+        writeln!(out, "#endif /* REGINALD_{} */", c_macro(&output_file_name))?;
     }
 
     // Clang format:

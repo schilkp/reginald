@@ -77,8 +77,13 @@ fn generate_header(
         writeln!(out, "// clang-format off")?;
     }
 
+    let output_file_name = output_file
+        .file_name()
+        .ok_or(Error::GeneratorError("Failed to extract file name from output path!".to_string()))?
+        .to_string_lossy();
+
     writeln!(out, "/**")?;
-    writeln!(out, " * @file {}", output_file.to_string_lossy())?;
+    writeln!(out, " * @file {output_file_name}")?;
     writeln!(out, " * @brief {}", map.name)?;
     if let Some(input_file) = &map.from_file {
         writeln!(
@@ -103,8 +108,8 @@ fn generate_header(
         }
     }
     writeln!(out, " */")?;
-    writeln!(out, "#ifndef REGINALD_{}", c_macro(&output_file.to_string_lossy()))?;
-    writeln!(out, "#define REGINALD_{}", c_macro(&output_file.to_string_lossy()))?;
+    writeln!(out, "#ifndef REGINALD_{}", c_macro(&output_file_name))?;
+    writeln!(out, "#define REGINALD_{}", c_macro(&output_file_name))?;
     writeln!(out)?;
     writeln!(out, "#include <stdint.h>")?;
     for include in &opts.add_include {
@@ -318,7 +323,13 @@ fn generate_layout_defines(out: &mut dyn Write, map: &RegisterMap, layout: &Layo
 
 fn generate_footer(out: &mut dyn Write, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
     writeln!(out)?;
-    writeln!(out, "#endif /* REGINALD_{} */", c_macro(&output_file.to_string_lossy()))?;
+
+    let output_file_name = output_file
+        .file_name()
+        .ok_or(Error::GeneratorError("Failed to extract file name from output path!".to_string()))?
+        .to_string_lossy();
+
+    writeln!(out, "#endif /* REGINALD_{} */", c_macro(&output_file_name))?;
 
     if opts.clang_format_guard {
         writeln!(out, "// clang-format on")?;
