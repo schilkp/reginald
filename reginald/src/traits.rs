@@ -1,5 +1,5 @@
+use core::convert::Infallible;
 use core::fmt::{Debug, Display};
-use core::{convert::Infallible};
 
 // Struct to bytes converstion:
 pub trait ToBytes<const N: usize>: Sized {
