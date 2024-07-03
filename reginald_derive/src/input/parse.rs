@@ -12,6 +12,7 @@ use super::{check_for_bits_overlap, FixedBits, UInt};
 
 #[derive(Debug)]
 pub struct StructInfo {
+    #[allow(unused)]
     pub name: Ident,
     pub width_bytes_attr: Option<WithTokens<usize>>,
     pub fixed_bits_attr: FixedBits,
