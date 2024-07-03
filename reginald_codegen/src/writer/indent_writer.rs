@@ -1,4 +1,4 @@
-use std::{fmt::Write, usize};
+use std::fmt::Write;
 
 /// A wrapper around a `write`, that indents all lines to a set value.
 pub struct IndentWriter<'a> {
