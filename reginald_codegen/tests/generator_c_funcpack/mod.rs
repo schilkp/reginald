@@ -136,7 +136,7 @@ fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
 // ==== Tests ==================================================================
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_c99() {
     let d = tempdir().unwrap();
 
@@ -155,7 +155,7 @@ fn generator_c_funcpack_c99() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_c11() {
     let d = tempdir().unwrap();
 
@@ -173,7 +173,28 @@ fn generator_c_funcpack_c11() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_insta"), ignore)]
+fn generator_c_funcpack_c11_insta() {
+    let d = tempdir().unwrap();
+
+    run_reginald(
+        &d,
+        "out.h",
+        GeneratorOpts {
+            ..GeneratorOpts::default()
+        },
+    );
+
+    test_generated_code(&d, &["-std=c11"], &[]);
+
+    let file = fs::read_to_string(d.path().join("out.h")).unwrap();
+    insta::assert_snapshot!(file);
+
+    finish_test(d);
+}
+
+#[test]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_defer_to_le() {
     let d = tempdir().unwrap();
 
@@ -192,7 +213,7 @@ fn generator_c_funcpack_defer_to_le() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_defer_to_be() {
     let d = tempdir().unwrap();
 
@@ -211,7 +232,7 @@ fn generator_c_funcpack_defer_to_be() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_split_header_source() {
     let d = tempdir().unwrap();
 
@@ -243,7 +264,7 @@ fn generator_c_funcpack_split_header_source() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_split_headers() {
     let d = tempdir().unwrap();
 

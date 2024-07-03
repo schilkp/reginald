@@ -85,7 +85,7 @@ fn finish_test(d: TempDir) {
 // ==== Tests ==================================================================
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_macromap_c99() {
     let d = tempdir().unwrap();
 
@@ -102,6 +102,29 @@ fn generator_c_macromap_c99() {
     .unwrap();
 
     test_generated_code(&d, &["-std=c99"], &[]);
+
+    finish_test(d);
+}
+
+#[test]
+#[cfg_attr(not(feature = "test_insta"), ignore)]
+fn generator_c_macromap_c99_insta() {
+    let d = tempdir().unwrap();
+
+    gen::cmd(gen::Command {
+        input: TEST_MAP_FILE.to_owned(),
+        output: d.path().to_owned().join(PathBuf::from("out.h")),
+        overwrite_map_name: None,
+        verify: false,
+        generator: Generator::CMacromap(GeneratorOpts {
+            clang_format_guard: true,
+            add_include: vec![],
+        }),
+    })
+    .unwrap();
+
+    let file = fs::read_to_string(d.path().join("out.h")).unwrap();
+    insta::assert_snapshot!(file);
 
     finish_test(d);
 }

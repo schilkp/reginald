@@ -27,7 +27,7 @@ fn run_reginald(output_name: &str, opts: GeneratorOpts) {
 // ==== Tests ==================================================================
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_rs_structs() {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let test_proj = manifest_dir.join(PathBuf::from("tests/generator_rs_structs/test_proj/"));
