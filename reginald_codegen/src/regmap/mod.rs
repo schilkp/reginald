@@ -11,6 +11,7 @@ use std::{
 };
 
 use reginald_utils::numbers_as_ranges;
+use serde::{Deserialize, Serialize};
 
 use crate::bits::{
     bitmask_from_range, bitmask_from_width, bitwidth_to_width_bytes, mask_to_bit_ranges, mask_to_bit_ranges_str,
@@ -27,7 +28,7 @@ pub type TypeBitwidth = u32;
 pub const MAX_BITWIDTH: TypeBitwidth = 64;
 pub type TypeAdr = u64;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AccessMode {
     R,
     W,
@@ -35,7 +36,7 @@ pub enum AccessMode {
 
 pub type Access = Vec<AccessMode>;
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Docs {
     pub brief: Option<String>,
     pub doc: Option<String>,
@@ -43,14 +44,14 @@ pub struct Docs {
 
 // ==== Enums ==================================================================
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct EnumEntry {
     pub name: String,
     pub value: TypeValue,
     pub docs: Docs,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Enum {
     pub name: String,
     pub docs: Docs,
@@ -60,7 +61,7 @@ pub struct Enum {
 
 // ==== Layouts ================================================================
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum FieldType {
     #[default]
     UInt,
@@ -70,7 +71,7 @@ pub enum FieldType {
     Layout(Rc<Layout>),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct LayoutField {
     pub name: String,
     pub mask: TypeValue,
@@ -79,7 +80,7 @@ pub struct LayoutField {
     pub access: Option<Access>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Layout {
     pub name: String,
     pub docs: Docs,
@@ -91,14 +92,14 @@ pub struct Layout {
 
 // ==== Registers ==============================================================
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisterOrigin {
     pub block: String,
     pub instance: String,
     pub block_member: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Register {
     pub name: String,
     pub docs: Docs,
@@ -113,7 +114,7 @@ pub struct Register {
 
 // ==== Register Blocks ========================================================
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisterBlockInstance {
     pub name: String,
     pub adr: TypeAdr,
@@ -122,7 +123,7 @@ pub struct RegisterBlockInstance {
     pub registers: BTreeMap<String, Rc<Register>>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisterBlockMember {
     pub name: String,
     pub name_raw: String,
@@ -133,7 +134,7 @@ pub struct RegisterBlockMember {
     pub layout: Rc<Layout>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisterBlock {
     pub name: String,
     pub docs: Docs,
@@ -144,13 +145,13 @@ pub struct RegisterBlock {
 
 // ==== Register Map ===========================================================
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Defaults {
     pub layout_bitwidth: Option<TypeBitwidth>,
     pub field_access_mode: Option<Access>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisterMap {
     pub from_file: Option<PathBuf>,
     pub name: String,
@@ -558,11 +559,11 @@ impl Layout {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct FlattenedLayoutField<'a> {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FlattenedLayoutField  {
     pub name: Vec<String>,
     pub mask: TypeValue,
-    pub field: &'a LayoutField,
+    pub field: LayoutField,
 }
 
 impl Layout {
@@ -573,7 +574,7 @@ impl Layout {
             let field_define = FlattenedLayoutField {
                 name: vec![field.name.clone()],
                 mask: field.mask,
-                field,
+                field: field.clone(),
             };
 
             if let FieldType::Layout(sublayout) = &field.accepts {

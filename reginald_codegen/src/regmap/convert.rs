@@ -247,7 +247,7 @@ fn convert_shared_enums(
     let bt = bt.to_owned() + ".enums";
 
     for (shared_enum_name, shared_enum) in &inp.enums {
-        let bt = bt.clone() + "." + shared_enum_name;
+        let bt = bt.clone() + "." + shared_enum_name.as_str();
 
         validate_name(shared_enum_name, &bt, "")?;
         validate_name_unique(shared_enum_name, namespace, &bt)?;
@@ -270,7 +270,7 @@ fn convert_enum_entries(entries: &listing::EnumEntries, bt: &str) -> Result<BTre
     let mut result: BTreeMap<String, EnumEntry> = BTreeMap::new();
 
     for (entry_name, entry) in entries {
-        let bt = bt.to_owned() + "." + entry_name;
+        let bt = bt.to_owned() + "." + entry_name.as_str();
 
         validate_name(entry_name, &bt, "")?;
 
@@ -298,7 +298,7 @@ fn convert_shared_layouts(
     let bt = bt.to_owned() + ".layout";
 
     for (shared_layout_name, shared_layout) in &inp.layouts {
-        let bt = bt.clone() + "." + shared_layout_name;
+        let bt = bt.clone() + "." + shared_layout_name.as_str();
 
         validate_name(shared_layout_name, &bt, "")?;
         validate_name_unique(shared_layout_name, namespace, &bt)?;
@@ -331,7 +331,7 @@ fn convert_layout_fields(
     let bt = bt.to_owned() + ".layout";
 
     for (field_name, field) in fields {
-        let bt = bt.clone() + "." + field_name;
+        let bt = bt.clone() + "." + field_name.as_str();
 
         result.insert(field_name.clone(), convert_field(map, namespace, field_name, field, &bt)?);
     }
@@ -562,7 +562,7 @@ fn convert_register_block(
     let mut fixed_reset_vals: BTreeMap<String, TypeValue> = BTreeMap::new();
 
     for (member_name_raw, member) in &block.registers {
-        let bt = bt.to_owned() + ".registers." + member_name_raw;
+        let bt = bt.to_owned() + ".registers." + member_name_raw.as_str();
 
         let member_name = join_with_underscore(block_name, member_name_raw);
 
@@ -594,7 +594,7 @@ fn convert_register_block(
     let mut instances = BTreeMap::new();
 
     for (block_instance_name, block_instance) in &block.instances {
-        let bt = bt.to_owned() + ".instances." + block_instance_name;
+        let bt = bt.to_owned() + ".instances." + block_instance_name.as_str();
 
         let mut register_instances = BTreeMap::new();
 

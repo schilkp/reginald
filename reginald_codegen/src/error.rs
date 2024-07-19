@@ -16,6 +16,10 @@ pub enum Error {
     OutputError(#[from] std::fmt::Error),
     #[error("Generator error: {0}.")]
     GeneratorError(String),
+    #[error("Failed to load template: {0}.")]
+    TempalteError(#[from] handlebars::TemplateError),
+    #[error("Failed to render template: {0}.")]
+    TempalteRenderError(#[from] handlebars::RenderError),
     #[error("Validation Error: {0}")]
     VerificationError(String),
 }

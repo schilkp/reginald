@@ -159,7 +159,7 @@ fn validate_field_type(field: &LayoutField, bt: &str) -> Result<(), Error> {
                 let overshoot = (!unpositioned_mask(field.mask)) & entry.value;
                 if overshoot != 0 {
                     return Err(Error::ConversionError {
-                        bt: bt + "." + &entry.name,
+                        bt: bt + "." + entry.name.as_str(),
                         msg: format!(
                             "Enum value 0x{:x} for entry {} does not fit into field {} (unpositioned mask: 0x{:x})!",
                             entry.value, entry.name, field.name, overshoot
@@ -221,7 +221,7 @@ fn find_layout_loop(layout: &Layout, mut visited_layouts: HashSet<String>, bt: &
 
     for field in layout.fields.values() {
         if let FieldType::Layout(accepted_layout) = &field.accepts {
-            let bt = bt.to_owned() + " -> " + &field.name;
+            let bt = bt.to_owned() + " -> " + field.name.as_str();
             find_layout_loop(accepted_layout, visited_layouts.clone(), &bt)?;
         }
     }
@@ -233,7 +233,7 @@ pub fn validate_layout(layout: &Layout, bt: &str) -> Result<(), Error> {
     let mut occupied_mask: TypeValue = 0;
 
     for field in layout.fields.values() {
-        let bt = bt.to_owned() + ".fields." + &field.name;
+        let bt = bt.to_owned() + ".fields." + field.name.as_str();
 
         // Validate that field fits into layout:
         let overlap = field.mask & !bitmask_from_width(layout.bitwidth);

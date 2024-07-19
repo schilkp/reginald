@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn test_mask_to_bits() {
-        assert_eq!(mask_to_bits(0b0), vec![]);
+        assert_eq!(mask_to_bits(0b0), Vec::<TypeBitwidth>::new());
         assert_eq!(mask_to_bits(0b111), vec![0, 1, 2]);
         assert_eq!(mask_to_bits(0b1110), vec![1, 2, 3]);
         assert_eq!(mask_to_bits(0b1101110), vec![1, 2, 3, 5, 6]);

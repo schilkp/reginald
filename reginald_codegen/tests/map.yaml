@@ -1,5 +1,16 @@
 ---
 name: chip
+author: "Philipp Schilk"
+notice: |
+  +------------------+
+  | copyright notice |
+  +------------------+
+          \   ^__^
+           \  (oo)\_______
+              (__)\       )\/\
+                  ||----w |
+                  ||     ||
+
 defaults:
   layout_bitwidth: 8
 

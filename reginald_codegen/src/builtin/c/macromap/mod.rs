@@ -2,19 +2,28 @@ use std::{fmt::Write, path::Path};
 
 #[cfg(feature = "cli")]
 use clap::Parser;
-use reginald_utils::str_table;
 
-use crate::{
-    bits::lsb_pos,
+use handlebars::{
+    handlebars_helper, no_escape, Context, Handlebars, Helper, HelperDef, HelperResult, JsonRender, Output,
+    RenderContext, RenderError, Renderable,
+};
+use reginald_utils::str_table;
+use serde::{Deserialize, Serialize};
+use serde_json::{self, Value};
+
+use crate::{ bits::lsb_pos,
+    builtin::c::c_section_header_comment,
     error::Error,
-    regmap::{FieldType, Layout, Register, RegisterBlock, RegisterBlockMember, RegisterMap},
+    regmap::{
+        EnumEntry, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterBlockMember, RegisterMap, TypeValue,
+    },
 };
 
 use super::{c_generate_section_header_comment, c_layout_overview_comment, c_macro};
 
 // ====== Generator Opts =======================================================
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 #[cfg_attr(feature = "cli", derive(Parser))]
 pub struct GeneratorOpts {
     /// Surround header with a clang-format off guard
@@ -44,26 +53,206 @@ impl Default for GeneratorOpts {
 
 // ====== Generator ============================================================
 
-pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
-    generate_header(out, map, output_file, opts)?;
+#[derive(Serialize, Debug)]
+struct TemplateInput<'a> {
+    map: &'a RegisterMap,
+    output: String,
+    output_file: String,
+    opts: &'a GeneratorOpts,
+}
 
-    for register in map.individual_registers() {
-        generate_register_header(out, register)?;
-        generate_register_defines(out, map, register)?;
-        generate_layout_defines(out, map, &register.layout)?;
+// Define a struct for your block helper
+struct PrefixLinesWithHelper;
+
+// Implement the HelperDef trait for your block helper
+impl HelperDef for PrefixLinesWithHelper {
+    fn call<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'rc>,
+        r: &'reg Handlebars,
+        ctx: &'rc Context,
+        rc: &mut RenderContext<'reg, 'rc>,
+        out: &mut dyn Output,
+    ) -> HelperResult {
+        // Get the parameter from the helper (if any)
+        let prefix = h.param(0).map(|v| v.value().render()).unwrap_or_else(|| "".to_string());
+
+        // Render the block content
+        let block_content = h.template().unwrap().renders(r, ctx, rc).unwrap();
+
+        // You can process the block content here and output it as needed
+        for line in block_content.lines() {
+            out.write(&prefix)?;
+            out.write(line)?;
+            out.write("\n")?;
+        }
+
+        Ok(())
     }
+}
 
-    for block in map.register_blocks.values() {
-        generate_register_block_header(out, block)?;
-        generate_register_block_defines(out, map, block)?;
-        for member in block.members.values() {
-            generate_register_block_member_header(out, member)?;
-            generate_register_block_member_defines(out, map, block, member)?;
-            generate_layout_defines(out, map, &member.layout)?;
+// Define a struct for your block helper
+struct AlignLines;
+
+// Implement the HelperDef trait for your block helper
+impl HelperDef for AlignLines {
+    fn call<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'rc>,
+        r: &'reg Handlebars,
+        ctx: &'rc Context,
+        rc: &mut RenderContext<'reg, 'rc>,
+        out: &mut dyn Output,
+    ) -> HelperResult {
+        let seperator = h
+            .param(0)
+            .map(|v| v.value().render())
+            .unwrap_or_else(|| " ".to_string());
+        let max_cols = h.param(1).map(|v| v.value().render());
+        let max_cols: Option<usize> = match max_cols {
+            None => None,
+            Some(n) => Some(usize::from_str_radix(&n, 10).map_err(|_x| todo!()).unwrap()),
+        };
+        let swallow_sep = h
+            .param(2)
+            .map(|v| v.value().render().to_lowercase())
+            .unwrap_or(String::from("true"));
+        let swallow_sep: bool = match swallow_sep.as_str() {
+            "true" => true,
+            "false" => false,
+            _ => todo!(),
+        };
+
+        let emit_sep = if swallow_sep { String::new() } else { seperator.clone() };
+
+        let mut rows: Vec<Vec<String>> = vec![];
+        let block_content = h.template().unwrap().renders(r, ctx, rc).unwrap();
+        for line in block_content.lines() {
+            if let Some(max_cols) = max_cols {
+                rows.push(line.splitn(max_cols, &seperator).map(|x| x.to_string()).collect())
+            } else {
+                rows.push(line.split(&seperator).map(|x| x.to_string()).collect())
+            }
+        }
+
+        out.write(&str_table(&rows, "", &emit_sep))?;
+
+        Ok(())
+    }
+}
+
+pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
+    // generate_header(out, map, output_file, opts)?;
+    //
+    // for register in map.individual_registers() {
+    //     generate_register_header(out, register)?;
+    //     generate_register_defines(out, map, register)?;
+    //     generate_layout_defines(out, map, &register.layout)?;
+    // }
+    //
+    // for block in map.register_blocks.values() {
+    //     generate_register_block_header(out, block)?;
+    //     generate_register_block_defines(out, map, block)?;
+    //     for member in block.members.values() {
+    //         generate_register_block_member_header(out, member)?;
+    //         generate_register_block_member_defines(out, map, block, member)?;
+    //         generate_layout_defines(out, map, &member.layout)?;
+    //     }
+    // }
+    //
+    // generate_footer(out, output_file, opts)?;
+    // Ok(())
+
+    // FIXME: Move to io::Write
+    let mut template = handlebars::Handlebars::new();
+    template.register_template_string("macromap", include_str!("./macromap_template.h"))?;
+    template.register_escape_fn(no_escape);
+
+    template.register_helper("prefix_lines_with", Box::new(PrefixLinesWithHelper));
+
+    template.register_helper("align_lines", Box::new(AlignLines));
+
+    handlebars_helper!(field_enum_entries: |field: LayoutField| {
+        if let FieldType::Enum(e) = field.accepts {
+            let entries: Vec<EnumEntry> = e.entries.values().map(|x| x.clone()).collect();
+            serde_json::to_value(entries).unwrap()
+        } else {
+            Value::Array(vec![])
+        }
+    });
+    template.register_helper("field_enum_entries", Box::new(field_enum_entries));
+
+    handlebars_helper!(is_null: |name: Value| name.is_null());
+    template.register_helper("is_null", Box::new(is_null));
+
+    handlebars_helper!(c_section_header_comment_helper: |name: String| c_section_header_comment(&name));
+    template.register_helper("c_section_header_comment", Box::new(c_section_header_comment_helper));
+
+    handlebars_helper!(c_macro_helper: |name: String| c_macro(&name));
+    template.register_helper("c_macro", Box::new(c_macro_helper));
+
+    handlebars_helper!(mask_lsb_pos: |mask: TypeValue| lsb_pos(mask) );
+    template.register_helper("mask_lsb_pos", Box::new(mask_lsb_pos));
+
+    handlebars_helper!(concat: |*args| args.iter().map(|a| a.render()).collect::<Vec<String>>().join("")
+    );
+    template.register_helper("concat", Box::new(concat));
+
+    handlebars_helper!(join: |pieces: Vec<String>, sep: String|  {
+        pieces.join(sep.as_str())
+    }
+    );
+    template.register_helper("join", Box::new(join));
+
+    handlebars_helper!(layout_contains_fixed_bits: |layout: Layout|
+        layout.contains_fixed_bits()
+    );
+    template.register_helper("layout_contains_fixed_bits", Box::new(layout_contains_fixed_bits));
+
+    handlebars_helper!(layout_fixed_bits_val: |layout: Layout|
+        layout.fixed_bits_val()
+    );
+    template.register_helper("layout_fixed_bits_val", Box::new(layout_fixed_bits_val));
+
+    handlebars_helper!(layout_fixed_bits_mask: |layout: Layout|
+        layout.fixed_bits_mask()
+    );
+    template.register_helper("layout_fixed_bits_mask", Box::new(layout_fixed_bits_mask));
+
+    handlebars_helper!(layout_nested_fields_with_content: |layout: Layout| {
+        let a = layout.nested_fields_with_content();
+        serde_json::to_value(a).unwrap()
+    }
+    );
+    template.register_helper("layout_nested_fields_with_content", Box::new(layout_nested_fields_with_content));
+
+    handlebars_helper!(hex: |val: u64, {digits:usize=1}| {
+        let s = format!("{val:X}");
+        if s.len() < digits {
+            let mut result = s.clone();
+            for _ in 0..=(digits - s.len()) {
+                result.insert(0, '0');
+            }
+            result
+        } else {
+            s
         }
     }
+    );
+    template.register_helper("hex", Box::new(hex));
 
-    generate_footer(out, output_file, opts)?;
+    let output_file_name = output_file
+        .file_name()
+        .ok_or(Error::GeneratorError("Failed to extract file name from output path!".to_string()))?
+        .to_string_lossy();
+    let inputs = TemplateInput {
+        map,
+        output: output_file.to_string_lossy().into(),
+        output_file: output_file_name.into(),
+        opts,
+    };
+    let s = template.render("macromap", &inputs)?;
+    out.write_str(&s)?;
     Ok(())
 }
 

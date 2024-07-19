@@ -21,13 +21,15 @@ reginald_utils = { path = "../reginald_utils", features = ["clap"] }
 regex          = "1.10.3"
 lazy_static    = "1.4.0"
 thiserror      = "1.0.57"
-serde          = { version = "1.0.197", features = ["derive"] }
+serde          = { version = "1.0.197", features = ["derive", "rc"] }
 serde_yaml     = "0.9.32"
 deser-hjson    = "2.2.4"
 clap           = { version = "4.5.1",   features = ["derive"], optional = true }
 clap_complete  = { version = "4.5.1",   features = [],         optional = true }
 similar        = { version = "2.4.0",   features = ["inline"], optional = true }
 console        = { version = "0.15.8",  features = [],         optional = true }
+handlebars = { version = "5.1.2", features = ["rhai"] }
+serde_json = "1.0.120"
 
 [dev-dependencies]
 tempfile          = "3.10.1"
