@@ -58,13 +58,15 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
     rows.push(vec![
         "**Address**".to_string(),
         "**Register**".to_string(),
+        "**Reset Value**".to_string(),
         "**Brief**".to_string(),
     ]);
     for reg in registers {
         let adr = format!("0x{:X}", reg.adr);
         let name = reg.name.clone();
+        let reset = reg.reset_val.map_or("-".to_string(), |r| format!("0x{:02X}", r));
         let brief = reg.docs.brief.clone().unwrap_or("-".to_string());
-        rows.push(vec![adr, name, brief]);
+        rows.push(vec![adr, name, reset, brief]);
     }
     writeln!(out)?;
     md_table(out, &rows, "")?;
