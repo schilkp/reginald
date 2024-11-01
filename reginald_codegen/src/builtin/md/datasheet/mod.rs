@@ -62,7 +62,7 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
         "**Brief**".to_string(),
     ]);
     for reg in registers {
-        let adr = format!("0x{:X}", reg.adr);
+        let adr = format!("0x{:02X}", reg.adr);
         let name = reg.name.clone();
         let reset = reg.reset_val.map_or("-".to_string(), |r| format!("0x{:02X}", r));
         let brief = reg.docs.brief.clone().unwrap_or("-".to_string());
@@ -88,11 +88,11 @@ fn generate_register_infos(
     writeln!(out, "#### Info:")?;
     writeln!(out)?;
     if let Some(value) = value {
-        writeln!(out, "  - **Current Value: 0x{value:X}**")?;
+        writeln!(out, "  - **Current Value: 0x{value:02X}**")?;
     }
-    writeln!(out, "  - Address: 0x{:X}", register.adr)?;
+    writeln!(out, "  - Address: 0x{:02X}", register.adr)?;
     if let Some(reset_val) = register.reset_val {
-        writeln!(out, "  - Reset: 0x{reset_val:X}")?;
+        writeln!(out, "  - Reset: 0x{reset_val:02X}")?;
     }
 
     writeln!(out)?;
@@ -110,8 +110,8 @@ fn generate_register_infos(
         let member = &block.members[&from_block.block_member];
         let instance = &block.instances[&from_block.instance];
 
-        writeln!(out, "    - Offset from block start: 0x{:X}", member.offset)?;
-        writeln!(out, "    - Instance {} start address: 0x{:X}", instance.name, instance.adr)?;
+        writeln!(out, "    - Offset from block start: 0x{:02X}", member.offset)?;
+        writeln!(out, "    - Instance {} start address: 0x{:02X}", instance.name, instance.adr)?;
     }
 
     let sublayouts: Vec<FlattenedLayoutField> = register
@@ -138,7 +138,7 @@ fn generate_register_infos(
             writeln!(out)?;
             writeln!(out, " - [{bits}]: {name}")?;
             if let Some(value) = sublayout_value {
-                writeln!(out, "    - **Current Value: 0x{value:X}**")?;
+                writeln!(out, "    - **Current Value: 0x{value:02X}**")?;
             }
             writeln!(out)?;
             generate_layout_table(out, subfield_layout, sublayout_value)?;
@@ -156,7 +156,7 @@ fn generate_register_infos(
         let indent = field.name.len();
         let indent = String::from_iter(std::iter::repeat("  ").take(indent));
 
-        let value_string = value_field.map(|x| format!(": 0x{x:X}")).unwrap_or_default();
+        let value_string = value_field.map(|x| format!(": 0x{x:02X}")).unwrap_or_default();
         let bits = mask_to_bit_ranges_str(field.mask);
 
         let name = field.name.join(".");
@@ -176,7 +176,7 @@ fn generate_register_infos(
                 writeln!(out, "{indent} - Type: bool")?;
             }
             FieldType::Fixed(fix) => {
-                writeln!(out, "{indent} - Type: fixed 0x{fix:X}")?;
+                writeln!(out, "{indent} - Type: fixed 0x{fix:02X}")?;
             }
             FieldType::Layout(l) => {
                 writeln!(out, "{indent} - Type: struct {}", l.name)?;
@@ -186,10 +186,10 @@ fn generate_register_infos(
                 for entry in e.entries.values() {
                     match value_field {
                         Some(val_field) if val_field == entry.value => {
-                            writeln!(out, "{indent}   - **0x{:X}: {} (SELECTED)**", entry.value, entry.name)?;
+                            writeln!(out, "{indent}   - **0x{:02X}: {} (SELECTED)**", entry.value, entry.name)?;
                         }
                         _ => {
-                            writeln!(out, "{indent}   - 0x{:X}: {}", entry.value, entry.name)?;
+                            writeln!(out, "{indent}   - 0x{:02X}: {}", entry.value, entry.name)?;
                         }
                     }
                     write!(out, "{}", entry.docs.as_twoline("        - "))?;
