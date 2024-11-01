@@ -21,7 +21,11 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error> {
 
     writeln!(out)?;
     writeln!(out, "## Register Details")?;
-    for register in map.registers.values() {
+
+    let mut registers = map.registers.values().collect::<Vec<_>>();
+    registers.sort_by_key(|r| r.adr);
+
+    for register in registers {
         generate_register_infos(out, map, register, None)?;
     }
 
@@ -47,13 +51,16 @@ fn generate_overview(out: &mut dyn Write, map: &RegisterMap) -> Result<(), Error
         writeln!(out, "```")?;
     }
 
+    let mut registers = map.registers.values().collect::<Vec<_>>();
+    registers.sort_by_key(|r| r.adr);
+
     let mut rows = vec![];
     rows.push(vec![
         "**Address**".to_string(),
         "**Register**".to_string(),
         "**Brief**".to_string(),
     ]);
-    for reg in map.registers.values() {
+    for reg in registers {
         let adr = format!("0x{:X}", reg.adr);
         let name = reg.name.clone();
         let brief = reg.docs.brief.clone().unwrap_or("-".to_string());
