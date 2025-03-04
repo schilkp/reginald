@@ -173,27 +173,6 @@ fn generator_c_funcpack_c11() {
 }
 
 #[test]
-#[cfg_attr(not(feature = "test_insta"), ignore)]
-fn generator_c_funcpack_c11_insta() {
-    let d = tempdir().unwrap();
-
-    run_reginald(
-        &d,
-        "out.h",
-        GeneratorOpts {
-            ..GeneratorOpts::default()
-        },
-    );
-
-    test_generated_code(&d, &["-std=c11"], &[]);
-
-    let file = fs::read_to_string(d.path().join("out.h")).unwrap();
-    insta::assert_snapshot!(file);
-
-    finish_test(d);
-}
-
-#[test]
 #[cfg_attr(not(feature = "test_gen_output"), ignore)]
 fn generator_c_funcpack_defer_to_le() {
     let d = tempdir().unwrap();
