@@ -78,31 +78,10 @@ fn convert_defaults(defaults: &listing::Defaults, bt: &str) -> Result<Defaults, 
 
 fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, Error> {
     let bt = bt.to_owned() + ".bits";
-
-    let mut result: TypeValue = 0;
-
-    for piece in bits {
-        let mask = match piece {
-            listing::BitRange::Bit(bitpos) => convert_bitpos(*bitpos, &bt)?,
-            listing::BitRange::Range(range) => convert_bitrange(range, &bt)?,
-        };
-
-        if mask & result != 0 {
-            return Err(Error::ConversionError {
-                bt,
-                msg: format!("Bitranges in list overlap (mask: 0x{:x})", mask & result,),
-            });
-        };
-
-        result |= mask;
-    }
-    if result == 0 {
-        return Err(Error::ConversionError {
-            bt,
-            msg: "Bits cannot be zero.".into(),
-        });
+    let result = match bits {
+        listing::Bits::Bit(bitpos) => convert_bitpos(*bitpos, &bt)?,
+        listing::Bits::Range(range) => convert_bitrange(range, &bt)?,
     };
-
     Ok(result)
 }
 
@@ -775,7 +754,7 @@ mod tests {
                 adr: 0x1000
                 layout: !Layout
                     A:
-                        bits: [0]
+                        bits: 0
                         accepts: !SharedEnum DoesNotExist
         ";
         let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
@@ -790,7 +769,7 @@ mod tests {
                 adr: 0x1000
                 layout: !Layout
                     A:
-                        bits: [0]
+                        bits: 0
                         accepts: !SharedLayout DoesNotExist
         ";
         let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
@@ -807,13 +786,13 @@ mod tests {
                 bitwidth: 8
                 layout:
                     A:
-                        bits: [\"7-0\"]
+                        bits: \"7-0\"
                         accepts: !Layout
                             B:
-                                bits: [\"6-0\"]
+                                bits: \"6-0\"
                                 accepts: !Layout
                                     C:
-                                        bits: [\"6-0\"]
+                                        bits: \"6-0\"
         ";
         let map = RegisterMap::from_yaml_str(yaml).unwrap();
         let layout_a = map.layouts.get("A").unwrap();
@@ -835,9 +814,9 @@ mod tests {
                 bitwidth: 8
                 layout:
                     FIELD_A:
-                        bits: [0]
+                        bits: 0
                     FIELD_B:
-                        bits: [1]
+                        bits: 1
         registers:
             A: !Register
                 adr: 0x01
@@ -862,16 +841,16 @@ mod tests {
                 bitwidth: 2
                 layout:
                     FIELD_A:
-                        bits: [0]
+                        bits: 0
                     FIELD_B:
-                        bits: [1]
+                        bits: 1
         registers:
             A: !Register
                 adr: 0x01
                 bitwidth: 8
                 layout: !Layout
                     PARENT_FIELD:
-                        bits: [0,1]
+                        bits: \"0-1\"
                         accepts: !SharedLayout My_CoOl_LayOut
         ";
         let map = RegisterMap::from_yaml_str(yaml).unwrap();
@@ -896,39 +875,18 @@ mod tests {
 
     #[test]
     fn test_convert_bits() {
-        assert_eq!(convert_bits(&vec![listing::BitRange::Bit(0)], "").unwrap(), 0b1 << 0,);
-        assert_eq!(convert_bits(&vec![listing::BitRange::Bit(8)], "").unwrap(), 0b1 << 8,);
-        assert_eq!(convert_bits(&vec![listing::BitRange::Bit(0), listing::BitRange::Bit(1)], "").unwrap(), 0b11,);
-        assert_eq!(
-            convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(0)], "").unwrap(),
-            0b11001,
-        );
-    }
-
-    #[test]
-    fn test_catch_empty_bits() {
-        convert_bits(&vec![], "").unwrap_err();
-    }
-
-    #[test]
-    fn test_catch_overlapping_bits() {
-        convert_bits(&vec![listing::BitRange::Range("3-4".into()), listing::BitRange::Bit(3)], "").unwrap_err();
-
-        convert_bits(&vec![listing::BitRange::Range("3".into()), listing::BitRange::Bit(3)], "").unwrap_err();
+        assert_eq!(convert_bits(&listing::Bits::Bit(0), "").unwrap(), 0b1 << 0,);
+        assert_eq!(convert_bits(&listing::Bits::Bit(8), "").unwrap(), 0b1 << 8,);
+        assert_eq!(convert_bits(&listing::Bits::Range("3-4".into()), "").unwrap(), 0b11000);
     }
 
     #[test]
     fn test_catch_malformed_range() {
-        convert_bits(&vec![listing::BitRange::Range("3- 4".into())], "").unwrap_err();
-        convert_bits(&vec![listing::BitRange::Range("4".into())], "").unwrap_err();
-        convert_bits(&vec![listing::BitRange::Range("a-b".into())], "").unwrap_err();
-        convert_bits(
-            &vec![listing::BitRange::Range(
-                "0-999999999999999999999999999999999999999999999999999999".into(),
-            )],
-            "",
-        )
-        .unwrap_err();
+        convert_bits(&listing::Bits::Range("3- 4".into()), "").unwrap_err();
+        convert_bits(&listing::Bits::Range("4".into()), "").unwrap_err();
+        convert_bits(&listing::Bits::Range("a-b".into()), "").unwrap_err();
+        convert_bits(&listing::Bits::Range("0-999999999999999999999999999999999999999999999999999999".into()), "")
+            .unwrap_err();
     }
 
     #[test]

@@ -41,42 +41,42 @@ registers:
     doc: Global Interrupt flag register 0.
     layout: !Layout
       DOD0_R:
-        bits: [7]
+        bits: 7
         access: [R]
         doc: LDO Dropout Detector Rising Interrupt
         accepts: !Bool
       DOD1_R:
-        bits: [6]
+        bits: 6
         access: [R]
         doc: LDO Dropout Detector Rising Interrupt
         accepts: !Bool
       TJAL2_R:
-        bits: [5]
+        bits: 5
         access: [R]
         doc: Thermal Alarm 2 Rising Interrupt
         accepts: !Bool
       TJAL1_R:
-        bits: [4]
+        bits: 4
         access: [R]
         doc: Thermal Alarm 1 Rising Interrupt
         accepts: !Bool
       nEN_R:
-        bits: [3]
+        bits: 3
         access: [R]
         doc: nEN Rising Interrupt
         accepts: !Bool
       nEN_F:
-        bits: [2]
+        bits: 2
         access: [R]
         doc: nEN Falling Interrupt
         accepts: !Bool
       GPI0_R:
-        bits: [1]
+        bits: 1
         access: [R]
         doc: GPI0 Rising Interrupt
         accepts: !Bool
       GPI0_F:
-        bits: [0]
+        bits: 0
         access: [R]
         doc: GPI0 Falling Interrupt
         accepts: !Bool
@@ -87,39 +87,39 @@ registers:
     doc: Global Interrupt flag register 1.
     layout: !Layout
       RESERVED:
-        bits: [7]
+        bits: 7
         accepts: !Fixed 0
       LDO1_F:
-        bits: [6]
+        bits: 6
         access: [R]
         doc: LDO1 Fault Interrupt
         accepts: !Bool
       LDO0_F:
-        bits: [5]
+        bits: 5
         doc: LDO0 Fault Interrupt
         access: [R]
         accepts: !Bool
       SBB_TO:
-        bits: [4]
+        bits: 4
         access: [R]
         doc: SBB Timeout
       GPI2_R:
-        bits: [3]
+        bits: 3
         access: [R]
         doc: GPI Rising Interrupt
         accepts: !Bool
       GPI2_F:
-        bits: [2]
+        bits: 2
         access: [R]
         doc: GPI Falling Interrupt
         accepts: !Bool
       GPI1_R:
-        bits: [1]
+        bits: 1
         access: [R]
         doc: GPI Rising Interrupt
         accepts: !Bool
       GPI1_F:
-        bits: [0]
+        bits: 0
         access: [R]
         doc: GPI Falling Interrupt
         accepts: !Bool
@@ -130,41 +130,41 @@ registers:
     doc: Fault Status Register
     layout: !Layout
       WDT_RST:
-        bits: [7]
+        bits: 7
         access: [R]
         doc: |
           Watchdog Timer Reset Flag
 
           This bit sets when the watchdog timer expires and causes a power-reset (WDT_MODE = 1).
       WDT_OFF:
-        bits: [6]
+        bits: 6
         access: [R]
         doc: |
           Watchdog Timer OFF Flag
 
           This bit sets when the watchdog timer expires and causes a power-off (WDT_MODE = 0).
       SFT_CRST_F:
-        bits: [5]
+        bits: 5
         access: [R]
         doc: Software Cold Reset Flag
       SFT_OFF_F:
-        bits: [4]
+        bits: 4
         access: [R]
         doc: Software OFF Flag
       MRST:
-        bits: [3]
+        bits: 3
         access: [R]
         doc: Manual Reset Timer
       SYSUVLO:
-        bits: [2]
+        bits: 2
         access: [R]
         doc: SYS Domain Undervoltage Lockout
       SYSOVLO:
-        bits: [1]
+        bits: 1
         access: [R]
         doc: SYS Domain Overvoltage Lockout
       TOVLD:
-        bits: [0]
+        bits: 0
         access: [R]
         doc: Thermal Overload
 
@@ -174,35 +174,35 @@ registers:
     doc: Global Status
     layout: !Layout
       DIDM:
-        bits: [7]
+        bits: 7
         access: [R]
         doc: Device Identification Bits for Metal Options (0 = MAX77654 1 = Reserved)
       BOK:
-        bits: [6]
+        bits: 6
         access: [R]
         doc: Main Bias OK
       DOD0_S:
-        bits: [5]
+        bits: 5
         access: [R]
         doc: LDO0 in dropout
       DOD1_S:
-        bits: [4]
+        bits: 4
         access: [R]
         doc: LDO1 in dropout
       TJAL2_S:
-        bits: [3]
+        bits: 3
         access: [R]
         doc: Thermal Alarm 2 active
       TJAL1_S:
-        bits: [2]
+        bits: 2
         access: [R]
         doc: Thermal Alarm 1 active
       STAT_EN:
-        bits: [1]
+        bits: 1
         access: [R]
         doc: Debounced Status for the nEN Input
       STAT_IRQ:
-        bits: [0]
+        bits: 0
         access: [R]
         doc: nIRQ active
 
@@ -212,40 +212,40 @@ registers:
     doc: Interrupt Masking 1
     layout: !Layout
       RESERVED:
-        bits: [7]
+        bits: 7
         accepts: !Fixed 0
       LDO1_M:
-        bits: [6]
+        bits: 6
         access: [R, W]
         doc: LDO1 Fault Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       LDO0_M:
-        bits: [5]
+        bits: 5
         access: [R, W]
         doc: LDO0 Fault Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       SBB_TO_M:
-        bits: [4]
+        bits: 4
         access: [R, W]
         doc: SBB Timeout Mask/Disabled
         accepts: !SharedEnum INT_MASK
       GPI2_RM:
-        bits: [3]
+        bits: 3
         access: [R, W]
         doc: GPI Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       GPI2_FM:
-        bits: [2]
+        bits: 2
         access: [R, W]
         doc: GPI Falling Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       GPI1_RM:
-        bits: [1]
+        bits: 1
         access: [R, W]
         doc: GPI Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       GPI1_FM:
-        bits: [0]
+        bits: 0
         access: [R, W]
         doc: GPI Falling Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
@@ -256,42 +256,42 @@ registers:
     doc: Interrupt Masking 0
     layout: !Layout
       DOD0_RM:
-        bits: [7]
+        bits: 7
         access: [R, W]
         doc: LDO Dropout Detector Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       DOD1_RM:
-        bits: [6]
+        bits: 6
         access: [R, W]
         doc: LDO Dropout Detector Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       TJAL2_RM:
-        bits: [5]
+        bits: 5
         access: [R, W]
         doc: Thermal Alarm 2 Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       TJAL1_RM:
-        bits: [4]
+        bits: 4
         access: [R, W]
         doc: Thermal Alarm 1 Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       nEN_RM:
-        bits: [3]
+        bits: 3
         access: [R, W]
         doc: nEN Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       nEN_FM:
-        bits: [2]
+        bits: 2
         access: [R, W]
         doc: nEN Falling Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       GPI0_RM:
-        bits: [1]
+        bits: 1
         access: [R, W]
         doc: GPI Rising Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
       GPI0_FM:
-        bits: [0]
+        bits: 0
         access: [R, W]
         doc: GPI Falling Interrupt Mask/Disabled
         accepts: !SharedEnum INT_MASK
@@ -302,7 +302,7 @@ registers:
     doc: Global Configuration
     layout: !Layout
       PU_DIS:
-        bits: [7]
+        bits: 7
         doc: nEN Internal Pullup Resistor
         access: [R, W]
         accepts: !Enum
@@ -313,7 +313,7 @@ registers:
             val: 1
             doc: "10MOhm"
       T_MRST:
-        bits: [6]
+        bits: 6
         doc: Sets the Manual Reset Time (tMRST)
         access: [R, W]
         accepts: !Enum
@@ -324,16 +324,16 @@ registers:
             val: 1
             doc: 16 seconds
       SBIA_LPM:
-        bits: [5]
+        bits: 5
         access: [R, W]
         doc: Main Bias Low-Power Mode Software Request
       SBIA_EN:
-        bits: [4]
+        bits: 4
         access: [R, W]
         doc: Main Bias Force Enable Software Request
         accepts: !Bool
       nEN_MODE:
-        bits: [3]
+        bits: 3
         access: [R, W]
         doc: nEN Input (ON-KEY) Default Configuration
         accepts: !Enum
@@ -344,7 +344,7 @@ registers:
             val: 1
             doc: "Slide-switch"
       DBEN_nEN:
-        bits: [2]
+        bits: 2
         access: [R, W]
         doc: Debounce Timer Enable for the nEN Pin
         accepts: !Enum
@@ -355,7 +355,7 @@ registers:
             val: 1
             doc: 30 milliseconds
       SFT_CTRL:
-        bits: [1, 0]
+        bits: "1-0"
         access: [R, W]
         doc: |
           Software Reset Function
@@ -403,24 +403,24 @@ registers:
         doc: GPIO Configuration
         layout: !Layout
           RESERVED:
-            bits: [7, 6]
+            bits: "7-6"
             accepts: !Fixed 0
           ALT:
-            bits: [5]
+            bits: 5
             access: [R, W]
             doc: Alternate Mode Enable for GPIO0
             accepts: !Bool
           DBEN_GPI:
-            bits: [4]
+            bits: 4
             access: [R, W]
             doc: General Purpose Input Debounce Timer enable (30ms)
             accepts: !Bool
           DOUT:
-            bits: [3]
+            bits: 3
             access: [R, W]
             doc: General Purpose Output Data Output
           DRV:
-            bits: [2]
+            bits: 2
             access: [R, W]
             doc: General Purpose Output Driver Type
             accepts: !Enum
@@ -431,11 +431,11 @@ registers:
                 val: 1
                 doc: "Push-Pull"
           DI:
-            bits: [1]
+            bits: 1
             access: [R]
             doc: GPIO Digital Input val.
           DIR:
-            bits: [0]
+            bits: 0
             access: [R, W]
             doc: GPIO Direction
             accepts: !Enum
@@ -452,10 +452,10 @@ registers:
     doc: Chip Identification Register
     layout: !Layout
       CID_MSB:
-        bits: [7]
+        bits: 7
         doc: Bit 4 of the chip identification code.
       CID_LSB:
-        bits: [0-3]
+        bits: 0-3
         doc: Bits 0 to 3 of the chip identification code.
 
   CNFG_WDT: !Register
@@ -464,10 +464,10 @@ registers:
     doc: Watchdog timer configurtion.
     layout: !Layout
       RESERVED:
-        bits: [7, 6]
+        bits: "7-6"
         accepts: !Fixed 0
       WDT_PER:
-        bits: [5, 4]
+        bits: "5-4"
         doc: Watchdog Timer Period. Sets tWD. Watchdog timer is reset to the programmed val as soon as this bitfield is changed.
         accepts: !Enum
           WDT_16s:
@@ -483,7 +483,7 @@ registers:
             val: 0x3
             doc: 128 seconds
       WDT_MODE:
-        bits: [3]
+        bits: 3
         doc: Watchdog Timer Expired Action. Determines what the IC does after the watchdog timer expires.
         accepts: !Enum
           PWR_OFF:
@@ -493,14 +493,14 @@ registers:
             val: 0x1
             doc: Expiration causes power-reset.
       WDT_CLR:
-        bits: [2]
+        bits: 2
         doc: Watchdog Timer Clear Control. Set this bit to feed (reset) the WDT.
       WDT_EN:
-        bits: [1]
+        bits: 1
         doc: Watchdog Timer Enable. Write protected.
         accepts: !Bool
       WDT_LOCK:
-        bits: [0]
+        bits: 0
         doc: Factory-Set Safety Bit for the Watchdog Timer. Prevent WDT from being disabled via WDT_EN.
         accepts: !Bool
 
@@ -510,40 +510,40 @@ registers:
     doc: Charger Interrupt flag register
     layout: !Layout
       RESERVED:
-        bits: [7]
+        bits: 7
         accepts: !Fixed 0
       SYS_CNFG_I:
-        bits: [6]
+        bits: 6
         doc: |
           System Voltage Configuration Error Interrupt
 
           Triggers if VSYS-REG <= VFAST- CHG + 200mV
       SYS_CTRL_I:
-        bits: [5]
+        bits: 5
         doc: |
           Minimum System Voltage Regulation-Loop Related Interrupt
 
           This interrupt signals a change in the status bit VSYS_MIN_STAT.
       CHGIN_CTRL_I:
-        bits: [4]
+        bits: 4
         doc: |
           CHGIN Control-Loop Related Interrupt.
 
           This bit asserts when the input reaches current limit (ICHGIN-LIM) or VCHGIN falls below VCHGIN_MIN.
       TJ_REG_I:
-        bits: [3]
+        bits: 3
         doc: |
           Die Junction Temperature Regulation Interrupt.
 
           This bit asserts when the die temperature (TJ) exceeds TJ-REG.
       CHGIN_I:
-        bits: [2]
+        bits: 2
         doc: CHGIN Related Interrupt (CHGIN_DTLS has changed).
       CHG_I:
-        bits: [1]
+        bits: 1
         doc: Charger Related Interrupt (CHG_DTLS has changed).
       THM_I:
-        bits: [0]
+        bits: 0
         doc: Thermistor Related Interrupt (THM_DTLS has changed).
 
   STAT_CHG_A: !Register
@@ -552,22 +552,22 @@ registers:
     doc: Charger status register A.
     layout: !Layout
       RESERVED:
-        bits: [7]
+        bits: 7
         accepts: !Fixed 0
       VCHGIN_MIN_STAT:
-        bits: [6]
+        bits: 6
         doc: Minimum Input Voltage Regulation Loop engaged.
       ICHGIN_LIM_STAT:
-        bits: [5]
+        bits: 5
         doc: Input Current Limit Loop engaged.
       VSYS_MIN_STAT:
-        bits: [4]
+        bits: 4
         doc: Minimum System Voltage Regulation Loop engaged.
       TJ_REG_STAT:
-        bits: [3]
+        bits: 3
         doc: Maximum Junction Temperature Regulation engaged.
       THM_DTLS:
-        bits: [2, 1, 0]
+        bits: "2-0"
         doc: Battery Temperature Details. Valid only when CHGIN_DTLS = 0b11.
         access: [R]
         accepts: !Enum
@@ -602,7 +602,7 @@ registers:
     doc: Charger status register B.
     layout: !Layout
       CHG_DTLS:
-        bits: [4-7]
+        bits: 4-7
         doc: Charger Status details
         accepts: !Enum
           "OFF":
@@ -645,7 +645,7 @@ registers:
             val: 0xC
             doc: Battery temperature fault.
       CHGIN_DTLS:
-        bits: [3, 2]
+        bits: "3-2"
         doc: CHGIN Status details
         accepts: !Enum
           UVLO:
@@ -661,10 +661,10 @@ registers:
             val: 0x3
             doc: The CHGIN input is okay and debounced.
       CHG:
-        bits: [1]
+        bits: 1
         doc: Quick Charger Status/Is charging.
       TIME_SUS:
-        bits: [0]
+        bits: 0
         doc: Timer Suspend Indicator
 
   INTM_CHG: !Register
@@ -673,34 +673,34 @@ registers:
     doc: Charger Interrupt masking
     layout: !Layout
       RESERVED:
-        bits: [7]
+        bits: 7
         accepts: !Fixed 0
       SYS_CNFG_I:
-        bits: [6]
+        bits: 6
         doc: System Voltage Configuration Error Interrupt Mask/disabled
         accepts: !SharedEnum INT_MASK
       SYS_CTRL_I:
-        bits: [5]
+        bits: 5
         doc: Minimum System Voltage Regulation-Loop Related Interrupt Mask/disabled
         accepts: !SharedEnum INT_MASK
       CHGIN_CTRL_I:
-        bits: [4]
+        bits: 4
         doc: CHGIN Control-Loop Related Interrupt Mask/disabled.
         accepts: !SharedEnum INT_MASK
       TJ_REG_I:
-        bits: [3]
+        bits: 3
         doc: Die Junction Temperature Regulation Interrupt Mask/disabled.
         accepts: !SharedEnum INT_MASK
       CHGIN_I:
-        bits: [2]
+        bits: 2
         doc: CHGIN Related Interrupt Mask/disabled.
         accepts: !SharedEnum INT_MASK
       CHG_I:
-        bits: [1]
+        bits: 1
         doc: Charger Related Interrupt Mask/disabled.
         accepts: !SharedEnum INT_MASK
       THM_I:
-        bits: [0]
+        bits: 0
         doc: Thermistor Related Interrupt Mask/disabled.
         accepts: !SharedEnum INT_MASK
 
@@ -710,7 +710,7 @@ registers:
     doc: Charger Config register A.
     layout: !Layout
       THM_HOT:
-        bits: [7, 6]
+        bits: "7-6"
         doc: Sets the VHOT JEITA Temperature Threshold
         accepts: !Enum
           THM_0V411:
@@ -726,7 +726,7 @@ registers:
             val: 0x3
             doc: VHOT = 0.291V (60degC for beta = 3380K)
       THM_WARM:
-        bits: [5, 4]
+        bits: "5-4"
         doc: Sets the VWARM JEITA Temperature Threshold
         accepts: !Enum
           THM_0V511:
@@ -742,7 +742,7 @@ registers:
             val: 0x3
             doc: VWARM = 0.367V (50degC for beta = 3380K)
       THM_COOL:
-        bits: [3, 2]
+        bits: "3-2"
         doc: Sets the VCOOL JEITA Temperature Threshold
         accepts: !Enum
           THM_0V923:
@@ -758,7 +758,7 @@ registers:
             val: 0x3
             doc: VCOOL = 0.747V (15degC for beta = 3380K)
       THM_COLD:
-        bits: [1, 0]
+        bits: "1-0"
         doc: Sets the VCOLD JEITA Temperature Threshold
         accepts: !Enum
           THM_1V024:
@@ -780,7 +780,7 @@ registers:
     doc: Charger Config register B.
     layout: !Layout
       VCHGIN_MIN:
-        bits: [7, 6, 5]
+        bits: "7-5"
         doc: Minimum CHGIN Regulation Voltage (VCHGIN-MIN)
         accepts: !Enum
           VCHGIN_4V0:
@@ -808,7 +808,7 @@ registers:
             val: 0x7
             doc: 4.7V
       ICHGIN_LIM:
-        bits: [4, 3, 2]
+        bits: "4-2"
         doc: CHGIN Input Current Limit (ICHGIN-LIM)
         accepts: !Enum
           ICHGIN_95mA:
@@ -827,7 +827,7 @@ registers:
             val: 0x4
             doc: 475mA
       I_PQ:
-        bits: [1]
+        bits: 1
         doc: Sets the prequalification charge current (IPQ) as a percentage of IFAST-CHG.
         accepts: !Enum
           PQ_10PERC:
@@ -837,7 +837,7 @@ registers:
             val: 1
             doc: 20% of IFAST-CHG
       CHG_EN:
-        bits: [0]
+        bits: 0
         doc: Charger Enable
         accepts: !Bool
 
@@ -847,7 +847,7 @@ registers:
     doc: Charger Config register C.
     layout: !Layout
       CHG_PQ:
-        bits: [7, 6, 5]
+        bits: "7-5"
         doc: Battery Prequalification Voltage Threshold (VPQ)
         accepts: !Enum
           PQ_2V3:
@@ -875,7 +875,7 @@ registers:
             val: 0x7
             doc: 3.0V
       I_TERM:
-        bits: [4, 3]
+        bits: "4-3"
         doc: Charger Termination Current (ITERM)
         accepts: !Enum
           ITERM_5PERC:
@@ -891,7 +891,7 @@ registers:
             val: 0x3
             doc: 15% of IFAST-CHG
       T_TOPOFF:
-        bits: [2, 1, 0]
+        bits: "2-0"
         doc: Top-Off Timer val (t_TO)
         accepts: !Enum
           T_0MIN:
@@ -925,7 +925,7 @@ registers:
     doc: Charger Config register D.
     layout: !Layout
       TJ_REG:
-        bits: [7, 6, 5]
+        bits: "7-5"
         doc: Sets the die junction temperature regulation point, TJ-REG.
         accepts: !Enum
           TJ_60degC:
@@ -944,7 +944,7 @@ registers:
             val: 0x4
             doc: 100degC
       VSYS_REG:
-        bits: [0-4]
+        bits: 0-4
         doc: |
           System Voltage Regulation (VSYS-REG)
 
@@ -1046,13 +1046,13 @@ registers:
     doc: Charger Config register E.
     layout: !Layout
       CHG_CC:
-        bits: [2-7]
+        bits: 2-7
         doc: |
           Sets the fast-charge constant current val, IFAST-CHG.
 
           This 6-bit configuration is a linear transfer function that starts at 7.5mA and ends at 300mA, with 7.5mA increments.
       T_FAST_CHG:
-        bits: [1, 0]
+        bits: "1-0"
         doc: Sets the fast-charge safety timer, t_FC.
         accepts: !Enum
           T_OFF:
@@ -1074,7 +1074,7 @@ registers:
     doc: Charger Config register F.
     layout: !Layout
       CHG_CC_JEITA:
-        bits: [2-7]
+        bits: 2-7
         doc: |
           Sets IFAST-CHG-JEITA for when the battery is either cool or warm
 
@@ -1083,7 +1083,7 @@ registers:
           6-bit configuration is a linear transfer function that starts at 7.5mA and
           ends at 300mA, with 7.5mA increments.
       THM_EN:
-        bits: [1]
+        bits: 1
         doc: Thermistor Enable
         accepts: !Bool
 
@@ -1093,7 +1093,7 @@ registers:
     doc: Charger Config register G.
     layout: !Layout
       CHG_CV:
-        bits: [2-7]
+        bits: 2-7
         doc: |
           Sets fast-charge battery regulation voltage, VFAST-CHG.
 
@@ -1101,10 +1101,10 @@ registers:
           3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at
           least 200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
       USBS:
-        bits: [1]
+        bits: 1
         doc: Setting this bit places CHGIN in USB
       RESERVED:
-        bits: [0]
+        bits: 0
         accepts: !Fixed 0
 
   CNFG_CHG_H: !Register
@@ -1113,7 +1113,7 @@ registers:
     doc: Charger Config register H.
     layout: !Layout
       CHG_CV_JEITA:
-        bits: [2-7]
+        bits: 2-7
         doc: |
           Sets the modified VFAST-CHG-JEITA for when the batteyr is cool or warm.
 
@@ -1123,7 +1123,7 @@ registers:
           3.6V and ends at 4.6V, with 25mV increments. Program VSYS_REG to at least
           200mV above the higher of VFAST-CHG and VFAST-CHG- JEITA.
       RESERVED:
-        bits: [1, 0]
+        bits: "1-0"
         accepts: !Fixed 0
 
   CNFG_CHG_I: !Register
@@ -1132,7 +1132,7 @@ registers:
     doc: Charger Config register I.
     layout: !Layout
       IMON_DISCHG_SCALE:
-        bits: [4-7]
+        bits: 4-7
         doc: Selects the battery discharge current full-scale current val.
         accepts: !Enum
           IMON_8mA2:
@@ -1169,7 +1169,7 @@ registers:
             val: 0xA
             doc: 300.0mA
       MUX_SEL:
-        bits: [0-3]
+        bits: 0-3
         doc: Selects the analog channel to connect to AMUX.
         accepts: !Enum
           DISABLED:
@@ -1218,7 +1218,7 @@ registers:
         doc: SBB Config A.
         layout: !Layout
           TV_SBB:
-            bits: [0-6]
+            bits: 0-6
             doc: |
               SIMO Buck-Boost Channel Target Output Voltage
 
@@ -1230,10 +1230,10 @@ registers:
         doc: SBB Config B.
         layout: !Layout
           RESERVED:
-            bits: [7]
+            bits: 7
             accepts: !Fixed 0
           SBB_OP_MODE:
-            bits: [6]
+            bits: 6
             doc: Operation Mode of SBB
             accepts: !Enum
               BUCK_BOOST:
@@ -1243,7 +1243,7 @@ registers:
                 val: 1
                 doc: Buck mode.
           IP_SBB:
-            bits: [5, 4]
+            bits: "5-4"
             doc: SIMO Buck-Boost Channel Peak Current Limit
             accepts: !Enum
               IP_1A:
@@ -1259,11 +1259,11 @@ registers:
                 val: 0x3
                 doc: 0.333A
           ADE_SBB:
-            bits: [3]
+            bits: 3
             doc: SIMO Buck-Boost Channel Active-Discharge Enable
             accepts: !Bool
           EN_SBB:
-            bits: [2, 1, 0]
+            bits: "2-0"
             doc: |
               Enable control for SIMO buck-boost channel.
 
@@ -1277,11 +1277,11 @@ registers:
     doc: SBB Top Config.
     layout: !Layout
       ICHGIN_LIM_DEF:
-        bits: [7]
+        bits: 7
         access: [R]
         doc: Changes how CNFG_CHG_B.ICHGIN_LIM is interpreted. This bit is for information only and cannot be changed.
       DRV_SBB:
-        bits: [1, 0]
+        bits: "1-0"
         access: [R, W]
         doc: SIMO Buck-Boost (all channels) Drive Strength Trim.
         accepts: !Enum
@@ -1309,10 +1309,10 @@ registers:
         doc: LDO Config A.
         layout: !Layout
           RESERVED:
-            bits: [7]
+            bits: 7
             accepts: !Fixed 0
           TV_LDO:
-            bits: [0-6]
+            bits: 0-6
             doc: |
               LDO Target Output Voltage
 
@@ -1324,7 +1324,7 @@ registers:
         doc: LDO Config B.
         layout: !Layout
           LDO_OP_MODE:
-            bits: [4]
+            bits: 4
             doc: Operation Mode of LDO0
             accepts: !Enum
               LDO:
@@ -1334,11 +1334,11 @@ registers:
                 val: 1
                 doc: Switch
           ADE_LDO:
-            bits: [3]
+            bits: 3
             doc: LDO Channel Active-Discharge Enable
             accepts: !Bool
           EN_LDO:
-            bits: [2, 1, 0]
+            bits: "2-0"
             doc: |
               Enable control for LDO
 

@@ -9,12 +9,10 @@ use std::{collections::BTreeMap, io};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged, deny_unknown_fields)]
-pub enum BitRange {
+pub enum Bits {
     Bit(TypeBitwidth),
     Range(String),
 }
-
-pub type Bits = Vec<BitRange>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum AccessMode {
@@ -59,7 +57,7 @@ pub enum FieldType {
     SharedLayout(String),
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct LayoutField {
     pub bits: Bits,
@@ -211,46 +209,24 @@ mod tests {
 
     #[test]
     fn deser_yaml_bits() {
-        let yaml = "[\"2-3\"]";
+        let yaml = "\"2-3\"";
         let v: Bits = serde_yaml::from_str(yaml).unwrap();
-        assert_eq!(v, vec![BitRange::Range("2-3".into())]);
+        assert_eq!(v, Bits::Range("2-3".into()));
 
-        let yaml = "[2]";
+        let yaml = "2";
         let v: Bits = serde_yaml::from_str(yaml).unwrap();
-        assert_eq!(v, vec![BitRange::Bit(2)]);
-
-        let yaml = "[1-3, 4, \"5-6\"]";
-        let v: Bits = serde_yaml::from_str(yaml).unwrap();
-        assert_eq!(
-            v,
-            vec![
-                BitRange::Range("1-3".into()),
-                BitRange::Bit(4),
-                BitRange::Range("5-6".into())
-            ]
-        );
+        assert_eq!(v, Bits::Bit(2));
     }
 
     #[test]
     fn deser_hjson_bits() {
-        let hjson = "[\"2-3\"]";
+        let hjson = "\"2-3\"";
         let v: Bits = deser_hjson::from_str(hjson).unwrap();
-        assert_eq!(v, vec![BitRange::Range("2-3".into())]);
+        assert_eq!(v, Bits::Range("2-3".into()));
 
-        let hjson = "[2]";
+        let hjson = "2";
         let v: Bits = deser_hjson::from_str(hjson).unwrap();
-        assert_eq!(v, vec![BitRange::Bit(2)]);
-
-        let hjson = "[\"1-3\", 4, \"5-6\"]";
-        let v: Bits = deser_hjson::from_str(hjson).unwrap();
-        assert_eq!(
-            v,
-            vec![
-                BitRange::Range("1-3".into()),
-                BitRange::Bit(4),
-                BitRange::Range("5-6".into())
-            ]
-        );
+        assert_eq!(v, Bits::Bit(2));
     }
 
     #[test]
@@ -366,15 +342,19 @@ mod tests {
                         (
                             "F7".into(),
                             LayoutField {
-                                bits: vec![BitRange::Bit(7)],
-                                ..Default::default()
+                                bits: Bits::Bit(7),
+                                doc: None,
+                                accepts: FieldType::default(),
+                                access: None,
                             },
                         ),
                         (
                             "F1".into(),
                             LayoutField {
-                                bits: vec![BitRange::Bit(1)],
-                                ..Default::default()
+                                bits: Bits::Bit(1),
+                                doc: None,
+                                accepts: FieldType::default(),
+                                access: None,
                             },
                         ),
                     ])),
@@ -394,9 +374,9 @@ mod tests {
                 adr: 0x10
                 layout: !Layout
                     F7:
-                        bits: [7]
+                        bits: 7
                     F1:
-                        bits: [1]
+                        bits: 1
         ";
         let is: RegisterMap = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(is, *BASIC_REGISTER_EXPECT);
@@ -413,10 +393,10 @@ mod tests {
                     layout: {
                         Layout: {
                             F7: {
-                                bits: [7]
+                                bits: 7
                             },
                             F1: {
-                                bits: [1]
+                                bits: 1
                             }
                         }
                     }
@@ -430,7 +410,7 @@ mod tests {
 
     lazy_static! {
         static ref FIELD_ENUM_EXCEPT: LayoutField = LayoutField {
-            bits: vec![BitRange::Bit(1)],
+            bits: Bits::Bit(1),
             doc: None,
             accepts: FieldType::Enum(BTreeMap::from([
                 ("A".into(), EnumEntry { val: 0x1, doc: None },),
@@ -443,7 +423,7 @@ mod tests {
     #[test]
     fn deser_yaml_field_enum() {
         let yaml = "
-        bits: [1]
+        bits: 1
         accepts: !Enum
             A:
                 val: 0x1
@@ -457,7 +437,7 @@ mod tests {
     #[test]
     fn deser_hjson_field_enum() {
         let hjson = "
-        bits: [1]
+        bits: 1
         accepts: {
             Enum: {
                 A: {
@@ -475,7 +455,7 @@ mod tests {
 
     lazy_static! {
         static ref FIELD_SHARED_ENUM_EXPECT: LayoutField = LayoutField {
-            bits: vec![BitRange::Bit(1)],
+            bits: Bits::Bit(1),
             doc: None,
             accepts: FieldType::SharedEnum("TestEnum".into()),
             access: None,
@@ -485,7 +465,7 @@ mod tests {
     #[test]
     fn deser_yaml_field_shared_enum() {
         let yaml = "
-        bits: [1]
+        bits: 1
         accepts: !SharedEnum 'TestEnum'
         ";
         let field_is: LayoutField = serde_yaml::from_str(yaml).unwrap();
@@ -495,7 +475,7 @@ mod tests {
     #[test]
     fn deser_hjson_field_shared_enum() {
         let hjson = "
-        bits: [1]
+        bits: 1
         accepts: {
             SharedEnum: 'TestEnum'
         }

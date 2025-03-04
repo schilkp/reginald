@@ -42,7 +42,7 @@
       bitwidth: 2,
       layout: {
         MASK: {
-          bits: [0]
+          bits: 0
           doc: Mask interrupt.
           accepts: {
             Enum: {
@@ -56,7 +56,7 @@
           }
         },
         FLAG: {
-          bits: [1]
+          bits: 1
           doc: Interrupt has occured flag.
           accepts: Bool
         }
@@ -72,15 +72,15 @@
         layout: {
           Layout: {
             DATA_RDY: {
-              bits: ["0-1"],
+              bits: "0-1",
               accepts: { SharedLayout: "INTERRUPT_CTRL" }
             },
             OVF: {
-              bits: ["2-3"]
+              bits: "2-3"
               accepts: { SharedLayout: "INTERRUPT_CTRL" }
             }
             FIFO_WTM: {
-              bits: ["4-5"]
+              bits: "4-5"
               accepts: { SharedLayout: "INTERRUPT_CTRL" }
             }
           }
@@ -96,15 +96,15 @@
         layout: {
           Layout: {
             STATUS: {
-              bits: ["0-1"],
+              bits: "0-1",
               accepts: { SharedEnum: "STAT" }
             },
             CTRL: {
-              bits: [2],
+              bits: 2,
               accepts: "UInt"
             }
             RESERVED1: {
-              bits: ["3-4"]
+              bits: "3-4"
               accepts: { Fixed: 1 }
             }
           }
@@ -135,7 +135,7 @@
             layout: {
               Layout: {
                 VAL: {
-                  bits: ["7-0"]
+                  bits: "7-0"
                 }
               }
             }
@@ -145,7 +145,7 @@
             layout: {
               Layout: {
                 VAL: {
-                  bits: ["6-0"]
+                  bits: "6-0"
                 }
               }
             }

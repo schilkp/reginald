@@ -5,7 +5,6 @@ use crate::bits::{bitmask_from_width, fits_into_bitwidth, mask_width, unposition
 use crate::error::Error;
 use lazy_static::lazy_static;
 use regex::Regex;
-
 lazy_static! {
     static ref NAME_REGEX: Regex = Regex::new(r"^[_a-zA-Z]").unwrap();
 }
@@ -406,7 +405,7 @@ mod tests {
                 adr: 0x100
                 layout: !Layout
                     A:
-                        bits: [8]
+                        bits: 8
         ";
         let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
         println!("{}", err);
@@ -423,9 +422,9 @@ mod tests {
                 bitwidth: 8
                 layout: !Layout
                     A:
-                        bits: [\"0-7\"]
+                        bits: \"0-7\"
                     B:
-                        bits: [3]
+                        bits: 3
 
         ";
         let err = RegisterMap::from_yaml_str(yaml).unwrap_err();
@@ -443,7 +442,7 @@ mod tests {
                 adr: 0x1000
                 layout: !Layout
                     A:
-                        bits: [4,5]
+                        bits: \"4-5\"
                         accepts: !Enum
                             A:
                                 val: 0x4
@@ -465,7 +464,7 @@ mod tests {
                         layout: {
                             Layout: {
                                 A: {
-                                    bits: [3,4]
+                                    bits: \"3-4\"
                                     accepts: {
                                         SharedEnum: \"MyEnum\"
                                     }

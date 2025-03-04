@@ -307,114 +307,6 @@ void test_nested_only_fixed(void) {
   TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_be, 1);
 }
 
-void test_split_field(void) {
-  struct chip_reg_split_field reg = {
-      .split_field_1 = (0x1 << 0) | (0x1 << 4),
-      .split_field_2 = (0x2 << 0) | (0x2 << 4),
-  };
-
-  // Packing:
-  uint8_t expected_packed_reg[1] = {[0] = (0x1 << 0) | // Field 1
-                                          (0x1 << 4) | // Field 1
-                                          (0x2 << 2) | // Field 2
-                                          (0x2 << 6)}; // Field 2
-
-  uint8_t packed_reg_le[1] = {0};
-  chip_reg_split_field_pack_le(&reg, packed_reg_le);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_le, 1);
-
-  uint8_t packed_reg_be[1] = {0};
-  chip_reg_split_field_pack_be(&reg, packed_reg_be);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_be, 1);
-
-  // Unpacking:
-  struct chip_reg_split_field reg_unpacked_le =
-      chip_reg_split_field_unpack_le(packed_reg_le);
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0x1 | (0x1 << 4), reg_unpacked_le.split_field_1, "(split_field_1)");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0x2 | (0x2 << 4), reg_unpacked_le.split_field_2, "(split_field_2)");
-
-  struct chip_reg_split_field reg_unpacked_be =
-      chip_reg_split_field_unpack_be(packed_reg_be);
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0x1 | (0x1 << 4), reg_unpacked_be.split_field_1, "(split_field_1)");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0x2 | (0x2 << 4), reg_unpacked_be.split_field_2, "(split_field_2)");
-}
-
-void test_split_enum(void) {
-  struct chip_reg_split_enum reg = {.split_enum = CHIP_SPLIT_ENUM_SE_3};
-
-  // Packing:
-
-  uint8_t expected_packed_reg[1] = {[0] = 0x5};
-
-  uint8_t packed_reg_le[1] = {0};
-  chip_reg_split_enum_pack_le(&reg, packed_reg_le);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_le, 1);
-
-  uint8_t packed_reg_be[1] = {0};
-  chip_reg_split_enum_pack_be(&reg, packed_reg_be);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_be, 1);
-
-  // Unpacking:
-
-  uint8_t packed_reg = 0x5;
-  reg = chip_reg_split_enum_unpack_le(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_3, reg.split_enum);
-  reg = chip_reg_split_enum_unpack_be(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_3, reg.split_enum);
-
-  packed_reg = 0x7;
-  reg = chip_reg_split_enum_unpack_le(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_3, reg.split_enum);
-  reg = chip_reg_split_enum_unpack_be(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_3, reg.split_enum);
-
-  packed_reg = 0x0;
-  reg = chip_reg_split_enum_unpack_le(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_0, reg.split_enum);
-  reg = chip_reg_split_enum_unpack_be(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_0, reg.split_enum);
-
-  packed_reg = 0xA;
-  reg = chip_reg_split_enum_unpack_le(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_0, reg.split_enum);
-  reg = chip_reg_split_enum_unpack_be(&packed_reg);
-  TEST_ASSERT_EQUAL_UINT8(CHIP_SPLIT_ENUM_SE_0, reg.split_enum);
-}
-
-void test_split_layout(void) {
-  struct chip_reg_split_layout reg = {
-      .split_layout =
-          {
-              .f1 = 3,
-              .f2 = 7,
-          },
-  };
-
-  // Packing:
-  uint8_t expected_packed_reg[1] = {[0] = (0x3 << 2) | (0x7 << 5)};
-
-  uint8_t packed_reg_le[1] = {0};
-  chip_reg_split_layout_pack_le(&reg, packed_reg_le);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_le, 1);
-
-  uint8_t packed_reg_be[1] = {0};
-  chip_reg_split_layout_pack_be(&reg, packed_reg_be);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg, packed_reg_be, 1);
-
-  // Unpacking:
-  reg = chip_reg_split_layout_unpack_le(packed_reg_le);
-  TEST_ASSERT_EQUAL_UINT8(0x3, reg.split_layout.f1);
-  TEST_ASSERT_EQUAL_UINT8(0x7, reg.split_layout.f2);
-
-  reg = chip_reg_split_layout_unpack_be(packed_reg_be);
-  TEST_ASSERT_EQUAL_UINT8(0x3, reg.split_layout.f1);
-  TEST_ASSERT_EQUAL_UINT8(0x7, reg.split_layout.f2);
-}
-
 // ======= MAIN ================================================================
 
 void setUp(void) {}
@@ -431,8 +323,5 @@ int main(void) {
   RUN_TEST(test_fixed_across_bytes);
   RUN_TEST(test_layout_fields);
   RUN_TEST(test_nested_only_fixed);
-  RUN_TEST(test_split_field);
-  RUN_TEST(test_split_enum);
-  RUN_TEST(test_split_layout);
   return UNITY_END();
 }
