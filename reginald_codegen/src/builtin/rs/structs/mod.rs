@@ -192,6 +192,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, opts: &GeneratorOpts) ->
 fn generate_header(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
     writeln!(out, "#![allow(clippy::unnecessary_cast)]")?;
     writeln!(out, "#![allow(clippy::module_name_repetitions)]")?;
+    writeln!(out, "#![allow(clippy::precedence)]")?;
     writeln!(out, "#![allow(unused_imports)]")?;
     for attr in &inp.opts.add_attribute {
         writeln!(out, "#![{}]", attr)?;
