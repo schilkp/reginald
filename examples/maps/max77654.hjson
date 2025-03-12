@@ -1976,6 +1976,7 @@
 
   enums: {
     REG_EN: {
+      bitwidth: 3,
       enum: {
         FPS_SLOT_0: {
           val: 0,
@@ -2005,6 +2006,7 @@
     },
 
     INT_MASK: {
+      bitwidth: 1,
       enum: {
         UNMASKED: {
           val: 0,

@@ -5,6 +5,7 @@ defaults:
 
 enums:
   REG_EN:
+    bitwidth: 3
     enum:
       FPS_SLOT_0:
         val: 0x0
@@ -26,6 +27,7 @@ enums:
         doc: On irrespective of FPS
 
   INT_MASK:
+    bitwidth: 1
     enum:
       UNMASKED:
         val: 0

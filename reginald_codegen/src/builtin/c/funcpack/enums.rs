@@ -21,7 +21,7 @@ pub fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), E
     let code_name = c_code(&e.name);
     let macro_name = c_macro(&e.name);
 
-    if e.min_bitdwith() <= inp.opts.max_enum_bitwidth {
+    if e.bitwidth <= inp.opts.max_enum_bitwidth {
         // Enum proper:
         writeln!(out)?;
         c_generate_doxy_comment(out, &e.docs, "", vec![])?;
@@ -62,7 +62,7 @@ pub fn generate_enum_validation_macro(out: &mut dyn Write, inp: &Input, e: &Enum
     let accept_ranges = numbers_as_ranges(accept_values);
 
     // Doxy comment:
-    let enum_ref = if e.min_bitdwith() > inp.opts.max_enum_bitwidth {
+    let enum_ref = if e.bitwidth > inp.opts.max_enum_bitwidth {
         c_macro(&e.name)
     } else {
         format!("enum {code_prefix}_{code_name}")

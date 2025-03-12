@@ -1,7 +1,6 @@
 use crate::{
-    bits::mask_width,
     error::Error,
-    regmap::{validate::validate_docs, Layout},
+    regmap::{validate::validate_docs, BitRange, Layout},
 };
 
 use reginald_utils::join_with_underscore;
@@ -76,7 +75,7 @@ fn convert_defaults(defaults: &listing::Defaults, bt: &str) -> Result<Defaults, 
     })
 }
 
-fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, Error> {
+fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<BitRange, Error> {
     let bt = bt.to_owned() + ".bits";
     let result = match bits {
         listing::Bits::Bit(bitpos) => convert_bitpos(*bitpos, &bt)?,
@@ -85,16 +84,16 @@ fn convert_bits(bits: &listing::Bits, bt: &str) -> Result<TypeValue, Error> {
     Ok(result)
 }
 
-fn convert_bitpos(bitpos: TypeBitwidth, bt: &str) -> Result<TypeValue, Error> {
+fn convert_bitpos(bitpos: TypeBitwidth, bt: &str) -> Result<BitRange, Error> {
     validate_bitpos(bitpos, bt)?;
-    Ok(1 << bitpos)
+    Ok(BitRange(bitpos..=bitpos))
 }
 
 lazy_static! {
     static ref BITRANGE_RE: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
 }
 
-fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, Error> {
+fn convert_bitrange(bitrange: &str, bt: &str) -> Result<BitRange, Error> {
     if !BITRANGE_RE.is_match(bitrange) {
         return Err(Error::ConversionError {
             bt: bt.to_string(),
@@ -115,14 +114,9 @@ fn convert_bitrange(bitrange: &str, bt: &str) -> Result<TypeValue, Error> {
         limits.push(limit);
     }
 
-    let mut mask = 0;
     let min = *limits.iter().min().unwrap();
     let max = *limits.iter().max().unwrap();
-    for pos in min..=max {
-        mask |= 1 << pos;
-    }
-
-    Ok(mask)
+    Ok(BitRange(min..=max))
 }
 
 fn convert_bitwidth(map: &RegisterMap, bitwidth: &Option<TypeBitwidth>, bt: &str) -> Result<TypeBitwidth, Error> {
@@ -234,6 +228,7 @@ fn convert_shared_enums(
         let e = Rc::new(Enum {
             name: shared_enum_name.to_owned(),
             is_local: false,
+            bitwidth: shared_enum.bitwidth,
             docs: convert_docs(&shared_enum.doc, &bt)?,
             entries: convert_enum_entries(&shared_enum.entries, &bt)?,
         });
@@ -328,7 +323,8 @@ fn convert_field(
     let bt = bt.to_owned() + "." + field_name;
     validate_name(field_name, &bt, "")?;
 
-    let mask = convert_bits(&field.bits, &bt)?;
+    // Convert bits
+    let bits = convert_bits(&field.bits, &bt)?;
 
     let accepts = match &field.accepts {
         listing::FieldType::UInt => FieldType::UInt,
@@ -354,17 +350,20 @@ fn convert_field(
             }?;
             FieldType::Layout(layout.clone())
         }
-        listing::FieldType::Enum(entries) => convert_local_enum(map, namespace, field_name, field, entries, &bt)?,
+        listing::FieldType::Enum(entries) => {
+            convert_local_enum(map, namespace, field_name, bits.width(), field, entries, &bt)?
+        }
         listing::FieldType::Layout(entries) => {
-            convert_field_local_layout(map, namespace, field_name, field, entries, mask_width(mask), &bt)?
+            let field_width = bits.width();
+            convert_field_local_layout(map, namespace, field_name, field, entries, field_width, &bt)?
         }
     };
 
     Ok(LayoutField {
         name: field_name.to_owned(),
-        mask,
         docs: convert_docs(&field.doc, &bt)?,
         access: convert_access(map, &field.access),
+        bits,
         accepts,
     })
 }
@@ -373,6 +372,7 @@ fn convert_local_enum(
     map: &mut RegisterMap,
     namespace: &mut Namespace,
     field_name: &str,
+    field_width: TypeBitwidth,
     field: &listing::LayoutField,
     entries: &listing::EnumEntries,
     bt: &str,
@@ -385,6 +385,7 @@ fn convert_local_enum(
         is_local: true,
         docs: convert_docs(&field.doc, bt)?,
         entries: convert_enum_entries(entries, bt)?,
+        bitwidth: field_width,
     };
     validate_enum(&e, bt)?;
 
@@ -875,9 +876,9 @@ mod tests {
 
     #[test]
     fn test_convert_bits() {
-        assert_eq!(convert_bits(&listing::Bits::Bit(0), "").unwrap(), 0b1 << 0,);
-        assert_eq!(convert_bits(&listing::Bits::Bit(8), "").unwrap(), 0b1 << 8,);
-        assert_eq!(convert_bits(&listing::Bits::Range("3-4".into()), "").unwrap(), 0b11000);
+        assert_eq!(convert_bits(&listing::Bits::Bit(0), "").unwrap(), BitRange(0..=0));
+        assert_eq!(convert_bits(&listing::Bits::Bit(8), "").unwrap(), BitRange(8..=8));
+        assert_eq!(convert_bits(&listing::Bits::Range("3-4".into()), "").unwrap(), BitRange(3..=4));
     }
 
     #[test]

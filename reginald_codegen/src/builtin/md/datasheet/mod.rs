@@ -2,8 +2,10 @@ pub mod regdump;
 
 use std::fmt::Write;
 
+use reginald_utils::RangeStyle;
+
 use crate::{
-    bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges_str, msb_pos},
+    bits::bitmask_from_range,
     error::Error,
     regmap::{
         access_str, DecodedField, FieldType, FlattenedLayoutField, Layout, LayoutField, Register, RegisterMap,
@@ -128,8 +130,8 @@ fn generate_register_infos(
 
         for sublayout in sublayouts {
             let name = sublayout.name.join(".");
-            let bits = mask_to_bit_ranges_str(sublayout.mask);
-            let sublayout_value = value.map(|x| (x & sublayout.mask) >> lsb_pos(sublayout.mask));
+            let bits = sublayout.bits.to_string(RangeStyle::Verilog);
+            let sublayout_value = value.map(|x| (x & sublayout.bits.mask()) >> sublayout.bits.lsb_pos());
 
             let FieldType::Layout(subfield_layout) = &sublayout.field.accepts else {
                 unreachable!();
@@ -151,13 +153,13 @@ fn generate_register_infos(
     writeln!(out)?;
 
     for field in register.layout.nested_fields() {
-        let value_field = value.map(|x| (x & field.mask) >> lsb_pos(field.mask));
+        let value_field = value.map(|x| (x & field.bits.mask()) >> field.bits.lsb_pos());
 
         let indent = field.name.len();
         let indent = String::from_iter(std::iter::repeat("  ").take(indent));
 
         let value_string = value_field.map(|x| format!(": 0x{x:02X}")).unwrap_or_default();
-        let bits = mask_to_bit_ranges_str(field.mask);
+        let bits = field.bits.to_string(RangeStyle::Verilog);
 
         let name = field.name.join(".");
 
@@ -212,11 +214,7 @@ fn generate_layout_table(out: &mut dyn Write, layout: &Layout, value: Option<Typ
     let mut row_decode: Vec<String> = vec!["**Decode:**".to_string()];
 
     for range in ranges.iter().rev() {
-        if range.bits.start() == range.bits.end() {
-            row_bits.push(format!("{}", range.bits.end()));
-        } else {
-            row_bits.push(format!("{}:{}", range.bits.end(), range.bits.start()));
-        }
+        row_bits.push(range.bits.to_string(RangeStyle::Verilog));
 
         if let Some(content) = &range.content {
             if let Some(access) = &content.field.access {
@@ -225,27 +223,17 @@ fn generate_layout_table(out: &mut dyn Write, layout: &Layout, value: Option<Typ
                 row_access.push("/".into());
             }
 
-            if content.is_split {
-                let lsb = lsb_pos(content.subfield_mask);
-                let msb = msb_pos(content.subfield_mask);
-                if lsb == msb {
-                    row_field.push(format!("{}[{}]", content.field.name, msb));
-                } else {
-                    row_field.push(format!("{}[{}:{}]", content.field.name, msb, lsb));
-                }
-            } else {
-                row_field.push(content.field.name.clone());
-            }
+            row_field.push(content.field.name.clone());
         } else {
             row_field.push("/".into());
             row_access.push("/".into());
         }
 
         if let Some(value) = value {
-            let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.start();
+            let value_range = (value & bitmask_from_range(&range.bits)) >> range.bits.msb_pos();
             row_state.push(format!("**0b{value_range:b}**"));
             if let Some(content) = &range.content {
-                let value_field = (value & content.field.mask) >> lsb_pos(content.field.mask);
+                let value_field = (value & content.field.bits.mask()) >> content.field.bits.lsb_pos();
                 row_decode.push(decode_field(value_field, content.field));
             } else {
                 row_decode.push(String::new());

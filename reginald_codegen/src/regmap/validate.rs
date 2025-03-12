@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, HashSet};
+use std::ops::Deref;
 
 use super::{Docs, Enum, FieldType, Layout, LayoutField, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH};
-use crate::bits::{bitmask_from_width, fits_into_bitwidth, mask_width, unpositioned_mask};
+use crate::bits::{bitmask_from_width, fits_into_bitwidth};
 use crate::error::Error;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -138,15 +139,32 @@ pub fn validate_enum(e: &Enum, bt: &str) -> Result<(), Error> {
         }
     }
 
+    for entry in e.entries.values() {
+        let max_value = bitmask_from_width(e.bitwidth);
+
+        if (entry.value & (!max_value)) != 0 {
+            return Err(Error::ConversionError {
+                bt: bt.to_owned() + "." + &entry.name,
+                msg: format!(
+                    "Enum value 0x{:x} for entry {} does not fit into {}-bit enum!",
+                    entry.value, entry.name, e.bitwidth
+                ),
+            });
+        }
+    }
+
     Ok(())
 }
 
 fn validate_field_type(field: &LayoutField, bt: &str) -> Result<(), Error> {
     let bt = bt.to_owned() + ".accepts";
+
+    let field_width = field.bits.width();
+
     match &field.accepts {
         FieldType::UInt => (),
         FieldType::Bool => {
-            if mask_width(field.mask) != 1 {
+            if field.bits.width() != 1 {
                 return Err(Error::ConversionError {
                     bt,
                     msg: format!("Field {} accepts a boolean but is more than one bit wide!", field.name),
@@ -154,52 +172,76 @@ fn validate_field_type(field: &LayoutField, bt: &str) -> Result<(), Error> {
             }
         }
         FieldType::Enum(e) => {
-            for entry in e.entries.values() {
-                let overshoot = (!unpositioned_mask(field.mask)) & entry.value;
-                if overshoot != 0 {
-                    return Err(Error::ConversionError {
-                        bt: bt + "." + &entry.name,
-                        msg: format!(
-                            "Enum value 0x{:x} for entry {} does not fit into field {} (unpositioned mask: 0x{:x})!",
-                            entry.value, entry.name, field.name, overshoot
-                        ),
-                    });
-                }
-            }
-        }
-        FieldType::Fixed(val) => {
-            let overshoot = (!unpositioned_mask(field.mask)) & val;
-            if overshoot != 0 {
+            if field.bits.width() != e.bitwidth {
                 return Err(Error::ConversionError {
                     bt,
                     msg: format!(
-                        "Fixed value 0x{:x} for  does not fit into field {} (unpositioned mask: 0x{:x})!",
-                        val, field.name, overshoot
+                        "Field {} is {} bits wide, and therefor incompatible with the {} bit wide Enum {}",
+                        field.name, field_width, e.bitwidth, e.name
+                    ),
+                });
+            }
+            validate_enum(e, &bt)?;
+        }
+        FieldType::Fixed(val) => {
+            // Check if fixed value fits in the field width
+            if field_width >= MAX_BITWIDTH {
+                // Field is maximum size, so all values fit
+                return Ok(());
+            }
+
+            // Generate maximum value that fits in field_width bits
+            let max_value = if field_width == 0 {
+                0
+            } else if field_width >= 64 {
+                u64::MAX
+            } else {
+                (1u64 << field_width) - 1
+            };
+
+            if *val > max_value {
+                return Err(Error::ConversionError {
+                    bt,
+                    msg: format!(
+                        "Fixed value 0x{:x} does not fit into field {} (max value: 0x{:x})!",
+                        val, field.name, max_value
                     ),
                 });
             }
         }
         FieldType::Layout(l) => {
-            if l.bitwidth > mask_width(field.mask) {
+            // TODO: LAYOUTS SHOULD ALSO BE CONT.!
+            if l.bitwidth > field_width {
                 return Err(Error::ConversionError {
                     bt,
                     msg: format!(
                         "{}-bit field {} cannot hold {}-bit layout {}!",
-                        mask_width(field.mask),
-                        field.name,
-                        l.bitwidth,
-                        l.name,
+                        field_width, field.name, l.bitwidth, l.name,
                     ),
                 });
             };
 
-            let overshoot = (!unpositioned_mask(field.mask)) & l.occupied_mask();
-            if overshoot != 0 {
+            // Check if the layout's occupied bits fit within the field width
+            if field_width >= MAX_BITWIDTH {
+                // Field is maximum size, so all values fit
+                return Ok(());
+            }
+
+            // Generate maximum value that fits in field_width bits
+            let max_value = if field_width == 0 {
+                0
+            } else if field_width >= 64 {
+                u64::MAX
+            } else {
+                (1u64 << field_width) - 1
+            };
+
+            if l.occupied_mask() > max_value {
                 return Err(Error::ConversionError {
                     bt,
                     msg: format!(
-                        "Layout {} does not fit into field {} (unpositioned mask: 0x{:x})!",
-                        l.name, field.name, overshoot
+                        "Layout {} does not fit into field {} (max value: 0x{:x})!",
+                        l.name, field.name, max_value
                     ),
                 });
             }
@@ -229,14 +271,13 @@ fn find_layout_loop(layout: &Layout, mut visited_layouts: HashSet<String>, bt: &
 }
 
 pub fn validate_layout(layout: &Layout, bt: &str) -> Result<(), Error> {
-    let mut occupied_mask: TypeValue = 0;
+    let mut occupied_bits = HashSet::new();
 
     for field in layout.fields.values() {
         let bt = bt.to_owned() + ".fields." + &field.name;
 
         // Validate that field fits into layout:
-        let overlap = field.mask & !bitmask_from_width(layout.bitwidth);
-        if overlap != 0 {
+        if *field.bits.end() >= layout.bitwidth {
             return Err(Error::ConversionError {
                 bt,
                 msg: format!("Field {} is outside the {}-bit layout.", field.name, layout.bitwidth),
@@ -245,18 +286,19 @@ pub fn validate_layout(layout: &Layout, bt: &str) -> Result<(), Error> {
 
         validate_field_type(field, &bt)?;
 
-        // Validate that no fields overlap:
-        let overlap = field.mask & occupied_mask;
-        if overlap != 0 {
-            return Err(Error::ConversionError {
-                bt,
-                msg: format!(
-                    "Field {} located at bits that are already occupied (overlap mask: 0x{:x})",
-                    field.name, overlap
-                ),
-            });
+        // Validate that no fields overlap by checking for any overlapping bits
+        for bit_pos in field.bits.deref().clone() {
+            if occupied_bits.contains(&bit_pos) {
+                return Err(Error::ConversionError {
+                    bt,
+                    msg: format!(
+                        "Field {} located at bits that are already occupied (bit position: {})",
+                        field.name, bit_pos
+                    ),
+                });
+            }
+            occupied_bits.insert(bit_pos);
         }
-        occupied_mask |= field.mask;
     }
 
     find_layout_loop(layout, HashSet::new(), bt)?;
@@ -274,10 +316,14 @@ pub fn validate_register_properties(
 
     // Validate that the field fits into the register:
     for field in layout.fields.values() {
-        if !fits_into_bitwidth(field.mask, bitwidth) {
+        if *field.bits.end() >= bitwidth {
             return Err(Error::ConversionError {
                 bt: bt.to_owned() + ".bits",
-                msg: format!("Field with bits 0x{:x} does not fit into a {}-bit register!", field.mask, bitwidth),
+                msg: format!(
+                    "Field with bit position {} does not fit into a {}-bit register!",
+                    field.bits.end(),
+                    bitwidth
+                ),
             });
         }
     }
@@ -476,6 +522,7 @@ mod tests {
             },
             enums: {
                 MyEnum: {
+                    bitwidth: 2,
                     enum: {
                         A: {
                             val: 0

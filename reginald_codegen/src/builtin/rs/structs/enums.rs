@@ -1,6 +1,7 @@
 use super::*;
 
 use crate::{
+    bits::bitwidth_to_width_bytes,
     builtin::rs::{array_literal, masked_array_literal},
     error::Error,
 };
@@ -31,7 +32,7 @@ pub(super) fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Resul
 pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {
     // Smallest uint type that can be used to represent the enum's content:
     let enum_name = rs_pascalcase(&e.name);
-    let width_bytes = e.min_width_bytes();
+    let width_bytes = bitwidth_to_width_bytes(e.bitwidth);
     let trait_prefix = trait_prefix(inp);
 
     match enum_impl(e) {

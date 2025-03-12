@@ -294,12 +294,12 @@ fn generate_layout_defines(out: &mut dyn Write, map: &RegisterMap, layout: &Layo
 
         defines.push(vec![
             format!("#define {}_{}_MASK", layout_macro_prefix, name_macro),
-            format!("(0x{:X}U)", field.mask),
+            format!("(0x{:X}U)", field.bits.mask()),
             format!("//!< {}.{}: bit mask (shifted)", layout.name, name_comment),
         ]);
         defines.push(vec![
             format!("#define {}_{}_SHIFT", layout_macro_prefix, name_macro),
-            format!("({}U)", lsb_pos(field.mask)),
+            format!("({}U)", lsb_pos(field.bits.mask())),
             format!("//!< {}.{}: bit shift", layout.name, name_comment),
         ]);
 

@@ -1,7 +1,8 @@
 use std::fmt::Write;
 
+use reginald_utils::RangeStyle;
+
 use crate::{
-    bits::{lsb_pos, mask_to_bit_ranges_str, mask_width, unpositioned_mask},
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField},
     utils::{
@@ -88,7 +89,9 @@ fn generate_layout_struct(out: &mut dyn Write, inp: &Input, layout: &Layout) -> 
         // Members are bitifields, if configured:
         let bitfield_str = if inp.opts.registers_as_bitfields {
             match &field.accepts {
-                FieldType::Enum(_) | FieldType::Bool | FieldType::UInt => format!(": {}", mask_width(field.mask)),
+                FieldType::Enum(_) | FieldType::Bool | FieldType::UInt => {
+                    format!(": {}", field.bits.width())
+                }
                 FieldType::Layout(_) => String::new(),
                 FieldType::Fixed(_) => unreachable!(),
             }
@@ -188,7 +191,8 @@ fn generate_layout_pack_func(
     for field in layout.fields.values() {
         let field_name = c_code(&field.name);
 
-        writeln!(out, "  // {} @ {code_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
+        let bit_str = field.bits.to_string(RangeStyle::Verilog);
+        writeln!(out, "  // {} @ {code_name}[{bit_str}]:", field.name)?;
 
         match &field.accepts {
             FieldType::UInt | FieldType::Bool | FieldType::Enum(_) => {
@@ -196,8 +200,8 @@ fn generate_layout_pack_func(
                 for byte in 0..width_bytes {
                     let Some(transform) = field_to_packed_byte_transform(
                         endian,
-                        unpositioned_mask(field.mask),
-                        lsb_pos(field.mask),
+                        field.bits.unpositioned_mask(),
+                        field.bits.lsb_pos(),
                         byte,
                         width_bytes,
                     ) else {
@@ -218,8 +222,8 @@ fn generate_layout_pack_func(
             FieldType::Fixed(fixed) => {
                 // Fixed value:
                 for byte in 0..width_bytes {
-                    let mask_byte = grab_byte(endian, field.mask, byte, width_bytes);
-                    let value_byte = grab_byte(endian, *fixed << lsb_pos(field.mask), byte, width_bytes);
+                    let mask_byte = grab_byte(endian, field.bits.mask(), byte, width_bytes);
+                    let value_byte = grab_byte(endian, *fixed << field.bits.lsb_pos(), byte, width_bytes);
                     if mask_byte == 0 {
                         continue;
                     };
@@ -252,7 +256,7 @@ fn generate_layout_pack_func(
                         let transform = field_byte_to_packed_byte_transform(
                             endian,
                             sublayout.occupied_mask(),
-                            lsb_pos(field.mask),
+                            field.bits.lsb_pos(),
                             field_byte,
                             sublayout.width_bytes(),
                             byte,
@@ -346,7 +350,8 @@ fn generate_layout_unpack_func(
     for field in layout.fields_with_content() {
         let code_field_name = c_code(&field.name);
 
-        writeln!(out, "  // {} @ {code_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
+        let bit_str = field.bits.to_string(RangeStyle::Verilog);
+        writeln!(out, "  // {} @ {code_name}[{bit_str}]:", field.name)?;
 
         match &field.accepts {
             FieldType::UInt | FieldType::Bool => {
@@ -360,7 +365,7 @@ fn generate_layout_unpack_func(
                 let enum_name = c_code(&e.name);
                 let numeric_value = assemble_numeric_field(layout, field, endian)?;
 
-                if mask_width(field.mask) <= inp.opts.max_enum_bitwidth {
+                if field.bits.width() <= inp.opts.max_enum_bitwidth {
                     writeln!(out, "  r.{code_field_name} = (enum {code_prefix}_{enum_name})({numeric_value});")?;
                 } else {
                     writeln!(out, "  r.{code_field_name} = {numeric_value};")?;
@@ -381,7 +386,7 @@ fn generate_layout_unpack_func(
                         let transform = packed_byte_to_field_byte_transform(
                             endian,
                             sublayout.occupied_mask(),
-                            lsb_pos(field.mask),
+                            field.bits.lsb_pos(),
                             field_byte,
                             array_len,
                             byte,
@@ -459,10 +464,10 @@ fn generate_layout_validation_func(out: &mut dyn Write, inp: &Input, layout: &La
     }
     writeln!(out, "{func_sig} {{")?;
     for field in layout.fields_with_content() {
-        let error_code = lsb_pos(field.mask) + 1;
+        let error_code = field.bits.lsb_pos() + 1;
         let field_name = c_code(&field.name);
-        let uint_type = c_fitting_unsigned_type(mask_width(field.mask))?;
-        let unpos_mask = unpositioned_mask(field.mask);
+        let uint_type = c_fitting_unsigned_type(field.bits.width())?;
+        let unpos_mask = field.bits.unpositioned_mask();
 
         match &field.accepts {
             FieldType::UInt => {
@@ -546,17 +551,18 @@ fn generate_layout_try_unpack_func(
 
 fn struct_field_type(inp: &Input, field: &LayoutField) -> Result<String, Error> {
     let code_prefix = c_code(&inp.map.name);
+    let field_width = field.bits.width();
 
     Ok(match &field.accepts {
         FieldType::Enum(e) => {
             let name = c_code(&e.name);
-            if mask_width(field.mask) <= inp.opts.max_enum_bitwidth {
+            if field_width <= inp.opts.max_enum_bitwidth {
                 format!("enum {code_prefix}_{name}")
             } else {
-                c_fitting_unsigned_type(mask_width(field.mask))?
+                c_fitting_unsigned_type(field_width)?
             }
         }
-        FieldType::UInt => c_fitting_unsigned_type(mask_width(field.mask))?,
+        FieldType::UInt => c_fitting_unsigned_type(field_width)?,
         FieldType::Bool => "bool".to_string(),
         FieldType::Layout(layout) => {
             let name = c_code(&layout.name);

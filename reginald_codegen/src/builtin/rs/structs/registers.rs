@@ -229,7 +229,7 @@ fn generate_reset_val(
     out.push_indent();
 
     for field in layout.fields_with_content() {
-        let field_val = (val & field.mask) >> (lsb_pos(field.mask));
+        let field_val = (val & field.bits.mask()) >> (field.bits.lsb_pos());
 
         write!(out, "{}: ", rs_snakecase(&field.name))?;
 

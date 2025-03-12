@@ -3,10 +3,10 @@ use std::fmt::Write;
 use super::*;
 
 use crate::{
-    bits::{bitmask_from_range, lsb_pos, mask_to_bit_ranges, mask_to_bit_ranges_str, unpositioned_mask},
+    bits::{bitwidth_to_width_bytes, mask_to_bit_ranges},
     builtin::rs::generate_extended_doc_comment,
     error::Error,
-    regmap::{FieldType, Layout, RegisterBlockMember},
+    regmap::{BitRange, FieldType, Layout, RegisterBlockMember},
     utils::{
         field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
         packed_byte_to_field_byte_transform, Endianess, ShiftDirection,
@@ -14,7 +14,7 @@ use crate::{
     writer::indent_writer::IndentWriter,
 };
 
-use reginald_utils::remove_wrapping_parens;
+use reginald_utils::{remove_wrapping_parens, RangeStyle};
 
 use super::{rs_pascalcase, rs_snakecase};
 
@@ -92,13 +92,9 @@ fn generate_layout_struct(
         writeln!(out, "///")?;
         writeln!(out, "/// Fixed bits:")?;
         for range in mask_to_bit_ranges(layout.fixed_bits_mask()) {
-            let range_str = if range.start() == range.end() {
-                format!("{}", range.start())
-            } else {
-                format!("{}:{}", range.end(), range.start())
-            };
-
-            let value = (layout.fixed_bits_val() >> range.start()) & bitmask_from_range(&range);
+            let range = BitRange(range);
+            let range_str = range.to_string(RangeStyle::Verilog);
+            let value = (layout.fixed_bits_val() >> range.lsb_pos()) & range.mask();
             writeln!(out, "/// - `[{range_str}]` = 0b{value:b}")?;
         }
     }
@@ -119,7 +115,7 @@ fn generate_layout_struct(
             out,
             &field.docs,
             "    ",
-            &[&format!("Bits: `[{}]`", mask_to_bit_ranges_str(field.mask))],
+            &[&format!("Bits: `[{}]`", field.bits.to_string(RangeStyle::Verilog))],
         )?;
         writeln!(out, "    pub {field_name}: {field_type},")?;
     }
@@ -132,7 +128,7 @@ fn generate_layout_struct(
 /// Type of a field inside a register struct.
 fn register_layout_member_type(field: &LayoutField) -> Result<String, Error> {
     match &field.accepts {
-        FieldType::UInt => rs_fitting_unsigned_type(mask_width(field.mask)),
+        FieldType::UInt => rs_fitting_unsigned_type(field.bits.width()),
         FieldType::Bool => Ok("bool".to_string()),
         FieldType::Enum(e) => Ok(rs_pascalcase(&e.name)),
         FieldType::Layout(l) => Ok(rs_pascalcase(&l.name)),
@@ -178,7 +174,7 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
     for field in layout.fields.values() {
         let field_name = rs_snakecase(&field.name);
 
-        writeln!(out, "// {} @ {struct_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
+        writeln!(out, "// {} @ {struct_name}[{}]:", field.name, field.bits.to_string(RangeStyle::Verilog))?;
 
         match &field.accepts {
             FieldType::UInt | FieldType::Bool => {
@@ -186,8 +182,8 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
                 for byte in 0..width_bytes {
                     let Some(transform) = field_to_packed_byte_transform(
                         Endianess::Little,
-                        unpositioned_mask(field.mask),
-                        lsb_pos(field.mask),
+                        field.bits.unpositioned_mask(),
+                        field.bits.lsb_pos(),
                         byte,
                         width_bytes,
                     ) else {
@@ -223,8 +219,8 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
             FieldType::Fixed(fixed) => {
                 // Fixed value:
                 for byte in 0..width_bytes {
-                    let mask_byte = grab_byte(Endianess::Little, field.mask, byte, width_bytes);
-                    let value_byte = grab_byte(Endianess::Little, *fixed << lsb_pos(field.mask), byte, width_bytes);
+                    let mask_byte = grab_byte(Endianess::Little, field.bits.mask(), byte, width_bytes);
+                    let value_byte = grab_byte(Endianess::Little, *fixed << field.bits.lsb_pos(), byte, width_bytes);
                     if mask_byte == 0 {
                         continue;
                     };
@@ -237,7 +233,7 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
                 // Sub-layout has to delegate to other pack function:
                 let array_name = rs_snakecase(&field.name);
                 let array_len = match &field.accepts {
-                    FieldType::Enum(e) => e.min_width_bytes(),
+                    FieldType::Enum(e) => bitwidth_to_width_bytes(e.bitwidth),
                     FieldType::Layout(l) => l.width_bytes(),
                     _ => unreachable!(),
                 };
@@ -263,7 +259,7 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
                         let transform = field_byte_to_packed_byte_transform(
                             Endianess::Little,
                             occupied_mask,
-                            lsb_pos(field.mask),
+                            field.bits.lsb_pos(),
                             field_byte,
                             width_bytes,
                             byte,
@@ -344,7 +340,7 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
     // Sublayouts and enums require a bunch of array wrangling, which is done before the struct initialiser:
     for field in layout.fields_with_content() {
         let array_len = match &field.accepts {
-            FieldType::Enum(e) => e.min_width_bytes(),
+            FieldType::Enum(e) => bitwidth_to_width_bytes(e.bitwidth),
             FieldType::Layout(l) => l.width_bytes(),
             _ => continue,
         };
@@ -355,7 +351,7 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
             _ => unreachable!(),
         };
 
-        writeln!(out, "// {} @ {struct_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
+        writeln!(out, "// {} @ {struct_name}[{}]:", field.name, field.bits.to_string(RangeStyle::Verilog))?;
 
         // Assemble field bytes into array:
 
@@ -375,7 +371,7 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
                 let transform = packed_byte_to_field_byte_transform(
                     Endianess::Little,
                     occupied_mask,
-                    lsb_pos(field.mask),
+                    field.bits.lsb_pos(),
                     field_byte,
                     array_len,
                     byte,
@@ -411,8 +407,8 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
 
     for field in layout.fields_with_content() {
         let field_name = rs_snakecase(&field.name);
-        let field_pos = lsb_pos(field.mask);
-        writeln!(out, "  // {} @ {struct_name}[{}]:", field.name, mask_to_bit_ranges_str(field.mask))?;
+        let field_pos = field.bits.lsb_pos();
+        writeln!(out, "  // {} @ {struct_name}[{}]:", field.name, field.bits.to_string(RangeStyle::Verilog))?;
 
         match &field.accepts {
             FieldType::UInt => {
@@ -551,9 +547,9 @@ fn generate_layout_impl_uint_conv(inp: &Input, out: &mut dyn Write, layout: &Lay
 
 fn assemble_numeric_field(layout: &Layout, field: &LayoutField) -> Result<String, Error> {
     let field_raw_type = match &field.accepts {
-        FieldType::UInt => rs_fitting_unsigned_type(mask_width(field.mask))?,
+        FieldType::UInt => rs_fitting_unsigned_type(field.bits.width())?,
         FieldType::Bool => "u8".to_string(),
-        FieldType::Enum(e) => rs_fitting_unsigned_type(e.min_bitdwith())?,
+        FieldType::Enum(e) => rs_fitting_unsigned_type(e.bitwidth)?,
         FieldType::Fixed(_) => unreachable!(),
         FieldType::Layout(_) => unreachable!(),
     };
@@ -563,8 +559,8 @@ fn assemble_numeric_field(layout: &Layout, field: &LayoutField) -> Result<String
     for byte in 0..layout.width_bytes() {
         let Some(transform) = packed_byte_to_field_transform(
             Endianess::Little,
-            unpositioned_mask(field.mask),
-            lsb_pos(field.mask),
+            field.bits.unpositioned_mask(),
+            field.bits.lsb_pos(),
             byte,
             layout.width_bytes(),
         ) else {

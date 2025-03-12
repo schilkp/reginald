@@ -19,6 +19,7 @@ enums:
       Current status.
 
       More details.
+    bitwidth: 2
     enum:
       COOL:
         val: 0x1

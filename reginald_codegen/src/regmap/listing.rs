@@ -37,6 +37,7 @@ pub type EnumEntries = BTreeMap<String, EnumEntry>;
 #[serde(deny_unknown_fields)]
 pub struct SharedEnum {
     pub doc: Option<String>,
+    pub bitwidth: TypeBitwidth,
     #[serde(rename = "enum")]
     pub entries: EnumEntries,
 }
@@ -292,6 +293,7 @@ mod tests {
                 "MyEnum".into(),
                 SharedEnum {
                     doc: None,
+                    bitwidth: 1,
                     entries: BTreeMap::from([("OFF".into(), EnumEntry { val: 0x0, doc: None },)]),
                 },
             )]),
@@ -305,6 +307,7 @@ mod tests {
         name: DummyChip
         enums:
             MyEnum:
+                bitwidth: 1
                 enum:
                     OFF:
                         val: 0
@@ -319,6 +322,7 @@ mod tests {
         name: DummyChip
         enums: {
             MyEnum: {
+                bitwidth: 1,
                 enum: {
                     OFF: {
                         val: 0

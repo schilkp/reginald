@@ -19,6 +19,7 @@
   enums: {
     STAT: {
       doc: "Current status.\n\nMore details.",
+      bitwidth: 2,
       enum: {
         COOL: {
           val: 1,

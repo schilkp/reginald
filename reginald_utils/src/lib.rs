@@ -145,13 +145,39 @@ where
     ranges
 }
 
+#[derive(Clone, Copy)]
 pub enum RangeStyle {
     Rust,
     RustInclusive,
     Verilog,
 }
 
-/// Converts a list of ranges and converts them to a nicely formatted string
+/// Converts a range to a nicely formatted string
+///
+/// Example:
+/// ```rust
+/// # use reginald_utils::range_to_str;
+/// # use reginald_utils::RangeStyle;
+/// assert_eq!(range_to_str(&(0..=2), RangeStyle::Rust),          "0..3");
+/// assert_eq!(range_to_str(&(0..=2), RangeStyle::RustInclusive), "0..=2");
+/// assert_eq!(range_to_str(&(0..=2), RangeStyle::Verilog)      , "2:0");
+/// ```
+pub fn range_to_str<T>(range: &RangeInclusive<T>, style: RangeStyle) -> String
+where
+    T: Ord + From<u8> + Add<T, Output = T> + Eq + Copy + Display,
+{
+    if range.start() == range.end() {
+        format!("{}", range.start())
+    } else {
+        match style {
+            RangeStyle::Rust => format!("{}..{}", range.start(), *range.end() + T::from(1)),
+            RangeStyle::RustInclusive => format!("{}..={}", range.start(), range.end()),
+            RangeStyle::Verilog => format!("{}:{}", range.end(), range.start()),
+        }
+    }
+}
+
+/// Converts a list of ranges to a nicely formatted string
 ///
 /// Example:
 /// ```rust
@@ -165,20 +191,7 @@ pub fn ranges_to_str<T>(i: &[RangeInclusive<T>], style: RangeStyle) -> String
 where
     T: Ord + From<u8> + Add<T, Output = T> + Eq + Copy + Display,
 {
-    let ranges: Vec<String> = i
-        .iter()
-        .map(|range| {
-            if range.start() == range.end() {
-                format!("{}", range.start())
-            } else {
-                match style {
-                    RangeStyle::Rust => format!("{}..{}", range.start(), *range.end() + T::from(1)),
-                    RangeStyle::RustInclusive => format!("{}..={}", range.start(), range.end()),
-                    RangeStyle::Verilog => format!("{}:{}", range.end(), range.start()),
-                }
-            }
-        })
-        .collect();
+    let ranges: Vec<String> = i.iter().map(|range| range_to_str(range, style)).collect();
 
     ranges.join(", ")
 }

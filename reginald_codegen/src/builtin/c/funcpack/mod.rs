@@ -10,7 +10,7 @@ use reginald_utils::str_pad_to_length;
 use clap::{Parser, ValueEnum};
 
 use crate::{
-    bits::{lsb_pos, mask_width, unpositioned_mask},
+    bits::unpositioned_mask,
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField, RegisterMap, TypeBitwidth, TypeValue},
     utils::{packed_byte_to_field_transform, Endianess, ShiftDirection},
@@ -468,20 +468,20 @@ fn to_array_init(val: TypeValue, width_bytes: TypeBitwidth, endian: Endianess) -
 fn assemble_numeric_field(layout: &Layout, field: &LayoutField, endian: Endianess) -> Result<String, Error> {
     let layout_width_bytes = layout.width_bytes();
 
-    let field_bitwidth = mask_width(field.mask);
+    let field_bitwidth = field.bits.width();
 
     let pre_cast = if field_bitwidth <= 8 {
         String::new()
     } else {
-        format!("({})", c_fitting_unsigned_type(mask_width(field.mask))?)
+        format!("({})", c_fitting_unsigned_type(field.bits.width())?)
     };
 
     let mut unpacked_value: Vec<String> = vec![];
     for byte in 0..layout_width_bytes {
         let Some(transform) = packed_byte_to_field_transform(
             endian,
-            unpositioned_mask(field.mask),
-            lsb_pos(field.mask),
+            unpositioned_mask(field.bits.mask()),
+            field.bits.lsb_pos(),
             byte,
             layout_width_bytes,
         ) else {
@@ -505,7 +505,7 @@ fn assemble_numeric_field(layout: &Layout, field: &LayoutField, endian: Endianes
     let unpacked_value = unpacked_value.join(" | ");
 
     let post_cast = match &field.accepts {
-        FieldType::UInt => format!("({})", c_fitting_unsigned_type(mask_width(field.mask))?),
+        FieldType::UInt => format!("({})", c_fitting_unsigned_type(field.bits.width())?),
         FieldType::Bool => String::from("(bool)"),
         FieldType::Enum(_) => String::new(),
         FieldType::Fixed(_) => unreachable!(),

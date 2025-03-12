@@ -5,7 +5,7 @@ mod registers;
 use std::fmt::Write;
 
 use crate::{
-    bits::{lsb_pos, mask_width, msb_pos},
+    bits::msb_pos,
     builtin::{md::md_table, rs::rs_const},
     error::Error,
     regmap::{Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterMap, TypeValue},
@@ -284,9 +284,9 @@ enum FromBytesImpl {
 }
 
 fn enum_impl(e: &Enum) -> FromBytesImpl {
-    if e.can_unpack_min_bitwidth() && [8, 16, 32, 64, 128].contains(&e.min_bitdwith()) {
+    if e.can_always_unpack() && [8, 16, 32, 64, 128].contains(&e.bitwidth) {
         FromBytesImpl::FromBytes
-    } else if e.can_unpack_masked() {
+    } else if e.can_always_unpack() {
         FromBytesImpl::FromMaskedBytes
     } else {
         FromBytesImpl::TryFromBytes
