@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use reginald::{FromBytes, FromMaskedBytes};
+use reginald::{FromBytes, WrappingFromBytes};
 
 #[derive(FromBytes, PartialEq, Debug)]
 struct Reg {
@@ -14,7 +14,7 @@ struct Reg {
     field3: E,
 }
 
-#[derive(FromMaskedBytes, PartialEq, Debug)]
+#[derive(WrappingFromBytes, PartialEq, Debug)]
 enum E {
     Variant0 = 0,
     Variant1 = 1,

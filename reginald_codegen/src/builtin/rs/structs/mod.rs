@@ -279,7 +279,7 @@ fn trait_prefix(inp: &Input) -> String {
 #[allow(clippy::enum_variant_names)]
 enum FromBytesImpl {
     FromBytes,
-    FromMaskedBytes,
+    WrappingFromBytes,
     TryFromBytes,
 }
 
@@ -287,7 +287,7 @@ fn enum_impl(e: &Enum) -> FromBytesImpl {
     if e.can_always_unpack() && [8, 16, 32, 64, 128].contains(&e.bitwidth) {
         FromBytesImpl::FromBytes
     } else if e.can_always_unpack() {
-        FromBytesImpl::FromMaskedBytes
+        FromBytesImpl::WrappingFromBytes
     } else {
         FromBytesImpl::TryFromBytes
     }

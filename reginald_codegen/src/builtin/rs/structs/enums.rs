@@ -50,7 +50,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
             writeln!(out, "    }}")?;
             writeln!(out, "}}")?;
         }
-        FromBytesImpl::FromMaskedBytes => {
+        FromBytesImpl::WrappingFromBytes => {
             let mut masked_array = vec![];
             for i in 0..width_bytes {
                 let mask = grab_byte(Endianess::Little, e.occupied_bits(), i, width_bytes);
@@ -66,8 +66,8 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
 
             let masked_array = format!("[{}]", masked_array.join(", "));
             writeln!(out)?;
-            writeln!(out, "impl {trait_prefix}FromMaskedBytes<{width_bytes}> for {enum_name} {{")?;
-            writeln!(out, "    fn from_masked_le_bytes(val: &[u8; {width_bytes}]) -> Self {{")?;
+            writeln!(out, "impl {trait_prefix}WrappingFromBytes<{width_bytes}> for {enum_name} {{")?;
+            writeln!(out, "    fn wrapping_from_le_bytes(val: &[u8; {width_bytes}]) -> Self {{")?;
             writeln!(out, "        match {masked_array} {{")?;
             for entry in e.entries.values() {
                 let entry_val = array_literal(Endianess::Little, entry.value, width_bytes);
@@ -85,12 +85,12 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
             writeln!(out)?;
             writeln!(out, "    fn try_from_le_bytes(val: &[u8; {width_bytes}]) -> Result<Self, Self::Error> {{")?;
             if !trait_prefix.is_empty() {
-                writeln!(out, "        use {trait_prefix}FromMaskedBytes;")?;
+                writeln!(out, "        use {trait_prefix}WrappingFromBytes;")?;
             }
             let bytes_outside = masked_array_literal(Endianess::Little, "val", !e.occupied_bits(), width_bytes);
             writeln!(out, "        let bytes_outside = {bytes_outside};")?;
             writeln!(out, "        if bytes_outside == [0; {width_bytes}] {{")?;
-            writeln!(out, "            Ok(Self::from_masked_le_bytes(val))")?;
+            writeln!(out, "            Ok(Self::wrapping_from_le_bytes(val))")?;
             writeln!(out, "        }} else {{")?;
             writeln!(out, "            Err(Self::Error {{pos: 0}})")?;
             writeln!(out, "        }}")?;

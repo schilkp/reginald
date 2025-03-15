@@ -321,7 +321,7 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
         writeln!(out, "    fn from_le_bytes({val_in_sig}: &[u8; {width_bytes}]) -> Self {{")?;
         if !trait_prefix.is_empty() {
             writeln!(out, "        use {trait_prefix}FromBytes;")?;
-            writeln!(out, "        use {trait_prefix}FromMaskedBytes;")?;
+            writeln!(out, "        use {trait_prefix}WrappingFromBytes;")?;
         }
     } else {
         writeln!(out)?;
@@ -331,7 +331,7 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
         if !trait_prefix.is_empty() {
             writeln!(out, "        use {trait_prefix}TryFromBytes;")?;
             writeln!(out, "        use {trait_prefix}FromBytes;")?;
-            writeln!(out, "        use {trait_prefix}FromMaskedBytes;")?;
+            writeln!(out, "        use {trait_prefix}WrappingFromBytes;")?;
         }
     }
 
@@ -429,8 +429,8 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
                     FromBytesImpl::FromBytes => {
                         writeln!(out, "  {field_name}: {enum_name}::from_le_bytes(&{array_name}),")?;
                     }
-                    FromBytesImpl::FromMaskedBytes => {
-                        writeln!(out, "  {field_name}: {enum_name}::from_masked_le_bytes(&{array_name}),")?;
+                    FromBytesImpl::WrappingFromBytes => {
+                        writeln!(out, "  {field_name}: {enum_name}::wrapping_from_le_bytes(&{array_name}),")?;
                     }
                     FromBytesImpl::TryFromBytes => {
                         if field_pos != 0 {

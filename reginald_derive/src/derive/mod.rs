@@ -114,7 +114,7 @@ pub fn derive_struct_from_bytes(input: &StructDeriveInput) -> syn::Result<TokenS
             FieldType::Trait(t) => {
                 let field_type_name = &field.field_type_name;
                 if t.masked {
-                    quote_spanned! { field.field_type_name.span() => #field_name: #field_type_name::from_masked_le_bytes(&#field_arr_name), }
+                    quote_spanned! { field.field_type_name.span() => #field_name: #field_type_name::wrapping_from_le_bytes(&#field_arr_name), }
                 } else {
                     quote_spanned! { field.field_type_name.span() => #field_name: #field_type_name::from_le_bytes(&#field_arr_name), }
                 }
@@ -129,7 +129,7 @@ pub fn derive_struct_from_bytes(input: &StructDeriveInput) -> syn::Result<TokenS
         impl ::reginald::FromBytes<#width_bytes> for #name {
             fn from_le_bytes(val: &[u8; #width_bytes]) -> Self {
                 use ::reginald::FromBytes;
-                use ::reginald::FromMaskedBytes;
+                use ::reginald::WrappingFromBytes;
                 #(#lines)*
                 Self {
                     #(#result_fields)*
@@ -234,7 +234,7 @@ pub fn derive_struct_try_from_bytes(input: &StructDeriveInput) -> syn::Result<To
 
             fn try_from_le_bytes(val: &[u8; #width_bytes]) -> Result<Self, Self::Error> {
                 use ::reginald::FromBytes;
-                use ::reginald::FromMaskedBytes;
+                use ::reginald::WrappingFromBytes;
                 #(#lines)*
                 Ok(Self {
                     #(#result_fields)*
@@ -281,7 +281,7 @@ pub fn derive_enum_try_from_bytes(input: &EnumDeriveInput) -> syn::Result<TokenS
     Ok(out)
 }
 
-pub fn derive_enum_from_masked_bytes(input: &EnumDeriveInput) -> syn::Result<TokenStream> {
+pub fn derive_enum_wrapping_from_bytes(input: &EnumDeriveInput) -> syn::Result<TokenStream> {
     let width_bytes = input.width_bytes;
     let name = &input.name;
 
@@ -291,7 +291,7 @@ pub fn derive_enum_from_masked_bytes(input: &EnumDeriveInput) -> syn::Result<Tok
         mask |= &variant.value;
     }
     if !input.can_always_unpack_mask(&mask) {
-        return spanned_err!(&input.name, "Reginald: Cannot derive FromMaskedBytes because enum does not accept all values that fit into occupied bits mask.");
+        return spanned_err!(&input.name, "Reginald: Cannot derive WrappingFromBytes because enum does not accept all values that fit into occupied bits mask.");
     }
 
     let masked_input_bytes: Vec<TokenStream> = (0..width_bytes)
@@ -309,8 +309,8 @@ pub fn derive_enum_from_masked_bytes(input: &EnumDeriveInput) -> syn::Result<Tok
     }
 
     let out = quote! {
-        impl ::reginald::FromMaskedBytes<#width_bytes> for #name {
-            fn from_masked_le_bytes(val: &[u8; #width_bytes]) -> Self {
+        impl ::reginald::WrappingFromBytes<#width_bytes> for #name {
+            fn wrapping_from_le_bytes(val: &[u8; #width_bytes]) -> Self {
                 match [#(#masked_input_bytes),*] {
                     #(#match_arms)*
                     _ => unreachable!(),

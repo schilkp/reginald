@@ -1,7 +1,6 @@
 use core::convert::Infallible;
 use core::fmt::{Debug, Display};
 
-// Struct to bytes converstion:
 pub trait ToBytes<const N: usize>: Sized {
     fn to_le_bytes(&self) -> [u8; N];
 
@@ -13,7 +12,6 @@ pub trait ToBytes<const N: usize>: Sized {
     }
 }
 
-// Bytes to struct conversion (fallible):
 pub trait TryFromBytes<const N: usize>: Sized {
     type Error;
 
@@ -27,7 +25,6 @@ pub trait TryFromBytes<const N: usize>: Sized {
     }
 }
 
-// Bytes to struct conversion (infallible):
 pub trait FromBytes<const N: usize>: Sized {
     fn from_le_bytes(val: &[u8; N]) -> Self;
 
@@ -57,29 +54,28 @@ where
     }
 }
 
-// Bytes to struct conversion (infallible, but possibly lossy):
-pub trait FromMaskedBytes<const N: usize>: Sized {
-    fn from_masked_le_bytes(val: &[u8; N]) -> Self;
+pub trait WrappingFromBytes<const N: usize>: Sized {
+    fn wrapping_from_le_bytes(val: &[u8; N]) -> Self;
 
     #[inline(always)]
-    fn from_masked_be_bytes(val: &[u8; N]) -> Self {
+    fn wrapping_from_be_bytes(val: &[u8; N]) -> Self {
         let mut val = *val;
         val.reverse();
-        Self::from_masked_le_bytes(&val)
+        Self::wrapping_from_le_bytes(&val)
     }
 }
 
 // Implement possibly conversion for infallible conversion:
-impl<const N: usize, T> FromMaskedBytes<N> for T
+impl<const N: usize, T> WrappingFromBytes<N> for T
 where
     T: FromBytes<N>,
 {
-    fn from_masked_le_bytes(val: &[u8; N]) -> Self {
+    fn wrapping_from_le_bytes(val: &[u8; N]) -> Self {
         Self::from_le_bytes(val)
     }
 
     #[inline(always)]
-    fn from_masked_be_bytes(val: &[u8; N]) -> Self {
+    fn wrapping_from_be_bytes(val: &[u8; N]) -> Self {
         Self::from_be_bytes(val)
     }
 }

@@ -6,4 +6,4 @@ pub use traits::*;
 extern crate reginald_derive;
 
 #[cfg(feature = "derive")]
-pub use reginald_derive::{FromBytes, FromMaskedBytes, ToBytes, TryFromBytes};
+pub use reginald_derive::{FromBytes, ToBytes, TryFromBytes, WrappingFromBytes};
