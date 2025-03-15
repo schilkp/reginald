@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: ["schilkp/rust"]
+    branches: ["main"]
 
 jobs:
   cargo-test:
