@@ -38,10 +38,8 @@ fn c_fitting_unsigned_type(width: TypeBitwidth) -> Result<String, Error> {
 }
 
 fn c_section_header_comment(title: &str) -> String {
-    let lbar = str_pad_to_length("// ", '=', 80);
-    let lcontent = str_pad_to_length(&format!("// ==== {title} "), '=', 80);
-
-    format!("{lbar}\n{lcontent}\n{lbar}")
+    let frame = "//===----------------------------------------------------------------------===//";
+    format!("{frame}\n// {title}\n{frame}")
 }
 
 fn c_generate_section_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Error> {
