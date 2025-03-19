@@ -374,7 +374,7 @@ fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error
 
     for endian in &inp.endian {
         let docs = Docs {
-            brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
+            brief: Some(format!("Attempt to convert packed {endian} binary value to struct.")),
             doc: None,
         };
         writeln!(out)?;

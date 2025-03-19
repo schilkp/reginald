@@ -312,7 +312,7 @@ fn generate_layout_unpack_func(
     // doxy comment:
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Convert packed {endian} binary value to struct.".to_string()),
+        brief: Some(format!("Convert packed {endian} binary value to struct.")),
         doc: None,
     };
     c_generate_doxy_comment(out, &docs, "", vec![])?;
@@ -514,7 +514,7 @@ fn generate_layout_try_unpack_func(
     // doxy comment:
     writeln!(out)?;
     let docs = Docs {
-        brief: Some("Attempt to convert packed {endian} binary value to struct.".to_string()),
+        brief: Some(format!("Attempt to convert packed {endian} binary value to struct.")),
         doc: None,
     };
     c_generate_doxy_comment(
