@@ -7,4 +7,5 @@ members = [
     "reginald_codegen", 
     "reginald_utils",
     "reginald_derive",
+    "reginald_wasm",
 ]
