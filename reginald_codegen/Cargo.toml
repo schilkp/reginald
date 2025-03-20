@@ -12,11 +12,11 @@ required-features = ["cli"]
 
 [features]
 default         = ["cli"]
-cli             = ["dep:clap", "dep:clap_complete", "dep:similar", "dep:console"]
+cli             = ["dep:clap", "dep:clap_complete", "dep:similar", "dep:console", "reginald_utils/clap"]
 test_gen_output = []
 
 [dependencies]
-reginald_utils = { path = "../reginald_utils", features = ["clap"] }
+reginald_utils = { path = "../reginald_utils" }
 regex          = "1.10.3"
 lazy_static    = "1.4.0"
 thiserror      = "2.0.12"

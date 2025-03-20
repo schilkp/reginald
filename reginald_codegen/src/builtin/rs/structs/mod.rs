@@ -12,6 +12,8 @@ use crate::{
     utils::{grab_byte, packed_byte_to_field_transform, Endianess},
     writer::header_writer::HeaderWriter,
 };
+
+#[cfg(feature = "cli")]
 use clap::Parser;
 
 use self::layouts::LayoutStructKind;

@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[cfg(feature = "cli")]
 use clap::ValueEnum;
 
 use crate::regmap::{TypeBitwidth, TypeValue};
