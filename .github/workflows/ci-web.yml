@@ -65,6 +65,10 @@ jobs:
       - name: Run eslint
         working-directory: ${{github.workspace}}/reginald_web
         run: npm run lint
+      
+      - name: Check format
+        working-directory: ${{github.workspace}}/reginald_web
+        run: npm run format:check
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
