@@ -1,5 +1,5 @@
 import { useState, Dispatch, SetStateAction } from "react"
-import { Toolbar } from "@/components/toolbar"
+import { Header } from "@/components/header"
 import { EditorPanel } from "./components/editor/editor-panel";
 import { CodePanel } from "./components/code/code-panel";
 
@@ -27,7 +27,7 @@ function App() {
 
     return (
         <div className="flex flex-col h-screen">
-            <Toolbar panels={panels} />
+            <Header panels={panels} />
 
             {/* TODO: The scaling here is very hacky/hardcoded to two panels */}
             <div className="flex flex-1 overflow-hidden">
