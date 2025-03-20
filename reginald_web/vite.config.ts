@@ -8,7 +8,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const dev_port = 5173;
 
-var base;
+let base;
 if (process.env.NODE_ENV === "development") {
     base = "http://localhost:" + dev_port
 } else {
@@ -40,6 +40,16 @@ export default defineConfig({
             ]
         })
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    monaco: ['monaco-editor'],
+                    editor: ['@monaco-editor/react']
+                }
+            }
+        }
+    },
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "./src"),

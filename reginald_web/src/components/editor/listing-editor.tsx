@@ -1,6 +1,18 @@
-import { useRef } from "react"
+import { useRef, lazy, Suspense } from "react"
 import type * as monaco from "monaco-editor"
-import { Editor } from "@monaco-editor/react"
+
+// Import Monaco setup and editor together
+const Editor = lazy(async () => {
+    // We load both in parallel, but we only return the editor module
+    const [, editorModule] = await Promise.all([
+        import("../../lib/monaco-setup").then(module => {
+            module.setupMonaco();
+            return module;
+        }),
+        import("@monaco-editor/react")
+    ]);
+    return editorModule;
+})
 
 interface ListingEditorProps {
     value: string
@@ -145,19 +157,21 @@ export default function ListingEditor({ value, language }: ListingEditorProps) {
 
     return (
         <div className="h-full w-full">
-            <Editor
-                height="100%"
-                defaultLanguage={language}
-                value={value}
-                onMount={handleEditorDidMount}
-                options={{
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: true,
-                    fontSize: 12,
-                    wordWrap: "on",
-                    automaticLayout: true,
-                }}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-full">Loading editor...</div>}>
+                <Editor
+                    height="100%"
+                    defaultLanguage={language}
+                    value={value}
+                    onMount={handleEditorDidMount}
+                    options={{
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: true,
+                        fontSize: 12,
+                        wordWrap: "on",
+                        automaticLayout: true,
+                    }}
+                />
+            </Suspense>
         </div>
     )
 }
