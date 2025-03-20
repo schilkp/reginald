@@ -1,22 +1,21 @@
 [package]
-name = "reginald_wasm"
-version = "0.1.0"
-edition = "2018"
-
+name     = "reginald_wasm"
+version  = "0.1.0"
+edition  = "2024"
 resolver = "2"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-wasm-bindgen = { version = "0.2.84"}
-reginald_codegen = { path = "../reginald_codegen" }
-log = { version = "0.4.21", features = ["std"] }
-console_log = "1.0.0"
-web-sys = { version = "0.3.69", features = ["Document", "Window", "Element", "HtmlElement", "HtmlDivElement", "CustomEvent", "CustomEventInit"] }
-serde = { version = "1.0.203", features = ["derive"] }
-serde-wasm-bindgen = "0.6.5"
-anyhow = "1.0.86"
+reginald_codegen         = { path = "../reginald_codegen", default-features = false }
+wasm-bindgen             = { version = "0.2.84"}
+log                      = { version = "0.4.21",           features = ["std"] }
+console_log              = "1.0.0"
+web-sys                  = { version = "0.3.69",           features = ["Document", "Window", "Element", "HtmlElement", "HtmlDivElement", "CustomEvent", "CustomEventInit"] }
+serde                    = { version = "1.0.203",          features = ["derive"] }
+serde-wasm-bindgen       = "0.6.5"
+anyhow                   = "1.0.86"
 console_error_panic_hook = "0.1.7"
 
 [dev-dependencies]
