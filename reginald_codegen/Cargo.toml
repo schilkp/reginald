@@ -27,6 +27,7 @@ clap           = { version = "4.5.1",   features = ["derive"], optional = true }
 clap_complete  = { version = "4.5.1",   features = [],         optional = true }
 similar        = { version = "2.4.0",   features = ["inline"], optional = true }
 console        = { version = "0.15.8",  features = [],         optional = true }
+serde_json     = "1.0.140"
 
 [dev-dependencies]
 tempfile          = "3.10.1"

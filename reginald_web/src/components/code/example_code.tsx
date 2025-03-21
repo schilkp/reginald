@@ -1,4 +1,4 @@
-export const example_code = ` // clang-format off
+export const example_code = `// clang-format off
 /**
  * @file out.c
  * @brief chip

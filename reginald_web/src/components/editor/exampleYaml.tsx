@@ -1,5 +1,4 @@
-export const exampleYaml = `---
-name: MAX77654
+export const exampleYaml = `name: MAX77654
 defaults:
   layout_bitwidth: 8
 
