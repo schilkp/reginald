@@ -28,6 +28,7 @@ pub type Access = Vec<AccessMode>;
 #[serde(deny_unknown_fields)]
 pub struct EnumEntry {
     pub val: TypeValue,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
 }
 
@@ -36,6 +37,7 @@ pub type EnumEntries = BTreeMap<String, EnumEntry>;
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct SharedEnum {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
     pub bitwidth: TypeBitwidth,
     #[serde(rename = "enum")]
@@ -62,9 +64,11 @@ pub enum FieldType {
 #[serde(deny_unknown_fields)]
 pub struct LayoutField {
     pub bits: Bits,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
     #[serde(default)]
     pub accepts: FieldType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub access: Option<Access>,
 }
 
@@ -87,7 +91,9 @@ impl Default for RegisterLayout {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct SharedLayout {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bitwidth: Option<TypeBitwidth>,
     pub layout: LayoutFields,
 }
@@ -98,9 +104,12 @@ pub struct SharedLayout {
 #[serde(deny_unknown_fields)]
 pub struct Register {
     pub adr: TypeAdr,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bitwidth: Option<TypeBitwidth>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reset_val: Option<TypeValue>,
 
     #[serde(default)]
@@ -114,6 +123,7 @@ pub struct Register {
 pub struct Instance {
     pub adr: TypeAdr,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
 
     #[serde(default = "BTreeMap::new")]
@@ -124,9 +134,12 @@ pub struct Instance {
 #[serde(deny_unknown_fields)]
 pub struct RegisterBlockMember {
     pub offset: TypeAdr,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bitwidth: Option<TypeBitwidth>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reset_val: Option<TypeValue>,
 
     pub layout: RegisterLayout,
@@ -136,6 +149,7 @@ pub struct RegisterBlockMember {
 #[serde(deny_unknown_fields)]
 pub struct RegisterBlock {
     pub instances: BTreeMap<String, Instance>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
 
     pub registers: BTreeMap<String, RegisterBlockMember>,
@@ -154,7 +168,9 @@ pub enum RegisterListing {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Defaults {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub layout_bitwidth: Option<TypeBitwidth>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub field_access_mode: Option<Access>,
 }
 
@@ -162,8 +178,11 @@ pub struct Defaults {
 #[serde(deny_unknown_fields)]
 pub struct RegisterMap {
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub doc: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub notice: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub author: Option<String>,
 
     #[serde(default)]
@@ -187,11 +206,27 @@ impl RegisterMap {
         Ok(serde_yaml::from_reader(inp)?)
     }
 
+    pub fn from_yaml_str(inp: &str) -> Result<Self, Error> {
+        Ok(serde_yaml::from_str(inp)?)
+    }
+
+    pub fn to_yaml(&self) -> Result<String, Error> {
+        Ok(serde_yaml::to_string(self)?)
+    }
+
     pub fn from_hjson<R>(inp: R) -> Result<Self, Error>
     where
         R: io::Read,
     {
         Ok(deser_hjson::from_reader(inp)?)
+    }
+
+    pub fn from_hjson_str(inp: &str) -> Result<Self, Error> {
+        Ok(deser_hjson::from_str(inp)?)
+    }
+
+    pub fn to_json(&self) -> Result<String, Error> {
+        Ok(serde_json::to_string_pretty(self)?)
     }
 }
 

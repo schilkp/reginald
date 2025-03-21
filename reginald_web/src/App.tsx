@@ -2,6 +2,7 @@ import { useState, Dispatch, SetStateAction } from "react";
 import { Header } from "@/components/header";
 import { EditorPanel } from "@/components/editor/editor-panel";
 import { CodePanel } from "@/components/code/code-panel";
+import { exampleYaml } from "./components/editor/exampleYaml";
 
 export type Panel = {
   title: string;
@@ -25,6 +26,11 @@ function App() {
     },
   };
 
+  const [editorContent, setEditorContent] = useState<string>(exampleYaml);
+  const [selectedLanguage, setSelectedLanguage] = useState<"yaml" | "json">(
+    "yaml",
+  );
+
   return (
     <div className="flex flex-col h-screen">
       <Header panels={panels} />
@@ -37,7 +43,11 @@ function App() {
             display: panels.editor.visible ? "block" : "none",
           }}
         >
-          <EditorPanel />
+          <EditorPanel
+            setEditorContent={setEditorContent}
+            selectedLanguage={selectedLanguage}
+            setSelectedLanguage={setSelectedLanguage}
+          />
         </div>
         <div
           className={`h-full ${panels.editor.visible ? "w-1/2" : "w-full"}`}
@@ -45,7 +55,10 @@ function App() {
             display: panels.code.visible ? "block" : "none",
           }}
         >
-          <CodePanel />
+          <CodePanel
+            editorContent={editorContent}
+            selectedLanguage={selectedLanguage}
+          />
         </div>
       </div>
     </div>

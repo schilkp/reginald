@@ -1,4 +1,4 @@
-import { useRef, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import type * as monaco from "monaco-editor";
 
 // Import Monaco setup and editor together
@@ -17,15 +17,14 @@ const Editor = lazy(async () => {
 interface CodeOutputProps {
   value: string;
   language: string;
+  viewerRef: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }
 
-export function CodeOutput({ value, language }: CodeOutputProps) {
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-
+export function CodeOutput({ value, language, viewerRef }: CodeOutputProps) {
   const handleEditorDidMount = (
     editor: monaco.editor.IStandaloneCodeEditor,
   ) => {
-    editorRef.current = editor;
+    viewerRef.current = editor;
   };
 
   return (
@@ -33,7 +32,7 @@ export function CodeOutput({ value, language }: CodeOutputProps) {
       <Suspense
         fallback={
           <div className="flex items-center justify-center h-full">
-            Loading editor...
+            Loading viewer...
           </div>
         }
       >

@@ -8,6 +8,8 @@ pub enum Error {
     FileError(#[from] io::Error),
     #[error("Failed to deserialize yaml: {0}.")]
     YamlDeserError(#[from] serde_yaml::Error),
+    #[error("Failed to deserialize yaml: {0}.")]
+    JsonDeserError(#[from] serde_json::Error),
     #[error("Failed to deserialize hjson/json: {0}.")]
     HJsonDeserError(#[from] deser_hjson::Error),
     #[error("Conversion error at {bt}: {msg}.")]
