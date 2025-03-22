@@ -3,13 +3,16 @@ import { CollapsibleMenu } from "@/components/custom/collapsible-menu";
 import { Button } from "@/components/ui/button";
 import { CodeOutput } from "./code-viewer";
 import { example_code } from "./example_code";
-import { JSX, useState, useRef } from "react";
+import { JSX, useState, useRef, useEffect } from "react";
 import { GeneratorSettingsCFunpack } from "./generators/c_funcpack";
 import { GeneratorSettingsCMacroMap } from "./generators/c_macromacp";
 import { GeneratorSelecetor } from "./generator-select";
 import { GeneratorConfigCard } from "./generator-config-card";
 import { toast } from "sonner";
 import type * as monaco from "monaco-editor";
+import { StoreApi, UseBoundStore } from "zustand";
+import { ToWasmConfigConvertible } from "./generators/state";
+import { createConfigStore as c_funcpack_createConfigStore } from "./generators/c_funcpack_state";
 
 export type OutputGenerator = {
   title: string;
@@ -17,6 +20,7 @@ export type OutputGenerator = {
   editor_lang: string;
   file_extension: string;
   config_panel: JSX.Element;
+  config_params: UseBoundStore<StoreApi<ToWasmConfigConvertible>> | null;
 };
 
 export function CodePanel() {
@@ -29,6 +33,10 @@ export function CodePanel() {
     rs: "Rust",
   };
 
+  const c_funcpack_config = c_funcpack_createConfigStore();
+  const c_macromacp_config = c_funcpack_createConfigStore();
+  const rs_structs_config = c_funcpack_createConfigStore();
+
   const generators: Record<string, OutputGenerator> = {
     "c.funcpack": {
       title: "c.funcpack",
@@ -36,23 +44,30 @@ export function CodePanel() {
         "C header with register structs, and packing/unpacking functions",
       editor_lang: "c",
       file_extension: "c",
-      config_panel: <GeneratorSettingsCFunpack />,
+      config_panel: <GeneratorSettingsCFunpack config={c_funcpack_config} />,
+      config_params: c_funcpack_config,
     },
     "c.macromap": {
       title: "c.macromap",
       description: "C header with field mask/shift macros",
       editor_lang: "c",
       file_extension: "c",
-      config_panel: <GeneratorSettingsCMacroMap />,
+      config_panel: <GeneratorSettingsCFunpack config={c_macromacp_config} />,
+      config_params: c_macromacp_config,
     },
     "rs.structs": {
       title: "rs.structs",
       description: "Rust module with register structs and no dependencies",
       editor_lang: "rust",
       file_extension: "rs",
-      config_panel: <GeneratorSettingsCMacroMap />,
+      config_panel: <GeneratorSettingsCFunpack config={rs_structs_config} />,
+      config_params: rs_structs_config,
     },
   };
+
+  useEffect(() => {
+    console.log("c_funcpack_config update: " + c_funcpack_config().to_wasm());
+  }, [c_funcpack_config]);
 
   const downloadCode = () => {
     if (!editorRef.current) {
