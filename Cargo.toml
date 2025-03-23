@@ -1,13 +1,24 @@
 [workspace]
-
 resolver = "2"
-
-edition  = "2024"
 
 members = [
     "reginald",
-    "reginald_codegen", 
-    "reginald_utils",
+    "reginald_codegen",
     "reginald_derive",
+    "reginald_utils",
     "reginald_wasm",
 ]
+
+[workspace.package]
+version    = "0.3.0"
+authors    = ["Philipp Schilk <schilk.philipp@gmail.com>"]
+edition    = "2024"
+repository = "https://github.com/schilkp/reginald"
+license    = "MIT OR Apache-2.0"
+
+[profile.release.package.reginald_wasm]
+opt-level = "s"
+
+[workspace.dependencies]
+clap           = { version = "4.5.1" }
+clap_complete  = { version = "4.5.1" }

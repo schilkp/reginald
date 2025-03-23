@@ -1,10 +1,15 @@
 [package]
 name = "reginald"
-version = "0.1.0"
-edition = "2024"
+
+version.workspace    = true
+authors.workspace    = true
+edition.workspace    = true
+repository.workspace = true
+license.workspace    = true
+
 
 [features]
-derive     = ["dep:reginald_derive"]
+derive = ["dep:reginald_derive"]
 
 [dependencies]
 reginald_derive = { path = "../reginald_derive" , optional = true }

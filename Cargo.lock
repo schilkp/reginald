@@ -366,14 +366,14 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reginald"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "reginald_derive",
 ]
 
 [[package]]
 name = "reginald_codegen"
-version = "0.0.3"
+version = "0.3.0"
 dependencies = [
  "clap",
  "clap_complete",
@@ -393,7 +393,7 @@ dependencies = [
 
 [[package]]
 name = "reginald_derive"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -404,7 +404,7 @@ dependencies = [
 
 [[package]]
 name = "reginald_utils"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "clap",
  "pretty_assertions",
@@ -412,7 +412,7 @@ dependencies = [
 
 [[package]]
 name = "reginald_wasm"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "js-sys",
  "reginald_codegen",

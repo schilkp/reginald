@@ -1,23 +1,21 @@
 [package]
-name     = "reginald_wasm"
-version  = "0.1.0"
-edition  = "2024"
-resolver = "2"
+name = "reginald_wasm"
+
+version.workspace    = true
+authors.workspace    = true
+edition.workspace    = true
+repository.workspace = true
+license.workspace    = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-reginald_codegen         = { path = "../reginald_codegen", default-features = false }
-wasm-bindgen             = { version = "0.2.84" }
-serde                    = { version = "1.0.203",          features = ["derive"] }
-serde-wasm-bindgen       = { version = "0.6.5" }
-js-sys                   = { version = "0.3.77" }
+reginald_codegen   = { path = "../reginald_codegen", default-features = false }
+wasm-bindgen       = { version = "0.2.84" }
+serde              = { version = "1.0.203",          features = ["derive"] }
+serde-wasm-bindgen = { version = "0.6.5" }
+js-sys             = { version = "0.3.77" }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.34"
-
-[profile.release]
-# Tell `rustc` to optimize for small code size.
-opt-level = "s"
-lto = true
