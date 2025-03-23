@@ -7,7 +7,7 @@ use crate::{
 
 use reginald_utils::numbers_as_ranges;
 
-use super::{c_code, c_generate_doxy_comment, c_macro, generate_multiline_macro, is_enabled, Element, Input};
+use super::{Element, Input, c_code, c_generate_doxy_comment, c_macro, generate_multiline_macro, is_enabled};
 
 /// Generate an enum
 pub fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {

@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use reginald_utils::{
-    field_byte_to_packed_byte_transform, packed_byte_to_field_byte_transform, Bits, Endianess, ShiftDirection,
+    Bits, Endianess, ShiftDirection, field_byte_to_packed_byte_transform, packed_byte_to_field_byte_transform,
 };
 
 use crate::{
@@ -291,7 +291,10 @@ pub fn derive_enum_wrapping_from_bytes(input: &EnumDeriveInput) -> syn::Result<T
         mask |= &variant.value;
     }
     if !input.can_always_unpack_mask(&mask) {
-        return spanned_err!(&input.name, "Reginald: Cannot derive WrappingFromBytes because enum does not accept all values that fit into occupied bits mask.");
+        return spanned_err!(
+            &input.name,
+            "Reginald: Cannot derive WrappingFromBytes because enum does not accept all values that fit into occupied bits mask."
+        );
     }
 
     let masked_input_bytes: Vec<TokenStream> = (0..width_bytes)

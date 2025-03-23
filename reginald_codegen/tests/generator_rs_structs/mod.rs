@@ -2,10 +2,10 @@ use std::{path::PathBuf, process::Command};
 
 use reginald_codegen::{
     builtin::rs::structs::GeneratorOpts,
-    cli::cmd::gen::{self, Generator},
+    cli::cmd::generate::{self, Generator},
 };
 
-use crate::{print_cmd_output, TEST_MAP_FILE};
+use crate::{TEST_MAP_FILE, print_cmd_output};
 
 // ==== Utils ==================================================================
 
@@ -14,7 +14,7 @@ fn run_reginald(output_name: &str, opts: GeneratorOpts) {
     let output_dir = manifest_dir.join(PathBuf::from("tests/generator_rs_structs/test_proj/src/"));
     let output_file = output_dir.join(output_name);
 
-    gen::cmd(gen::Command {
+    generate::cmd(generate::Command {
         input: TEST_MAP_FILE.to_owned(),
         output: output_file,
         overwrite_map_name: None,

@@ -9,8 +9,8 @@ use crate::{
 };
 
 use super::{
-    c_code, c_generate_header_comment, c_generate_section_header_comment, c_layout_overview_comment, c_macro,
-    is_enabled, layouts, to_array_init, Element, Input,
+    Element, Input, c_code, c_generate_header_comment, c_generate_section_header_comment, c_layout_overview_comment,
+    c_macro, is_enabled, layouts, to_array_init,
 };
 
 /// Generate register section header comment

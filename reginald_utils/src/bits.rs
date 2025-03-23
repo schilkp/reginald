@@ -4,7 +4,7 @@ use std::{
     ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, RangeInclusive, Shl, ShlAssign, Shr, ShrAssign},
 };
 
-use crate::{numbers_as_ranges, ranges_to_str, RangeStyle};
+use crate::{RangeStyle, numbers_as_ranges, ranges_to_str};
 
 #[cfg(feature = "clap")]
 use clap::ValueEnum;
@@ -352,11 +352,7 @@ impl Bits {
     /// assert_eq!(Bits::from_uint(0b00111).bitwidth(), 3);
     /// ```
     pub fn bitwidth(&self) -> usize {
-        if self.is_zero() {
-            0
-        } else {
-            self.msb_pos() + 1
-        }
+        if self.is_zero() { 0 } else { self.msb_pos() + 1 }
     }
 
     /// Determines the width of the field that these `Bits` describe, when

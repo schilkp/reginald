@@ -3,15 +3,15 @@ mod parse;
 use std::{collections::HashSet, fmt::Display};
 
 use proc_macro2::Ident;
-use reginald_utils::{bits::Bits, RangeStyle};
+use reginald_utils::{RangeStyle, bits::Bits};
 use syn::parse::{Parse, ParseStream};
 
 use crate::{
     input::parse::{parse_enum_variant, parse_struct, parse_struct_field},
-    utils::{attach_spanned_error, spanned_err, WithTokens},
+    utils::{WithTokens, attach_spanned_error, spanned_err},
 };
 
-use self::parse::{parse_enum, FieldTypeInfo, StructFieldInfo};
+use self::parse::{FieldTypeInfo, StructFieldInfo, parse_enum};
 
 // ==== Derive Input ===========================================================
 
@@ -278,7 +278,7 @@ fn parse_enum_derive_input(input: &syn::DeriveInput, enum_data: &syn::DataEnum) 
                 return spanned_err!(
                     &variant_info.name,
                     "Reginald: Variant missing value. Add attribute or discriminant."
-                )
+                );
             }
         };
 

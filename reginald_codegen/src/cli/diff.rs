@@ -1,7 +1,7 @@
 // Taken from similar's 'terminal-inline' example:
 // https://github.com/mitsuhiko/similar/blob/main/examples/terminal-inline.rs
 
-use console::{style, Style};
+use console::{Style, style};
 use similar::{ChangeTag, TextDiff};
 use std::fmt::{self, Write};
 

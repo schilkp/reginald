@@ -1,13 +1,13 @@
 use std::{fs, path::PathBuf, process::Command};
 
-use tempfile::{tempdir, TempDir};
+use tempfile::{TempDir, tempdir};
 
 use reginald_codegen::{
     builtin::c::macromap::GeneratorOpts,
-    cli::cmd::gen::{self, Generator},
+    cli::cmd::generate::{self, Generator},
 };
 
-use crate::{print_cmd_output, TEST_MAP_FILE};
+use crate::{TEST_MAP_FILE, print_cmd_output};
 
 // ==== Utils ==================================================================
 
@@ -89,7 +89,7 @@ fn finish_test(d: TempDir) {
 fn generator_c_macromap_c99() {
     let d = tempdir().unwrap();
 
-    gen::cmd(gen::Command {
+    generate::cmd(generate::Command {
         input: TEST_MAP_FILE.to_owned(),
         output: d.path().to_owned().join(PathBuf::from("out.h")),
         overwrite_map_name: None,

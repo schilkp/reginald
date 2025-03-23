@@ -54,39 +54,40 @@ pub enum Generator {
     RsStructs(rs::structs::GeneratorOpts),
 }
 
-pub fn cmd(gen: Command) -> Result<(), Error> {
+pub fn cmd(generate: Command) -> Result<(), Error> {
     // Read input map:
-    let mut map = RegisterMap::from_file(&gen.input)?;
+    let mut map = RegisterMap::from_file(&generate.input)?;
 
-    if let Some(name) = &gen.overwrite_map_name {
+    if let Some(name) = &generate.overwrite_map_name {
         map.name = name.to_string();
     }
 
     // Generate output:
     let mut out = String::new();
-    match &gen.generator {
-        Generator::CFuncpack(opts) => c::funcpack::generate(&mut out, &map, &gen.output, opts)?,
-        Generator::CMacromap(opts) => c::macromap::generate(&mut out, &map, &gen.output, opts)?,
+    match &generate.generator {
+        Generator::CFuncpack(opts) => c::funcpack::generate(&mut out, &map, &generate.output, opts)?,
+        Generator::CMacromap(opts) => c::macromap::generate(&mut out, &map, &generate.output, opts)?,
         Generator::MdDatasheet => md::datasheet::generate(&mut out, &map)?,
         Generator::MdRegdumpDecode(opts) => md::datasheet::regdump::generate(&mut out, &map, opts)?,
         Generator::RsStructs(opts) => rs::structs::generate(&mut out, &map, opts)?,
     };
 
     // Verify or write ouput:
-    if gen.verify {
-        let output_content = fs::read_to_string(&gen.output)?;
+    if generate.verify {
+        let output_content = fs::read_to_string(&generate.output)?;
         if output_content != out {
             let diff_msg = diff::diff_report(&output_content, &out);
-            let msg = format!("File {} differs from generator output!\n{}", gen.output.to_string_lossy(), diff_msg);
+            let msg =
+                format!("File {} differs from generator output!\n{}", generate.output.to_string_lossy(), diff_msg);
             Err(Error::VerificationError(msg))?;
         }
         return Ok(());
     }
 
-    if gen.output.to_string_lossy().trim() == "-" {
+    if generate.output.to_string_lossy().trim() == "-" {
         println!("{}", out);
     } else {
-        fs::write(gen.output, out)?;
+        fs::write(generate.output, out)?;
     }
 
     Ok(())

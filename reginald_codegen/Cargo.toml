@@ -1,7 +1,7 @@
 [package]
 name        = "reginald_codegen"
 version     = "0.0.3"
-edition     = "2021"
+edition     = "2024"
 authors     = ["Philipp Schilk"]
 description = "Register management code generator"
 

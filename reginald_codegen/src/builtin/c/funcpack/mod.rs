@@ -13,7 +13,7 @@ use crate::{
     bits::unpositioned_mask,
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField, RegisterMap, TypeBitwidth, TypeValue},
-    utils::{packed_byte_to_field_transform, Endianess, ShiftDirection},
+    utils::{Endianess, ShiftDirection, packed_byte_to_field_transform},
     writer::header_writer::HeaderWriter,
 };
 

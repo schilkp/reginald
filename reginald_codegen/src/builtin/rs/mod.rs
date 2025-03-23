@@ -6,7 +6,7 @@ use std::fmt::Write;
 use crate::{
     error::Error,
     regmap::{Docs, TypeBitwidth, TypeValue},
-    utils::{grab_byte, Endianess},
+    utils::{Endianess, grab_byte},
 };
 
 pub mod structs;

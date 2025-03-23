@@ -13,11 +13,7 @@ pub struct HeaderWriter<'a> {
 
 impl Write for HeaderWriter<'_> {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        if !s.is_empty() {
-            self.process_str(s)
-        } else {
-            Ok(())
-        }
+        if !s.is_empty() { self.process_str(s) } else { Ok(()) }
     }
 }
 

@@ -1,14 +1,14 @@
 use std::{fs, path::PathBuf, process::Command};
 
-use tempfile::{tempdir, TempDir};
+use tempfile::{TempDir, tempdir};
 
 use reginald_codegen::{
     builtin::c::funcpack::{Element, GeneratorOpts},
-    cli::cmd::gen::{self, Generator},
+    cli::cmd::generate::{self, Generator},
     utils::Endianess,
 };
 
-use crate::{print_cmd_output, TEST_MAP_FILE};
+use crate::{TEST_MAP_FILE, print_cmd_output};
 
 // ==== Utils ==================================================================
 
@@ -120,7 +120,7 @@ fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let artifacts_dir = manifest_dir.join(PathBuf::from("tests/generator_c_funcpack/artifacts"));
 
-    gen::cmd(gen::Command {
+    generate::cmd(generate::Command {
         input: TEST_MAP_FILE.to_owned(),
         output: output_path.clone(),
         overwrite_map_name: None,

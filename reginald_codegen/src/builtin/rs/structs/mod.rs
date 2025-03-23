@@ -9,7 +9,7 @@ use crate::{
     builtin::{md::md_table, rs::rs_const},
     error::Error,
     regmap::{Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterMap, TypeValue},
-    utils::{grab_byte, packed_byte_to_field_transform, Endianess},
+    utils::{Endianess, grab_byte, packed_byte_to_field_transform},
     writer::header_writer::HeaderWriter,
 };
 
@@ -19,8 +19,8 @@ use clap::Parser;
 use self::layouts::LayoutStructKind;
 
 use super::{
-    generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment, rs_pascalcase,
-    rs_snakecase, CONVERSION_TRAITS,
+    CONVERSION_TRAITS, generate_doc_comment, rs_fitting_unsigned_type, rs_generate_header_comment, rs_header_comment,
+    rs_pascalcase, rs_snakecase,
 };
 
 // ====== Generator Opts =======================================================

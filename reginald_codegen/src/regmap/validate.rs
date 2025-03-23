@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashSet};
 use std::ops::Deref;
 
-use super::{Docs, Enum, FieldType, Layout, LayoutField, Register, TypeBitwidth, TypeValue, MAX_BITWIDTH};
+use super::{Docs, Enum, FieldType, Layout, LayoutField, MAX_BITWIDTH, Register, TypeBitwidth, TypeValue};
 use crate::bits::{bitmask_from_width, fits_into_bitwidth};
 use crate::error::Error;
 use lazy_static::lazy_static;

@@ -1,3 +1,3 @@
 pub mod completion;
-pub mod gen;
+pub mod generate;
 pub mod tool;

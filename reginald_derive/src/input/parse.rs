@@ -2,11 +2,11 @@ use std::ops::RangeInclusive;
 
 use proc_macro2::Ident;
 use reginald_utils::Bits;
-use syn::{punctuated::Punctuated, DeriveInput, Expr, Field, Lit, Meta, Token, Variant};
+use syn::{DeriveInput, Expr, Field, Lit, Meta, Token, Variant, punctuated::Punctuated};
 
-use crate::utils::{attach_spanned_error, spanned_err, spanned_error, WithTokens};
+use crate::utils::{WithTokens, attach_spanned_error, spanned_err, spanned_error};
 
-use super::{check_for_bits_overlap, FixedBits, UInt};
+use super::{FixedBits, UInt, check_for_bits_overlap};
 
 // ==== Struct =================================================================
 

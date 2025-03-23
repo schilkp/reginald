@@ -1,6 +1,6 @@
 use crate::{
     error::Error,
-    regmap::{validate::validate_docs, BitRange, Layout},
+    regmap::{BitRange, Layout, validate::validate_docs},
 };
 
 use reginald_utils::join_with_underscore;
@@ -10,13 +10,13 @@ use regex::Regex;
 use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
 
 use super::{
-    listing::{self},
-    validate::{
-        validate_bitpos, validate_bitwidth, validate_enum, validate_layout, validate_map_author, validate_name,
-        validate_name_unique, validate_register, validate_register_properties, Namespace,
-    },
     Access, AccessMode, Defaults, Docs, Enum, EnumEntry, FieldType, LayoutField, Register, RegisterBlock,
     RegisterBlockInstance, RegisterBlockMember, RegisterMap, RegisterOrigin, TypeBitwidth, TypeValue,
+    listing::{self},
+    validate::{
+        Namespace, validate_bitpos, validate_bitwidth, validate_enum, validate_layout, validate_map_author,
+        validate_name, validate_name_unique, validate_register, validate_register_properties,
+    },
 };
 
 // ==== Main Conversion Routine ====================================================================
@@ -583,7 +583,9 @@ fn convert_register_block(
             if !block.registers.contains_key(reset_val_name) {
                 return Err(Error::ConversionError {
                     bt: bt.to_string() + ".reset_vals",
-                    msg: format!("Register block instance register specifies reset value for member '{reset_val_name}' which does not exist."),
+                    msg: format!(
+                        "Register block instance register specifies reset value for member '{reset_val_name}' which does not exist."
+                    ),
                 });
             }
         }
@@ -593,14 +595,21 @@ fn convert_register_block(
             let member_name_generic = &member.name;
             let member_name_raw = &member.name_raw;
             let register_instance_name = join_with_underscore(block_instance_name, &member.name_raw);
-            let reset_val = match (block_instance.reset_vals.get(member_name_generic), fixed_reset_vals.get(member_name_generic)) {
+            let reset_val = match (
+                block_instance.reset_vals.get(member_name_generic),
+                fixed_reset_vals.get(member_name_generic),
+            ) {
                 (None, None) => None,
                 (None, Some(val)) => Some(*val),
                 (Some(val), None) => Some(*val),
-                (Some(_), Some(_)) => return Err(Error::ConversionError {
-                    bt: bt.to_string(),
-                    msg: format!("Both register block member '{member_name_raw}' and instance '{block_instance_name}' have a reset value specified."),
-                }),
+                (Some(_), Some(_)) => {
+                    return Err(Error::ConversionError {
+                        bt: bt.to_string(),
+                        msg: format!(
+                            "Both register block member '{member_name_raw}' and instance '{block_instance_name}' have a reset value specified."
+                        ),
+                    });
+                }
             };
 
             let instance = Rc::new(Register {

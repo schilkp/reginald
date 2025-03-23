@@ -8,8 +8,8 @@ use crate::{
     bits::bitmask_from_range,
     error::Error,
     regmap::{
-        access_str, DecodedField, FieldType, FlattenedLayoutField, Layout, LayoutField, Register, RegisterMap,
-        TypeValue,
+        DecodedField, FieldType, FlattenedLayoutField, Layout, LayoutField, Register, RegisterMap, TypeValue,
+        access_str,
     },
 };
 

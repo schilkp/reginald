@@ -10,7 +10,7 @@ use std::{
     rc::Rc,
 };
 
-use reginald_utils::{numbers_as_ranges, range_to_str, RangeStyle};
+use reginald_utils::{RangeStyle, numbers_as_ranges, range_to_str};
 
 use crate::bits::{bitmask_from_range, bitmask_from_width, bitwidth_to_width_bytes, unpositioned_mask};
 use crate::error::Error;
@@ -816,17 +816,21 @@ mod tests {
 
         // Output may be in different order than expected due to sorting
         // Check the expected RegisterBitrangeContent elements separately:
-        assert!(ranges.iter().any(|r| *r.bits == (1..=3)
-            && r.content
-                .as_ref()
-                .map(|c| c.field.name == "A" && c.subfield_mask == 0b111)
-                .unwrap_or(false)));
+        assert!(ranges.iter().any(|r| {
+            *r.bits == (1..=3)
+                && r.content
+                    .as_ref()
+                    .map(|c| c.field.name == "A" && c.subfield_mask == 0b111)
+                    .unwrap_or(false)
+        }));
 
-        assert!(ranges.iter().any(|r| *r.bits == (12..=15)
-            && r.content
-                .as_ref()
-                .map(|c| c.field.name == "B" && c.subfield_mask == 0b1111)
-                .unwrap_or(false)));
+        assert!(ranges.iter().any(|r| {
+            *r.bits == (12..=15)
+                && r.content
+                    .as_ref()
+                    .map(|c| c.field.name == "B" && c.subfield_mask == 0b1111)
+                    .unwrap_or(false)
+        }));
 
         // Check that there are enough ranges for our fields
         assert!(ranges.len() >= 3);

@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::regmap::{TypeBitwidth, TypeValue, MAX_BITWIDTH};
+use crate::regmap::{MAX_BITWIDTH, TypeBitwidth, TypeValue};
 use reginald_utils::numbers_as_ranges;
 
 /// Generate a bitmask of specified width
@@ -72,11 +72,7 @@ pub fn bitmask_is_contigous(mask: TypeValue) -> bool {
 /// assert_eq!(msb_pos(0b11101), 4);
 /// ```
 pub fn msb_pos(val: TypeValue) -> TypeBitwidth {
-    if val == 0 {
-        0
-    } else {
-        val.ilog2()
-    }
+    if val == 0 { 0 } else { val.ilog2() }
 }
 
 /// Determines the position of the least significant '1'

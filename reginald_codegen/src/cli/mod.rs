@@ -10,7 +10,7 @@ use clap::Parser;
 #[command(name = "reginald")]
 #[allow(clippy::large_enum_variant)]
 enum Cli {
-    Gen(cmd::gen::Command),
+    Gen(cmd::generate::Command),
     Completion(cmd::completion::Command),
     Tool(cmd::tool::Command),
 }
@@ -19,7 +19,7 @@ pub fn cli_main() -> ExitCode {
     let cli = Cli::parse();
 
     let err = match cli {
-        Cli::Gen(gen) => cmd::gen::cmd(gen),
+        Cli::Gen(generate) => cmd::generate::cmd(generate),
         Cli::Completion(c) => cmd::completion::cmd(c),
         Cli::Tool(tool) => cmd::tool::cmd(tool),
     };

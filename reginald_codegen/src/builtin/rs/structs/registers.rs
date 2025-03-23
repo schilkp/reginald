@@ -75,9 +75,9 @@ pub fn generate_register_impl(
     if let Some(reset_val) = &register.reset_val {
         let val = array_literal(Endianess::Little, *reset_val, byte_width);
         writeln!(
-                out,
-                "    const RESET_VAL: Option<{trait_prefix}ResetVal<{byte_width}>> = Some({trait_prefix}ResetVal::LittleEndian({val}));"
-            )?;
+            out,
+            "    const RESET_VAL: Option<{trait_prefix}ResetVal<{byte_width}>> = Some({trait_prefix}ResetVal::LittleEndian({val}));"
+        )?;
     } else {
         writeln!(out, "    const RESET_VAL: Option<{trait_prefix}ResetVal<{byte_width}>> = None;")?;
     }

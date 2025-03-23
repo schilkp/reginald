@@ -8,13 +8,13 @@ use crate::{
     error::Error,
     regmap::{BitRange, FieldType, Layout, RegisterBlockMember},
     utils::{
-        field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
-        packed_byte_to_field_byte_transform, Endianess, ShiftDirection,
+        Endianess, ShiftDirection, field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
+        packed_byte_to_field_byte_transform,
     },
     writer::indent_writer::IndentWriter,
 };
 
-use reginald_utils::{remove_wrapping_parens, RangeStyle};
+use reginald_utils::{RangeStyle, remove_wrapping_parens};
 
 use super::{rs_pascalcase, rs_snakecase};
 
@@ -434,7 +434,10 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
                     }
                     FromBytesImpl::TryFromBytes => {
                         if field_pos != 0 {
-                            writeln!(out, "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name}).map_err(|x| Self::Error {{pos: x.pos + {field_pos}}})?,")?;
+                            writeln!(
+                                out,
+                                "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name}).map_err(|x| Self::Error {{pos: x.pos + {field_pos}}})?,"
+                            )?;
                         } else {
                             writeln!(out, "  {field_name}: {enum_name}::try_from_le_bytes(&{array_name})?,")?;
                         }
@@ -447,7 +450,10 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
                 if l.can_always_unpack() {
                     writeln!(out, "  {field_name}: {layout_name}::from_le_bytes(&{array_name}),")?;
                 } else if field_pos != 0 {
-                    writeln!(out, "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name}).map_err(|x| Self::Error {{pos: x.pos + {field_pos}}})?,")?;
+                    writeln!(
+                        out,
+                        "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name}).map_err(|x| Self::Error {{pos: x.pos + {field_pos}}})?,"
+                    )?;
                 } else {
                     writeln!(out, "  {field_name}: {layout_name}::try_from_le_bytes(&{array_name})?,")?;
                 }

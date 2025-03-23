@@ -6,15 +6,15 @@ use crate::{
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField},
     utils::{
-        field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
-        packed_byte_to_field_byte_transform, Endianess, ShiftDirection,
+        Endianess, ShiftDirection, field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
+        packed_byte_to_field_byte_transform,
     },
     writer::header_writer::HeaderWriter,
 };
 
 use super::{
-    assemble_numeric_field, c_code, c_fitting_unsigned_type, c_generate_doxy_comment, c_macro, enums, func_prefix,
-    is_enabled, swap_loop, Element, Input,
+    Element, Input, assemble_numeric_field, c_code, c_fitting_unsigned_type, c_generate_doxy_comment, c_macro, enums,
+    func_prefix, is_enabled, swap_loop,
 };
 
 pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
