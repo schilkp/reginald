@@ -1,10 +1,9 @@
-use std::fmt::Write;
+use std::{fmt::Write, sync::LazyLock};
 
 use crate::{
     error::Error,
     regmap::{Docs, Layout, TypeBitwidth},
 };
-use lazy_static::lazy_static;
 use regex::Regex;
 use reginald_utils::str_pad_to_length;
 
@@ -19,9 +18,7 @@ fn c_code(s: &str) -> String {
     c_sanitize(&s.to_lowercase())
 }
 
-lazy_static! {
-    static ref C_SANITIZE_REGEX: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
-}
+static C_SANITIZE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[^_a-zA-Z0-9]").unwrap());
 
 fn c_sanitize(s: &str) -> String {
     C_SANITIZE_REGEX.replace_all(s, "_").into()

@@ -2,13 +2,9 @@ mod generator_c_funcpack;
 mod generator_c_macromap;
 mod generator_rs_structs;
 
-use std::{path::PathBuf, process::Output};
+use std::{path::PathBuf, process::Output, sync::LazyLock};
 
-use lazy_static::lazy_static;
-
-lazy_static! {
-    pub static ref TEST_MAP_FILE: PathBuf = find_test_map_file();
-}
+pub static TEST_MAP_FILE: LazyLock<PathBuf> = LazyLock::new(|| find_test_map_file());
 
 fn find_test_map_file() -> PathBuf {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

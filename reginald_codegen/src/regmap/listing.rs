@@ -246,10 +246,9 @@ impl RegisterMap {
 mod tests {
     use super::*;
 
-    use std::path::PathBuf;
+    use std::{path::PathBuf, sync::LazyLock};
 
     use deser_hjson;
-    use lazy_static::lazy_static;
     use pretty_assertions::assert_eq;
     use serde_yaml;
 
@@ -331,20 +330,18 @@ mod tests {
         assert_eq!(is, expect);
     }
 
-    lazy_static! {
-        static ref SHARED_ENUM_EXPECT: RegisterMap = RegisterMap {
-            name: "DummyChip".to_string(),
-            enums: BTreeMap::from([(
-                "MyEnum".into(),
-                SharedEnum {
-                    doc: None,
-                    bitwidth: 1,
-                    entries: BTreeMap::from([("OFF".into(), EnumEntry { val: 0x0, doc: None },)]),
-                },
-            )]),
-            ..Default::default()
-        };
-    }
+    static SHARED_ENUM_EXPECT: LazyLock<RegisterMap> = LazyLock::new(|| RegisterMap {
+        name: "DummyChip".to_string(),
+        enums: BTreeMap::from([(
+            "MyEnum".into(),
+            SharedEnum {
+                doc: None,
+                bitwidth: 1,
+                entries: BTreeMap::from([("OFF".into(), EnumEntry { val: 0x0, doc: None })]),
+            },
+        )]),
+        ..Default::default()
+    });
 
     #[test]
     fn deser_yaml_shared_enums() {
@@ -380,39 +377,37 @@ mod tests {
         assert_eq!(is, *SHARED_ENUM_EXPECT);
     }
 
-    lazy_static! {
-        static ref BASIC_REGISTER_EXPECT: RegisterMap = RegisterMap {
-            name: "DummyChip".to_string(),
-            registers: BTreeMap::from([(
-                "FIFOCTRL4".into(),
-                RegisterListing::Register(Register {
-                    adr: 0x10,
-                    layout: RegisterLayout::Layout(BTreeMap::from([
-                        (
-                            "F7".into(),
-                            LayoutField {
-                                bits: Bits::Bit(7),
-                                doc: None,
-                                accepts: FieldType::default(),
-                                access: None,
-                            },
-                        ),
-                        (
-                            "F1".into(),
-                            LayoutField {
-                                bits: Bits::Bit(1),
-                                doc: None,
-                                accepts: FieldType::default(),
-                                access: None,
-                            },
-                        ),
-                    ])),
-                    ..Default::default()
-                }),
-            )]),
-            ..Default::default()
-        };
-    }
+    static BASIC_REGISTER_EXPECT: LazyLock<RegisterMap> = LazyLock::new(|| RegisterMap {
+        name: "DummyChip".to_string(),
+        registers: BTreeMap::from([(
+            "FIFOCTRL4".into(),
+            RegisterListing::Register(Register {
+                adr: 0x10,
+                layout: RegisterLayout::Layout(BTreeMap::from([
+                    (
+                        "F7".into(),
+                        LayoutField {
+                            bits: Bits::Bit(7),
+                            doc: None,
+                            accepts: FieldType::default(),
+                            access: None,
+                        },
+                    ),
+                    (
+                        "F1".into(),
+                        LayoutField {
+                            bits: Bits::Bit(1),
+                            doc: None,
+                            accepts: FieldType::default(),
+                            access: None,
+                        },
+                    ),
+                ])),
+                ..Default::default()
+            }),
+        )]),
+        ..Default::default()
+    });
 
     #[test]
     fn deser_yaml_basic_register() {
@@ -457,17 +452,15 @@ mod tests {
         assert_eq!(is, *BASIC_REGISTER_EXPECT);
     }
 
-    lazy_static! {
-        static ref FIELD_ENUM_EXCEPT: LayoutField = LayoutField {
-            bits: Bits::Bit(1),
-            doc: None,
-            accepts: FieldType::Enum(BTreeMap::from([
-                ("A".into(), EnumEntry { val: 0x1, doc: None },),
-                ("B".into(), EnumEntry { val: 0x0, doc: None },),
-            ])),
-            access: None,
-        };
-    }
+    static FIELD_ENUM_EXCEPT: LazyLock<LayoutField> = LazyLock::new(|| LayoutField {
+        bits: Bits::Bit(1),
+        doc: None,
+        accepts: FieldType::Enum(BTreeMap::from([
+            ("A".into(), EnumEntry { val: 0x1, doc: None }),
+            ("B".into(), EnumEntry { val: 0x0, doc: None }),
+        ])),
+        access: None,
+    });
 
     #[test]
     fn deser_yaml_field_enum() {
@@ -502,14 +495,12 @@ mod tests {
         assert_eq!(field_is, *FIELD_ENUM_EXCEPT);
     }
 
-    lazy_static! {
-        static ref FIELD_SHARED_ENUM_EXPECT: LayoutField = LayoutField {
-            bits: Bits::Bit(1),
-            doc: None,
-            accepts: FieldType::SharedEnum("TestEnum".into()),
-            access: None,
-        };
-    }
+    static FIELD_SHARED_ENUM_EXPECT: LazyLock<LayoutField> = LazyLock::new(|| LayoutField {
+        bits: Bits::Bit(1),
+        doc: None,
+        accepts: FieldType::SharedEnum("TestEnum".into()),
+        access: None,
+    });
 
     #[test]
     fn deser_yaml_field_shared_enum() {

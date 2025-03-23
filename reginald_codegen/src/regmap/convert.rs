@@ -5,9 +5,8 @@ use crate::{
 
 use reginald_utils::join_with_underscore;
 
-use lazy_static::lazy_static;
 use regex::Regex;
-use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
+use std::{collections::BTreeMap, path::PathBuf, rc::Rc, sync::LazyLock};
 
 use super::{
     Access, AccessMode, Defaults, Docs, Enum, EnumEntry, FieldType, LayoutField, Register, RegisterBlock,
@@ -89,9 +88,7 @@ fn convert_bitpos(bitpos: TypeBitwidth, bt: &str) -> Result<BitRange, Error> {
     Ok(BitRange(bitpos..=bitpos))
 }
 
-lazy_static! {
-    static ref BITRANGE_RE: Regex = Regex::new(r"[^_a-zA-Z0-9]").unwrap();
-}
+static BITRANGE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[^_a-zA-Z0-9]").unwrap());
 
 fn convert_bitrange(bitrange: &str, bt: &str) -> Result<BitRange, Error> {
     if !BITRANGE_RE.is_match(bitrange) {

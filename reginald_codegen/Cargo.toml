@@ -15,7 +15,6 @@ test_gen_output = []
 [dependencies]
 reginald_utils = { path = "../reginald_utils" }
 regex          = "1.10.3"
-lazy_static    = "1.4.0"
 serde          = { version = "1.0.197", features = ["derive"] }
 serde_yaml     = "0.9.32"
 deser-hjson    = "2.2.4"

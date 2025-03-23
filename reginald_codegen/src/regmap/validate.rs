@@ -1,14 +1,13 @@
 use std::collections::{BTreeMap, HashSet};
 use std::ops::Deref;
+use std::sync::LazyLock;
 
 use super::{Docs, Enum, FieldType, Layout, LayoutField, MAX_BITWIDTH, Register, TypeBitwidth, TypeValue};
 use crate::bits::{bitmask_from_width, fits_into_bitwidth};
 use crate::error::Error;
-use lazy_static::lazy_static;
 use regex::Regex;
-lazy_static! {
-    static ref NAME_REGEX: Regex = Regex::new(r"^[_a-zA-Z]").unwrap();
-}
+
+static NAME_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[_a-zA-Z]").unwrap());
 
 pub fn validate_name(name: &str, bt: &str, bt_extra: &str) -> Result<(), Error> {
     if !name.is_empty() && !NAME_REGEX.is_match(name) {
