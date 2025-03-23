@@ -174,6 +174,12 @@ pub struct Defaults {
     pub field_access_mode: Option<Access>,
 }
 
+impl Defaults {
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 #[serde(deny_unknown_fields)]
 pub struct RegisterMap {
@@ -186,15 +192,19 @@ pub struct RegisterMap {
     pub author: Option<String>,
 
     #[serde(default)]
+    #[serde(skip_serializing_if = "Defaults::is_default")]
     pub defaults: Defaults,
 
     #[serde(default = "BTreeMap::new")]
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub enums: BTreeMap<String, SharedEnum>,
 
     #[serde(default = "BTreeMap::new")]
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub layouts: BTreeMap<String, SharedLayout>,
 
     #[serde(default = "BTreeMap::new")]
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub registers: BTreeMap<String, RegisterListing>,
 }
 
