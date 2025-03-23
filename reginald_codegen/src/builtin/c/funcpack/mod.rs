@@ -48,7 +48,7 @@ pub struct GeneratorOpts {
     #[cfg_attr(feature = "cli", arg(conflicts_with("dont_generate")))]
     pub endian: Vec<Endianess>,
 
-    /// For other endianess, generate only simple functions that defers to this implementaiton.
+    /// For other endianess, generate only simple functions that defers to this implementation.
     ///
     /// If generating both endianess versions, only generate one complete
     /// function implementation and have the other endianess defer to this
@@ -59,7 +59,7 @@ pub struct GeneratorOpts {
 
     /// Make register structs bitfields to reduce their memory size
     ///
-    /// Note that their memory layout will not match the actual register
+    /// May reduce performance. Note that their memory layout will not match the actual register
     /// and the (un)packing functions must still be used.
     #[cfg_attr(feature = "cli", arg(long))]
     #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
