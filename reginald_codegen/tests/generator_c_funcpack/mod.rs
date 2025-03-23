@@ -1,10 +1,17 @@
-use std::{fs, path::PathBuf, process::Command};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use tempfile::{TempDir, tempdir};
 
 use reginald_codegen::{
-    builtin::c::funcpack::{Element, GeneratorOpts},
-    cli::cmd::generate::{self, Generator},
+    builtin::c::{
+        self,
+        funcpack::{Element, GeneratorOpts},
+    },
+    regmap::RegisterMap,
     utils::Endianess,
 };
 
@@ -120,17 +127,17 @@ fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let artifacts_dir = manifest_dir.join(PathBuf::from("tests/generator_c_funcpack/artifacts"));
 
-    generate::cmd(generate::Command {
-        input: TEST_MAP_FILE.to_owned(),
-        output: output_path.clone(),
-        overwrite_map_name: None,
-        verify: false,
-        generator: Generator::CFuncpack(opts),
-    })
-    .unwrap();
+    let map = RegisterMap::from_file(&TEST_MAP_FILE).unwrap();
 
+    let mut out = String::new();
+    c::funcpack::generate(&mut out, &map, Path::new(output_name), &opts).unwrap();
+
+    // Write to output file:
+    fs::write(&output_path, &out).unwrap();
+
+    // Write to artifacts_dir file:
     fs::create_dir_all(&artifacts_dir).unwrap();
-    fs::copy(output_path, artifacts_dir.join(PathBuf::from(output_name))).unwrap();
+    fs::write(artifacts_dir.join(PathBuf::from(output_name)), out).unwrap();
 }
 
 // ==== Tests ==================================================================

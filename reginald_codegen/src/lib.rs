@@ -7,6 +7,3 @@ pub mod error;
 pub mod regmap;
 pub mod utils;
 pub mod writer;
-
-#[cfg(feature = "cli")]
-pub mod cli;

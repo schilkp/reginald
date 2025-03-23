@@ -6,7 +6,7 @@ use std::{fmt::Write, path::Path, rc::Rc};
 
 use reginald_utils::str_pad_to_length;
 
-#[cfg(feature = "cli")]
+#[cfg(feature = "clap")]
 use clap::{Parser, ValueEnum};
 
 use crate::{
@@ -25,7 +25,7 @@ use super::{
 // ====== Generator Opts =======================================================
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "cli", derive(ValueEnum))]
+#[cfg_attr(feature = "clap", derive(ValueEnum))]
 pub enum Element {
     Enums,
     EnumValidationMacros,
@@ -36,84 +36,84 @@ pub enum Element {
 }
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "cli", derive(Parser))]
+#[cfg_attr(feature = "clap", derive(Parser))]
 pub struct GeneratorOpts {
     /// Generate functions and enums with the given endianess.
     ///
     /// May be given multiple times. If not specified, both endianess
     /// versions will be generated.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    #[cfg_attr(feature = "cli", arg(conflicts_with("dont_generate")))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(conflicts_with("dont_generate")))]
     pub endian: Vec<Endianess>,
 
     /// For other endianess, generate only simple functions that defers to this implementation.
     ///
     /// If generating both endianess versions, only generate one complete
     /// function implementation and have the other endianess defer to this
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub defer_to_endian: Option<Endianess>,
 
     /// Make register structs bitfields to reduce their memory size
     ///
     /// May reduce performance. Note that their memory layout will not match the actual register
     /// and the (un)packing functions must still be used.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().registers_as_bitfields))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().registers_as_bitfields))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub registers_as_bitfields: bool,
 
     /// Max enum bitwidth before it is represented using macros instead of an enum.
     ///
     /// Set to zero to have all enums be represented using macros.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().max_enum_bitwidth))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().max_enum_bitwidth))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub max_enum_bitwidth: TypeBitwidth,
 
     /// Header file that should be included at the top of the generated header
     ///
     /// May be given multiple times.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub add_include: Vec<String>,
 
     /// Make all functions static inline.
     ///
     /// May be disabled if splitting code into header and source.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().funcs_static_inline))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().funcs_static_inline))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub funcs_static_inline: bool,
 
     /// Generate function prototypes instead of full implementations.
     ///
     /// May be enabled if splitting code into header and source.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().funcs_as_prototypes))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().funcs_as_prototypes))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub funcs_as_prototypes: bool,
 
     /// Surround file with a clang-format off guard
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().clang_format_guard))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().clang_format_guard))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub clang_format_guard: bool,
 
     /// Generate include guard
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().include_guards))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().include_guards))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub include_guards: bool,
 
     /// Only generate a subset of the elements/sections usually included in
@@ -125,10 +125,10 @@ pub struct GeneratorOpts {
     /// Note that different components depend on each other. It is up to the
     /// user to generate all required sections, or add includes that provide
     /// those elements.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    #[cfg_attr(feature = "cli", arg(conflicts_with("dont_generate")))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(conflicts_with("dont_generate")))]
     pub only_generate: Vec<Element>,
 
     /// Skip generation of some element/section usually included in a complete
@@ -138,10 +138,10 @@ pub struct GeneratorOpts {
     /// Note that different components depend on each other. It is up to the
     /// user to generate all required sections, or add includes that provide
     /// those elements.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
-    #[cfg_attr(feature = "cli", arg(conflicts_with("only_generate")))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(conflicts_with("only_generate")))]
     pub dont_generate: Vec<Element>,
 }
 

@@ -1,9 +1,8 @@
-pub mod cmd;
+mod cmd;
 mod diff;
 
-use std::process::ExitCode;
-
 use clap::Parser;
+use std::process::ExitCode;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -15,7 +14,7 @@ enum Cli {
     Tool(cmd::tool::Command),
 }
 
-pub fn cli_main() -> ExitCode {
+fn main() -> ExitCode {
     let cli = Cli::parse();
 
     let err = match cli {

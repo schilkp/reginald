@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[cfg(feature = "cli")]
+#[cfg(feature = "clap")]
 use clap::ValueEnum;
 
 use crate::regmap::{TypeBitwidth, TypeValue};
@@ -8,7 +8,7 @@ use crate::regmap::{TypeBitwidth, TypeValue};
 // FIXME Remove this and port to reginald_utils impls with bits.
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
-#[cfg_attr(feature = "cli", derive(ValueEnum))]
+#[cfg_attr(feature = "clap", derive(ValueEnum))]
 pub enum Endianess {
     Little,
     Big,

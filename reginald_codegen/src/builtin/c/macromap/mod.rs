@@ -1,6 +1,6 @@
 use std::{fmt::Write, path::Path};
 
-#[cfg(feature = "cli")]
+#[cfg(feature = "clap")]
 use clap::Parser;
 use reginald_utils::str_table;
 
@@ -15,21 +15,21 @@ use super::{c_generate_section_header_comment, c_layout_overview_comment, c_macr
 // ====== Generator Opts =======================================================
 
 #[derive(Debug)]
-#[cfg_attr(feature = "cli", derive(Parser))]
+#[cfg_attr(feature = "clap", derive(Parser))]
 pub struct GeneratorOpts {
     /// Surround header with a clang-format off guard
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().clang_format_guard))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().clang_format_guard))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub clang_format_guard: bool,
 
     /// Header file that should be included at the top of the generated header
     ///
     /// May be given multiple times.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub add_include: Vec<String>,
 }
 

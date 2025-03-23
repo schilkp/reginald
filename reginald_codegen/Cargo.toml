@@ -8,28 +8,19 @@ edition.workspace    = true
 repository.workspace = true
 license.workspace    = true
 
-[[bin]]
-name              = "reginald"
-path              = "src/main.rs"
-required-features = ["cli"]
-
 [features]
-default         = ["cli"]
-cli             = ["dep:clap", "dep:clap_complete", "dep:similar", "dep:console", "reginald_utils/clap"]
+clap            = ["dep:clap", "reginald_utils/clap"]
 test_gen_output = []
 
 [dependencies]
 reginald_utils = { path = "../reginald_utils" }
 regex          = "1.10.3"
 lazy_static    = "1.4.0"
-thiserror      = "2.0.12"
 serde          = { version = "1.0.197", features = ["derive"] }
 serde_yaml     = "0.9.32"
 deser-hjson    = "2.2.4"
 clap           = { workspace = true,    features = ["derive"], optional = true }
-clap_complete  = { workspace = true,    features = [],         optional = true }
-similar        = { version = "2.4.0",   features = ["inline"], optional = true }
-console        = { version = "0.15.8",  features = [],         optional = true }
+thiserror      = { workspace = true }
 serde_json     = "1.0.140"
 
 [dev-dependencies]

@@ -1,9 +1,9 @@
 use std::io;
 
-use crate::error::Error;
 use clap::{CommandFactory, Parser};
+use reginald_codegen::error::Error;
 
-use crate::cli::Cli;
+use crate::Cli;
 
 #[derive(Parser, Debug)]
 #[command(about = "Print completion script for specified shell")]

@@ -13,7 +13,7 @@ use crate::{
 
 use super::generate_register_infos;
 
-#[cfg(feature = "cli")]
+#[cfg(feature = "clap")]
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
@@ -60,10 +60,10 @@ fn read_regdump(path: &Path) -> Result<RegDump, Error> {
 // ====== Generator Options ====================================================
 
 #[derive(Debug)]
-#[cfg_attr(feature = "cli", derive(Parser))]
+#[cfg_attr(feature = "clap", derive(Parser))]
 pub struct GeneratorOpts {
     /// Path to YAML register dump file
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub map: PathBuf,
 }
 

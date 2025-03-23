@@ -1,10 +1,14 @@
-use std::{fs, path::PathBuf, process::Command};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use tempfile::{TempDir, tempdir};
 
 use reginald_codegen::{
-    builtin::c::macromap::GeneratorOpts,
-    cli::cmd::generate::{self, Generator},
+    builtin::c::{self, macromap::GeneratorOpts},
+    regmap::RegisterMap,
 };
 
 use crate::{TEST_MAP_FILE, print_cmd_output};
@@ -82,6 +86,24 @@ fn finish_test(d: TempDir) {
     d.close().unwrap();
 }
 
+fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
+    let output_path = d.path().to_owned().join(PathBuf::from(output_name));
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let artifacts_dir = manifest_dir.join(PathBuf::from("tests/generator_c_funcpack/artifacts"));
+
+    let map = RegisterMap::from_file(&TEST_MAP_FILE).unwrap();
+
+    let mut out = String::new();
+    c::macromap::generate(&mut out, &map, Path::new(output_name), &opts).unwrap();
+
+    // Write to output file:
+    fs::write(&output_path, &out).unwrap();
+
+    // Write to artifacts_dir file:
+    fs::create_dir_all(&artifacts_dir).unwrap();
+    fs::write(artifacts_dir.join(PathBuf::from(output_name)), out).unwrap();
+}
+
 // ==== Tests ==================================================================
 
 #[test]
@@ -89,17 +111,14 @@ fn finish_test(d: TempDir) {
 fn generator_c_macromap_c99() {
     let d = tempdir().unwrap();
 
-    generate::cmd(generate::Command {
-        input: TEST_MAP_FILE.to_owned(),
-        output: d.path().to_owned().join(PathBuf::from("out.h")),
-        overwrite_map_name: None,
-        verify: false,
-        generator: Generator::CMacromap(GeneratorOpts {
+    run_reginald(
+        &d,
+        "out.h",
+        GeneratorOpts {
             clang_format_guard: true,
             add_include: vec![],
-        }),
-    })
-    .unwrap();
+        },
+    );
 
     test_generated_code(&d, &["-std=c99"], &[]);
 

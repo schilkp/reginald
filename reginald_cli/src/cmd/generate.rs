@@ -1,14 +1,14 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::builtin::c;
-use crate::builtin::md;
-use crate::builtin::rs;
-use crate::error::Error;
-use crate::regmap::RegisterMap;
 use clap::Parser;
+use reginald_codegen::builtin::c;
+use reginald_codegen::builtin::md;
+use reginald_codegen::builtin::rs;
+use reginald_codegen::error::Error;
+use reginald_codegen::regmap::RegisterMap;
 
-use crate::cli::diff;
+use crate::diff;
 
 #[derive(Parser, Debug)]
 #[command(about = "Generate register management code from register listing")]

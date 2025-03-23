@@ -13,7 +13,7 @@ use crate::{
     writer::header_writer::HeaderWriter,
 };
 
-#[cfg(feature = "cli")]
+#[cfg(feature = "clap")]
 use clap::Parser;
 
 use self::layouts::LayoutStructKind;
@@ -26,41 +26,41 @@ use super::{
 // ====== Generator Opts =======================================================
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "cli", derive(Parser))]
+#[cfg_attr(feature = "clap", derive(Parser))]
 pub struct GeneratorOpts {
     /// Rust type to use for register addresses.
     ///
     /// If none is specified, the smallest unsigned type capable of storing
     /// the largest address will be used.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub address_type: Option<String>,
 
     /// Trait to derive on all register structs.
     ///
     /// May be given multiple times.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub struct_derive: Vec<String>,
 
     /// Trait to derive on all enums.
     ///
     /// May be given multiple times. Note: All enums always derive
     /// the "Clone" and "Copy" traits.
-    #[cfg_attr(feature = "cli", arg(long = "enum-derive"))]
-    #[cfg_attr(feature = "cli", arg(value_name = "DERIVE"))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long = "enum-derive"))]
+    #[cfg_attr(feature = "clap", arg(value_name = "DERIVE"))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub raw_enum_derive: Vec<String>,
 
     /// Module should be 'use'ed at the top of the generated module.
     ///
     /// May be given multiple times.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub add_use: Vec<String>,
 
     /// Module attributes that should be added at the top of the generated file.
@@ -69,9 +69,9 @@ pub struct GeneratorOpts {
     /// added to to the beginning of the generated module.
     ///
     /// May be given multiple times.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub add_attribute: Vec<String>,
 
     /// Use an external definition of the `ToBytes`/`FromBytes`/`TryFromBytes` traits,
@@ -79,18 +79,18 @@ pub struct GeneratorOpts {
     /// No trait definition are generated, and implementations of the traits refeer
     /// to `[prefix]ToBytes`, `[prefix]FromBytes`, and `[prefix]TryFromBytes`,
     /// where `[preifx]` is the value given to this flag.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub external_traits: Option<String>,
 
     /// Generate `From/TryFrom/From` implementations that convert a register
     /// to/from the smallest rust unsigned integer value wide enough to hold the
     /// register, if one exists.
-    #[cfg_attr(feature = "cli", arg(long))]
-    #[cfg_attr(feature = "cli", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "cli", arg(default_value_t = Self::default().generate_uint_conversion))]
-    #[cfg_attr(feature = "cli", arg(verbatim_doc_comment))]
+    #[cfg_attr(feature = "clap", arg(long))]
+    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
+    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().generate_uint_conversion))]
+    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub generate_uint_conversion: bool,
 }
 

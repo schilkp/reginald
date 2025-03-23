@@ -1,0 +1,21 @@
+[package]
+name = "reginald_cli"
+
+version.workspace    = true
+authors.workspace    = true
+edition.workspace    = true
+repository.workspace = true
+license.workspace    = true
+
+[[bin]]
+name = "reginald"
+path = "src/main.rs"
+
+[dependencies]
+reginald_codegen = { path = "../reginald_codegen", features = ["clap"] }
+
+clap             = { workspace = true,             features = ["derive"] }
+clap_complete    = { workspace = true }
+thiserror        = { workspace = true }
+similar          = { version   = "2.4.0",          features = ["inline"] }
+console          = { version   = "0.15.8" }
