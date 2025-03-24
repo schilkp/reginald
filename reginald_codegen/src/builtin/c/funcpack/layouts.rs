@@ -463,6 +463,8 @@ fn generate_layout_validation_func(out: &mut dyn Write, inp: &Input, layout: &La
         return Ok(());
     }
     writeln!(out, "{func_sig} {{")?;
+
+    let mut valid_stmt_cnt = 0;
     for field in layout.fields_with_content() {
         let error_code = field.bits.lsb_pos() + 1;
         let field_name = c_code(&field.name);
@@ -472,15 +474,17 @@ fn generate_layout_validation_func(out: &mut dyn Write, inp: &Input, layout: &La
         match &field.accepts {
             FieldType::UInt => {
                 writeln!(out, "  if ((r->{field_name} & ~({uint_type})0x{unpos_mask:X}) != 0) return {error_code};")?;
+                valid_stmt_cnt += 1;
             }
             FieldType::Enum(e) => {
                 let macro_name = c_macro(&e.name);
-
                 writeln!(out, "  if (!({macro_prefix}_IS_VALID_{macro_name}(r->{field_name}))) return {error_code};")?;
+                valid_stmt_cnt += 1;
             }
             FieldType::Layout(l) => {
                 let layout_name = c_code(&l.name);
                 writeln!(out, "  if ({code_prefix}_validate_{layout_name}(&r->{field_name})) return {error_code};")?;
+                valid_stmt_cnt += 1;
             }
             FieldType::Bool => continue,
             FieldType::Fixed(_) => unreachable!(),
@@ -488,7 +492,7 @@ fn generate_layout_validation_func(out: &mut dyn Write, inp: &Input, layout: &La
     }
 
     // Prevent unused args warnings:
-    if layout.fields_with_content().count() == 0 {
+    if valid_stmt_cnt == 0 {
         writeln!(out, "  (void)r;")?;
     }
 
