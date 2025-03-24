@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     Element, Input, c_code, c_generate_header_comment, c_generate_section_header_comment, c_layout_overview_comment,
-    c_macro, is_enabled, layouts, to_array_init,
+    c_macro, layouts, to_array_init,
 };
 
 /// Generate register section header comment
@@ -26,7 +26,7 @@ pub fn generate_register(out: &mut dyn Write, inp: &Input, register: &Register) 
     // If the layout is local to this register, generate it:
     if register.layout.is_local {
         layouts::generate_layout(&mut out, inp, &register.layout)?;
-    } else if is_enabled(inp, Element::Structs) {
+    } else if inp.opts.is_enabled(Element::Structs) {
         writeln!(&mut out)?;
         writeln!(
             out,
@@ -48,7 +48,7 @@ fn generate_register_header(out: &mut dyn Write, inp: &Input, register: &Registe
     if !register.docs.is_empty() {
         write!(out, "{}", register.docs.as_multiline("// "))?;
     }
-    if is_enabled(inp, Element::Structs) {
+    if inp.opts.is_enabled(Element::Structs) {
         writeln!(out, "// Fields:")?;
         writeln!(out, "{}", c_layout_overview_comment(&register.layout))?;
     }
@@ -56,7 +56,7 @@ fn generate_register_header(out: &mut dyn Write, inp: &Input, register: &Registe
 }
 
 fn generate_register_properties(out: &mut dyn Write, inp: &Input, register: &Register) -> Result<(), Error> {
-    if !is_enabled(inp, Element::RegisterProperties) {
+    if !inp.opts.is_enabled(Element::RegisterProperties) {
         return Ok(());
     }
 
@@ -72,7 +72,7 @@ fn generate_register_properties(out: &mut dyn Write, inp: &Input, register: &Reg
         format!("//!< {} register address", register.name),
     ]);
 
-    for endian in &inp.endian {
+    for endian in &inp.opts.endian {
         // Reset value:
         if let Some(reset_val) = &register.reset_val {
             defines.push(vec![
@@ -108,7 +108,7 @@ pub fn generate_register_block(out: &mut dyn Write, inp: &Input, block: &Registe
         generate_register_block_member_properties(&mut out, inp, member, block)?;
         if member.layout.is_local {
             layouts::generate_layout(&mut out, inp, &member.layout)?;
-        } else if is_enabled(inp, Element::Structs) {
+        } else if inp.opts.is_enabled(Element::Structs) {
             writeln!(&mut out)?;
             writeln!(
                 out,
@@ -161,7 +161,7 @@ fn generate_register_block_header(out: &mut dyn Write, block: &RegisterBlock) ->
 }
 
 fn generate_register_block_properties(out: &mut dyn Write, inp: &Input, block: &RegisterBlock) -> Result<(), Error> {
-    if !is_enabled(inp, Element::RegisterProperties) {
+    if !inp.opts.is_enabled(Element::RegisterProperties) {
         return Ok(());
     }
 
@@ -216,7 +216,7 @@ fn generate_register_block_member_header(
         write!(out, "{}", member.docs.as_multiline("// "))?;
     }
 
-    if is_enabled(inp, Element::Structs) {
+    if inp.opts.is_enabled(Element::Structs) {
         writeln!(out, "// Fields:")?;
         writeln!(out, "{}", c_layout_overview_comment(&member.layout))?;
     }
@@ -229,7 +229,7 @@ fn generate_register_block_member_properties(
     member: &RegisterBlockMember,
     block: &RegisterBlock,
 ) -> Result<(), Error> {
-    if !is_enabled(inp, Element::RegisterProperties) {
+    if !inp.opts.is_enabled(Element::RegisterProperties) {
         return Ok(());
     }
 
@@ -247,7 +247,7 @@ fn generate_register_block_member_properties(
             format!("//!< {} register address", member_instance.name),
         ]);
 
-        for endian in &inp.endian {
+        for endian in &inp.opts.endian {
             // Reset value:
             if let Some(reset_val) = &member_instance.reset_val {
                 defines.push(vec![

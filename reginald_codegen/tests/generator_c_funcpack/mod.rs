@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     fs,
     path::{Path, PathBuf},
     process::Command,
@@ -130,7 +131,7 @@ fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
     let map = RegisterMap::from_file(&TEST_MAP_FILE).unwrap();
 
     let mut out = String::new();
-    c::funcpack::generate(&mut out, &map, Path::new(output_name), &opts).unwrap();
+    c::funcpack::generate(&mut out, &map, Path::new(output_name), opts).unwrap();
 
     // Write to output file:
     fs::write(&output_path, &out).unwrap();
@@ -147,14 +148,10 @@ fn run_reginald(d: &TempDir, output_name: &str, opts: GeneratorOpts) {
 fn generator_c_funcpack_c99() {
     let d = tempdir().unwrap();
 
-    run_reginald(
-        &d,
-        "out.h",
-        GeneratorOpts {
-            dont_generate: vec![Element::GenericMacros],
-            ..GeneratorOpts::default()
-        },
-    );
+    let mut opts = GeneratorOpts::default();
+    opts.to_generate.remove(&Element::GenericMacros);
+
+    run_reginald(&d, "out.h", opts);
 
     test_generated_code(&d, &["-DTEST_SKIP_GENERIC_MACROS", "-std=c99"], &[]);
 
@@ -239,7 +236,7 @@ fn generator_c_funcpack_split_header_source() {
             funcs_static_inline: false,
             add_include: vec!["out.h".to_string()],
             include_guards: false,
-            only_generate: vec![Element::StructConversionFuncs],
+            to_generate: HashSet::from([Element::StructConversionFuncs]),
             ..GeneratorOpts::default()
         },
     );
@@ -258,7 +255,7 @@ fn generator_c_funcpack_split_headers() {
         &d,
         "out_enum.h",
         GeneratorOpts {
-            only_generate: vec![Element::Enums],
+            to_generate: HashSet::from([Element::Enums]),
             ..GeneratorOpts::default()
         },
     );
@@ -267,7 +264,7 @@ fn generator_c_funcpack_split_headers() {
         &d,
         "out_enum_validation.h",
         GeneratorOpts {
-            only_generate: vec![Element::EnumValidationMacros],
+            to_generate: HashSet::from([Element::EnumValidationMacros]),
             add_include: vec!["out_enum.h".to_string()],
             ..GeneratorOpts::default()
         },
@@ -277,7 +274,7 @@ fn generator_c_funcpack_split_headers() {
         &d,
         "out_structs.h",
         GeneratorOpts {
-            only_generate: vec![Element::Structs],
+            to_generate: HashSet::from([Element::Structs]),
             add_include: vec!["out_enum_validation.h".to_string()],
             ..GeneratorOpts::default()
         },
@@ -287,7 +284,7 @@ fn generator_c_funcpack_split_headers() {
         &d,
         "out_struct_conv.h",
         GeneratorOpts {
-            only_generate: vec![Element::StructConversionFuncs],
+            to_generate: HashSet::from([Element::StructConversionFuncs]),
             add_include: vec!["out_structs.h".to_string()],
             ..GeneratorOpts::default()
         },
@@ -297,7 +294,7 @@ fn generator_c_funcpack_split_headers() {
         &d,
         "out_reg_props.h",
         GeneratorOpts {
-            only_generate: vec![Element::RegisterProperties],
+            to_generate: HashSet::from([Element::RegisterProperties]),
             add_include: vec!["out_struct_conv.h".to_string()],
             ..GeneratorOpts::default()
         },
@@ -307,7 +304,7 @@ fn generator_c_funcpack_split_headers() {
         &d,
         "out.h",
         GeneratorOpts {
-            only_generate: vec![Element::GenericMacros],
+            to_generate: HashSet::from([Element::GenericMacros]),
             add_include: vec!["out_reg_props.h".to_string()],
             ..GeneratorOpts::default()
         },

@@ -7,11 +7,11 @@ use crate::{
 
 use reginald_utils::numbers_as_ranges;
 
-use super::{Element, Input, c_code, c_generate_doxy_comment, c_macro, generate_multiline_macro, is_enabled};
+use super::{Element, Input, c_code, c_generate_doxy_comment, c_macro, generate_multiline_macro};
 
 /// Generate an enum
 pub fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {
-    if !is_enabled(inp, Element::Enums) {
+    if !inp.opts.is_enabled(Element::Enums) {
         return Ok(());
     }
 
@@ -48,7 +48,7 @@ pub fn generate_enum(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), E
 
 /// Generate an enum validation func
 pub fn generate_enum_validation_macro(out: &mut dyn Write, inp: &Input, e: &Enum) -> Result<(), Error> {
-    if !is_enabled(inp, Element::EnumValidationMacros) {
+    if !inp.opts.is_enabled(Element::EnumValidationMacros) {
         return Ok(());
     }
 

@@ -56,7 +56,7 @@ pub fn convert_listing_format(
 // ==== FUNCPACK  ==============================================================
 
 mod c_funcpack {
-    use std::path::Path;
+    use std::{collections::HashSet, path::Path};
 
     use crate::{Endianess, ListingFormat};
     use reginald_codegen::{
@@ -127,34 +127,24 @@ mod c_funcpack {
             Endianess::Big => ActualEndianess::Big,
         });
 
-        let mut only_generate: Vec<Element> = vec![];
+        let mut to_generate: HashSet<Element> = HashSet::new();
         if wasm_opts.gen_enums {
-            only_generate.push(Element::Enums)
+            to_generate.insert(Element::Enums);
         }
         if wasm_opts.gen_enum_validation {
-            only_generate.push(Element::EnumValidationMacros)
+            to_generate.insert(Element::EnumValidationMacros);
         }
         if wasm_opts.gen_structs {
-            only_generate.push(Element::Structs)
+            to_generate.insert(Element::Structs);
         }
         if wasm_opts.gen_struct_conv {
-            only_generate.push(Element::StructConversionFuncs)
+            to_generate.insert(Element::StructConversionFuncs);
         }
         if wasm_opts.gen_reg_properties {
-            only_generate.push(Element::RegisterProperties)
+            to_generate.insert(Element::RegisterProperties);
         }
         if wasm_opts.gen_generics {
-            only_generate.push(Element::GenericMacros)
-        }
-
-        let mut dont_generate: Vec<Element> = vec![];
-        if only_generate.is_empty() {
-            dont_generate.push(Element::Enums);
-            dont_generate.push(Element::EnumValidationMacros);
-            dont_generate.push(Element::Structs);
-            dont_generate.push(Element::StructConversionFuncs);
-            dont_generate.push(Element::RegisterProperties);
-            dont_generate.push(Element::GenericMacros);
+            to_generate.insert(Element::GenericMacros);
         }
 
         let opts: GeneratorOpts = GeneratorOpts {
@@ -167,12 +157,11 @@ mod c_funcpack {
             funcs_as_prototypes: wasm_opts.funcs_as_prototypes,
             clang_format_guard: wasm_opts.clang_format_guard,
             include_guards: wasm_opts.include_guards,
-            only_generate,
-            dont_generate,
+            to_generate,
         };
 
         let mut out = String::new();
-        generate(&mut out, &map, Path::new(&format!("{}.c", map.name)), &opts).map_err(|e| e.to_string())?;
+        generate(&mut out, &map, Path::new(&format!("{}.c", map.name)), opts).map_err(|e| e.to_string())?;
 
         Ok(out)
     }

@@ -2,12 +2,12 @@ mod enums;
 mod layouts;
 mod registers;
 
-use std::{fmt::Write, path::Path, rc::Rc};
+use std::{collections::HashSet, fmt::Write, path::Path, rc::Rc};
 
 use reginald_utils::str_pad_to_length;
 
 #[cfg(feature = "clap")]
-use clap::{Parser, ValueEnum};
+use clap::ValueEnum;
 
 use crate::{
     bits::unpositioned_mask,
@@ -24,7 +24,7 @@ use super::{
 
 // ====== Generator Opts =======================================================
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "clap", derive(ValueEnum))]
 pub enum Element {
     Enums,
@@ -36,119 +36,59 @@ pub enum Element {
 }
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "clap", derive(Parser))]
 pub struct GeneratorOpts {
     /// Generate functions and enums with the given endianess.
-    ///
-    /// May be given multiple times. If not specified, both endianess
-    /// versions will be generated.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
-    #[cfg_attr(feature = "clap", arg(conflicts_with("dont_generate")))]
     pub endian: Vec<Endianess>,
 
     /// For other endianess, generate only simple functions that defers to this implementation.
     ///
     /// If generating both endianess versions, only generate one complete
     /// function implementation and have the other endianess defer to this
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub defer_to_endian: Option<Endianess>,
 
     /// Make register structs bitfields to reduce their memory size
     ///
     /// May reduce performance. Note that their memory layout will not match the actual register
     /// and the (un)packing functions must still be used.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().registers_as_bitfields))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub registers_as_bitfields: bool,
 
     /// Max enum bitwidth before it is represented using macros instead of an enum.
     ///
     /// Set to zero to have all enums be represented using macros.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().max_enum_bitwidth))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub max_enum_bitwidth: TypeBitwidth,
 
     /// Header file that should be included at the top of the generated header
-    ///
-    /// May be given multiple times.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub add_include: Vec<String>,
 
     /// Make all functions static inline.
     ///
     /// May be disabled if splitting code into header and source.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().funcs_static_inline))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub funcs_static_inline: bool,
 
     /// Generate function prototypes instead of full implementations.
     ///
     /// May be enabled if splitting code into header and source.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().funcs_as_prototypes))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub funcs_as_prototypes: bool,
 
     /// Surround file with a clang-format off guard
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().clang_format_guard))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub clang_format_guard: bool,
 
     /// Generate include guard
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Set))]
-    #[cfg_attr(feature = "clap", arg(default_value_t = Self::default().include_guards))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
     pub include_guards: bool,
 
-    /// Only generate a subset of the elements/sections usually included in
-    /// a complete output file.
+    /// Set of elements to generate.
     ///
-    /// This option is mutually exclusive with 'dont_generate'
-    /// If this option is not given, all elements are generated. This option
-    /// may be given multiple times.
+    /// May be used to split generated content into multiple files.
     /// Note that different components depend on each other. It is up to the
     /// user to generate all required sections, or add includes that provide
     /// those elements.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
-    #[cfg_attr(feature = "clap", arg(conflicts_with("dont_generate")))]
-    pub only_generate: Vec<Element>,
-
-    /// Skip generation of some element/section usually included in a complete
-    /// output file.
-    ///
-    /// This option is mutually exclusive with 'only_generate'
-    /// Note that different components depend on each other. It is up to the
-    /// user to generate all required sections, or add includes that provide
-    /// those elements.
-    #[cfg_attr(feature = "clap", arg(long))]
-    #[cfg_attr(feature = "clap", arg(action = clap::ArgAction::Append))]
-    #[cfg_attr(feature = "clap", arg(verbatim_doc_comment))]
-    #[cfg_attr(feature = "clap", arg(conflicts_with("only_generate")))]
-    pub dont_generate: Vec<Element>,
+    pub to_generate: HashSet<Element>,
 }
 
 impl Default for GeneratorOpts {
     fn default() -> Self {
         Self {
-            endian: vec![],
+            endian: vec![Endianess::Little, Endianess::Big],
             defer_to_endian: None,
             registers_as_bitfields: false,
             max_enum_bitwidth: 31,
@@ -157,9 +97,21 @@ impl Default for GeneratorOpts {
             funcs_as_prototypes: false,
             clang_format_guard: true,
             include_guards: true,
-            only_generate: vec![],
-            dont_generate: vec![],
+            to_generate: HashSet::from([
+                Element::Enums,
+                Element::EnumValidationMacros,
+                Element::Structs,
+                Element::StructConversionFuncs,
+                Element::RegisterProperties,
+                Element::GenericMacros,
+            ]),
         }
+    }
+}
+
+impl GeneratorOpts {
+    fn is_enabled(&self, element: Element) -> bool {
+        self.to_generate.contains(&element)
     }
 }
 
@@ -169,26 +121,23 @@ struct Input<'a> {
     opts: GeneratorOpts,
     map: &'a RegisterMap,
     output_file: &'a Path,
-    endian: Vec<Endianess>,
 }
 
-pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts: &GeneratorOpts) -> Result<(), Error> {
-    let mut endian = if opts.endian.is_empty() {
-        Vec::from([Endianess::Little, Endianess::Big])
-    } else {
-        Vec::from_iter(opts.endian.iter().copied())
-    };
-
+pub fn generate(
+    out: &mut dyn Write,
+    map: &RegisterMap,
+    output_file: &Path,
+    mut opts: GeneratorOpts,
+) -> Result<(), Error> {
     // If impls defer to a given endianess, sort to have that impl appear first:
     if let Some(defer_to) = &opts.defer_to_endian {
-        endian.sort_by_key(|x| if x == defer_to { 0 } else { 1 })
+        opts.endian.sort_by_key(|x| if x == defer_to { 0 } else { 1 })
     }
 
     let inp = Input {
         opts: opts.clone(),
         map,
         output_file,
-        endian,
     };
 
     let mut out = HeaderWriter::new(out);
@@ -211,7 +160,7 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
     out.push_section_with_header(&["\n", &c_section_header_comment("Shared Layout Structs"), "\n"]);
     for layout in map.shared_layouts() {
         out.push_section_with_header(&["\n", &c_header_comment(&format!("{} Layout", layout.name)), "\n"]);
-        if is_enabled(&inp, Element::Structs) {
+        if inp.opts.is_enabled(Element::Structs) {
             // Field details only in comment if struct is generated.
             writeln!(out, "// Fields:")?;
             writeln!(out, "{}", c_layout_overview_comment(layout))?;
@@ -235,14 +184,6 @@ pub fn generate(out: &mut dyn Write, map: &RegisterMap, output_file: &Path, opts
 
     generate_footer(&mut out, &inp)?;
     Ok(())
-}
-
-fn is_enabled(inp: &Input, e: Element) -> bool {
-    if inp.opts.only_generate.is_empty() {
-        !inp.opts.dont_generate.contains(&e)
-    } else {
-        inp.opts.only_generate.contains(&e)
-    }
 }
 
 /// Generate header comment, include guard, includes.
@@ -337,14 +278,14 @@ fn generate_footer(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
 
 /// Generate generic macros:
 fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error> {
-    if !is_enabled(inp, Element::GenericMacros) {
+    if !inp.opts.is_enabled(Element::GenericMacros) {
         return Ok(());
     }
 
     let mut out = HeaderWriter::new(out);
     out.push_section_with_header(&["\n", &c_section_header_comment("Generic Macros"), "\n"]);
 
-    for endian in &inp.endian {
+    for endian in &inp.opts.endian {
         let docs = Docs {
             brief: Some(format!("Convert struct to packed {endian} binary value.")),
             doc: Some("All non-field/always write bits are left untouched.".to_string()),
@@ -372,7 +313,7 @@ fn generate_generic_macros(out: &mut dyn Write, inp: &Input) -> Result<(), Error
     )?;
     generate_generic_macro(&mut out, inp, "validate", "_struct_ptr_", inp.map.layouts.values())?;
 
-    for endian in &inp.endian {
+    for endian in &inp.opts.endian {
         let docs = Docs {
             brief: Some(format!("Attempt to convert packed {endian} binary value to struct.")),
             doc: None,

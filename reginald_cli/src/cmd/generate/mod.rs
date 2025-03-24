@@ -1,8 +1,10 @@
+mod c;
+
 use std::fs;
 use std::path::PathBuf;
 
 use clap::Parser;
-use reginald_codegen::builtin::c;
+use reginald_codegen::builtin::c as codegen_c;
 use reginald_codegen::builtin::md;
 use reginald_codegen::builtin::rs;
 use reginald_codegen::error::Error;
@@ -43,9 +45,9 @@ pub struct Command {
 #[derive(Parser, Debug)]
 pub enum Generator {
     /// C header with register structs, and packing/unpacking functions
-    CFuncpack(c::funcpack::GeneratorOpts),
+    CFuncpack(c::funcpack::Cli),
     /// C header with field mask/shift macros
-    CMacromap(c::macromap::GeneratorOpts),
+    CMacromap(codegen_c::macromap::GeneratorOpts),
     /// Markdown datasheet
     MdDatasheet,
     /// Markdown decode report of register dump
@@ -65,8 +67,8 @@ pub fn cmd(generate: Command) -> Result<(), Error> {
     // Generate output:
     let mut out = String::new();
     match &generate.generator {
-        Generator::CFuncpack(opts) => c::funcpack::generate(&mut out, &map, &generate.output, opts)?,
-        Generator::CMacromap(opts) => c::macromap::generate(&mut out, &map, &generate.output, opts)?,
+        Generator::CFuncpack(opts) => codegen_c::funcpack::generate(&mut out, &map, &generate.output, opts.into())?,
+        Generator::CMacromap(opts) => codegen_c::macromap::generate(&mut out, &map, &generate.output, opts)?,
         Generator::MdDatasheet => md::datasheet::generate(&mut out, &map)?,
         Generator::MdRegdumpDecode(opts) => md::datasheet::regdump::generate(&mut out, &map, opts)?,
         Generator::RsStructs(opts) => rs::structs::generate(&mut out, &map, opts)?,

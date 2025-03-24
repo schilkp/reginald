@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     Element, Input, assemble_numeric_field, c_code, c_fitting_unsigned_type, c_generate_doxy_comment, c_macro, enums,
-    func_prefix, is_enabled, swap_loop,
+    func_prefix, swap_loop,
 };
 
 pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
@@ -61,7 +61,7 @@ pub fn generate_layout(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Res
 }
 
 fn generate_layout_struct(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
-    if !is_enabled(inp, Element::Structs) {
+    if !inp.opts.is_enabled(Element::Structs) {
         return Ok(());
     }
 
@@ -110,18 +110,18 @@ fn generate_layout_struct(out: &mut dyn Write, inp: &Input, layout: &Layout) -> 
 
 /// Generate register packing/unpacking funcs
 fn generate_layout_funcs(out: &mut dyn Write, inp: &Input, layout: &Layout) -> Result<(), Error> {
-    if !is_enabled(inp, Element::StructConversionFuncs) {
+    if !inp.opts.is_enabled(Element::StructConversionFuncs) {
         return Ok(());
     }
 
-    for endian in &inp.endian {
+    for endian in &inp.opts.endian {
         generate_layout_pack_func(out, inp, layout, *endian)?;
     }
-    for endian in &inp.endian {
+    for endian in &inp.opts.endian {
         generate_layout_unpack_func(out, inp, layout, *endian)?;
     }
     generate_layout_validation_func(out, inp, layout)?;
-    for endian in &inp.endian {
+    for endian in &inp.opts.endian {
         generate_layout_try_unpack_func(out, inp, layout, *endian)?;
     }
 
