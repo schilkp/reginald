@@ -1,66 +1,62 @@
-import { useState, Dispatch, SetStateAction } from "react";
-import { Header } from "@/components/header";
+import { useState } from "react";
+//import { Header } from "@/components/header";
 import { EditorPanel } from "@/components/editor/editor-panel";
 import { CodePanel } from "@/components/code/code-panel";
 import { exampleYaml } from "./components/editor/exampleYaml";
 
-export type Panel = {
+import { Mosaic, MosaicWindow } from "react-mosaic-component";
+
+import "react-mosaic-component/react-mosaic-component.css";
+import "@blueprintjs/core/lib/css/blueprint.css";
+import "@blueprintjs/icons/lib/css/blueprint-icons.css";
+
+export type View = {
   title: string;
-  visible: boolean;
-  setVisible: Dispatch<SetStateAction<boolean>>;
+  content: JSX.Element;
 };
 
 function App() {
-  const [editorVisible, setEditorVisible] = useState(true);
-  const [codeViewerVisible, setCodeViewerVisible] = useState(true);
-  const panels = {
-    editor: {
-      title: "Editor",
-      visible: editorVisible,
-      setVisible: setEditorVisible,
-    },
-    code: {
-      title: "Output",
-      visible: codeViewerVisible,
-      setVisible: setCodeViewerVisible,
-    },
-  };
-
   const [editorContent, setEditorContent] = useState<string>(exampleYaml);
   const [selectedLanguage, setSelectedLanguage] = useState<"yaml" | "json">(
     "yaml",
   );
 
-  return (
-    <div className="flex flex-col h-screen">
-      <Header panels={panels} />
+  const ELEMENT_MAP: { [viewId: string]: View } = {
+    editor: {
+      title: "Listing Editor",
+      content: (
+        <EditorPanel
+          setEditorContent={setEditorContent}
+          selectedLanguage={selectedLanguage}
+          setSelectedLanguage={setSelectedLanguage}
+        />
+      ),
+    },
+    code: {
+      title: "Code Preview",
+      content: (
+        <CodePanel
+          editorContent={editorContent}
+          selectedLanguage={selectedLanguage}
+        />
+      ),
+    },
+  };
 
-      {/* TODO: The scaling here is very hacky/hardcoded to two panels */}
-      <div className="flex flex-1 overflow-hidden">
-        <div
-          className={`h-full ${panels.code.visible ? "w-1/2" : "w-full"}`}
-          style={{
-            display: panels.editor.visible ? "block" : "none",
-          }}
-        >
-          <EditorPanel
-            setEditorContent={setEditorContent}
-            selectedLanguage={selectedLanguage}
-            setSelectedLanguage={setSelectedLanguage}
-          />
-        </div>
-        <div
-          className={`h-full ${panels.editor.visible ? "w-1/2" : "w-full"}`}
-          style={{
-            display: panels.code.visible ? "block" : "none",
-          }}
-        >
-          <CodePanel
-            editorContent={editorContent}
-            selectedLanguage={selectedLanguage}
-          />
-        </div>
-      </div>
+  return (
+    <div className="h-screen w-full">
+      <Mosaic<string>
+        renderTile={(id, path) => (
+          <MosaicWindow<string> path={path} title={ELEMENT_MAP[id].title}>
+            {ELEMENT_MAP[id].content}
+          </MosaicWindow>
+        )}
+        initialValue={{
+          direction: "row",
+          first: "editor",
+          second: "code",
+        }}
+      />
     </div>
   );
 }

@@ -12,6 +12,8 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
   },
   "dependencies": {
+    "@blueprintjs/core": "^5.17.6",
+    "@blueprintjs/icons": "^5.20.0",
     "@icons-pack/react-simple-icons": "^12.3.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-checkbox": "^1.1.4",
@@ -31,6 +33,7 @@
     "next-themes": "^0.4.6",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-mosaic-component": "^6.1.1",
     "reginald_wasm": "file:../reginald_wasm/pkg",
     "sonner": "^2.0.1",
     "tailwind-merge": "^3.0.2",
