@@ -1,4 +1,4 @@
-import { useRef, lazy, Suspense, useEffect, RefObject } from "react";
+import { useRef, lazy, Suspense, useEffect, MutableRefObject } from "react";
 import type * as monaco from "monaco-editor";
 import * as wasm from "reginald_wasm";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ export function ListingEditor({
 }: {
   value: string;
   selectedLanguage: string;
-  editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>;
+  editorRef: MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
   setEditorContent: React.Dispatch<React.SetStateAction<string>>;
 }) {
   const monacoRef = useRef<typeof monaco | null>(null);

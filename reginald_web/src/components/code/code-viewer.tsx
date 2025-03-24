@@ -17,7 +17,7 @@ const Editor = lazy(async () => {
 interface CodeOutputProps {
   value: string;
   language: string;
-  viewerRef: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>;
+  viewerRef: React.MutableRefObject<monaco.editor.IStandaloneCodeEditor | null>;
 }
 
 export function CodeOutput({ value, language, viewerRef }: CodeOutputProps) {

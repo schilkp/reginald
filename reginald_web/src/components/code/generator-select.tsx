@@ -33,9 +33,9 @@ export function GeneratorSelecetor({
       if (generator_key.startsWith(lang_key)) {
         return (
           <Tooltip key={generator_key}>
-            <TooltipTrigger asChild>
-              <SelectItem value={generator_key}>{generator.title}</SelectItem>
-            </TooltipTrigger>
+            <SelectItem value={generator_key}>
+              <TooltipTrigger>{generator.title}</TooltipTrigger>
+            </SelectItem>
             <TooltipContent>{generator.description}</TooltipContent>
           </Tooltip>
         );
