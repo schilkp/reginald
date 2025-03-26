@@ -13,6 +13,7 @@ import {
   Config as cFuncpackConfig,
 } from "./generators/c_funcpack_config";
 import * as wasm from "reginald_wasm";
+import { useEditorContext } from "../editor/editor-context";
 
 const run_c_funcpack = (
   selectedGenerator: string,
@@ -89,16 +90,12 @@ export type OutputGenerator = {
   config: GeneratorConfig<object>;
 };
 
-export function CodePanel({
-  editorContent,
-  selectedLanguage,
-}: {
-  editorContent: string;
-  selectedLanguage: "yaml" | "json";
-}) {
+export function CodePanel() {
   const [selectedGenerator, setSelectedGenerator] = useState("c.funcpack");
   const viewerRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  const { selectedLanguage, editorContent } = useEditorContext();
 
   const languages: Record<string, string> = {
     c: "C",

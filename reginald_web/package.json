@@ -12,8 +12,6 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
   },
   "dependencies": {
-    "@blueprintjs/core": "^5.17.6",
-    "@blueprintjs/icons": "^5.20.0",
     "@icons-pack/react-simple-icons": "^12.3.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-checkbox": "^1.1.4",
