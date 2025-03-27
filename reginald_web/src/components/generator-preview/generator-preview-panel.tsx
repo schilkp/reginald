@@ -1,9 +1,6 @@
 import { useGeneratorPreviewContext } from "./generator-preview-context";
-
-import { useRef, lazy, Suspense, useEffect } from "react";
+import { useRef, lazy, Suspense } from "react";
 import type * as monaco from "monaco-editor";
-import * as wasm from "reginald_wasm";
-import { toast } from "sonner";
 
 // Import monaco and setup:
 const Viewer = lazy(async () => {
@@ -19,6 +16,8 @@ const Viewer = lazy(async () => {
 });
 
 export function GeneratorPreviewPanel() {
+  let { viewerRef } = useGeneratorPreviewContext();
+
   const monacoRef = useRef<typeof monaco | null>(null);
 
   const handleEditorDidMount = (
@@ -28,6 +27,15 @@ export function GeneratorPreviewPanel() {
     viewerRef.current = viewer;
     monacoRef.current = monaco;
   };
+  
+  const initial_value = ""; // TODO
+  //const initial_value =
+  //  run_c_funcpack(
+  //    selectedGenerator,
+  //    editorContent,
+  //    selectedLanguage,
+  //    c_funcpack_config,
+  //  ) || "";
 
   return (
     <div className="h-full w-full">
@@ -40,11 +48,11 @@ export function GeneratorPreviewPanel() {
       >
         <Viewer
           height="100%"
-          defaultLanguage={selectedLanguage}
-          value={exampleYaml}
+          defaultLanguage={"c"}
+          value={initial_value}
           onMount={handleEditorDidMount}
-          onChange={handleEditorChange}
           options={{
+            readOnly: true,
             minimap: { enabled: false },
             scrollBeyondLastLine: true,
             fontSize: 12,

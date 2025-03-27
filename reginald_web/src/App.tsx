@@ -2,7 +2,9 @@ import { EditorPanel } from "@/components/editor/editor-panel";
 import { EditorContextProvider } from "./components/editor/editor-context";
 import { EditorToolbar } from "./components/editor/editor-toolbar";
 
-import { CodePanel } from "@/components/code/code-panel";
+import { GeneratorPreviewPanel } from "./components/generator-preview/generator-preview-panel";
+import { GeneratorPreviewToolbar } from "./components/generator-preview/generator-preview-toolbar";
+import { GeneratorPreviewContextProvider } from "./components/generator-preview/generator-preview-context";
 
 import { Mosaic, MosaicWindow } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
@@ -22,28 +24,34 @@ function App() {
     },
     code: {
       title: "Code Preview",
-      panel: <CodePanel />,
-      toolbar: <EditorToolbar />,
+      panel: <GeneratorPreviewPanel />,
+      toolbar: <GeneratorPreviewToolbar />,
     },
   };
 
   return (
-    <EditorContextProvider>
-      <div className="h-screen w-full">
-        <Mosaic<string>
-          renderTile={(id, path) => (
-            <MosaicWindow<string> path={path} title={ELEMENT_MAP[id].title} toolbarControls={ELEMENT_MAP[id].toolbar}>
-              {ELEMENT_MAP[id].panel}
-            </MosaicWindow>
-          )}
-          initialValue={{
-            direction: "row",
-            first: "editor",
-            second: "code",
-          }}
-        />
-      </div>
-    </EditorContextProvider>
+    <GeneratorPreviewContextProvider>
+      <EditorContextProvider>
+        <div className="h-screen w-full">
+          <Mosaic<string>
+            renderTile={(id, path) => (
+              <MosaicWindow<string>
+                path={path}
+                title={ELEMENT_MAP[id].title}
+                toolbarControls={ELEMENT_MAP[id].toolbar}
+              >
+                {ELEMENT_MAP[id].panel}
+              </MosaicWindow>
+            )}
+            initialValue={{
+              direction: "row",
+              first: "editor",
+              second: "code",
+            }}
+          />
+        </div>
+      </EditorContextProvider>
+    </GeneratorPreviewContextProvider>
   );
 }
 export default App;
