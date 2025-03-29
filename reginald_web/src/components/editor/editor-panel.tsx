@@ -10,7 +10,7 @@ import { exampleYaml } from "./exampleYaml";
 const Editor = lazy(async () => {
   // We load both in parallel, but we only return the editor module
   const [, editorModule] = await Promise.all([
-    import("../../lib/monaco-setup").then((module) => {
+    import("@/utils/monaco-setup").then((module) => {
       module.setupMonaco();
       return module;
     }),
@@ -20,7 +20,7 @@ const Editor = lazy(async () => {
 });
 
 export function EditorPanel() {
-  let { editorRef, setEditorContent, selectedLanguage } = useEditorContext();
+  let { editorRef, setEditorContent, listingFormat } = useEditorContext();
 
   const monacoRef = useRef<typeof monaco | null>(null);
 
@@ -40,14 +40,14 @@ export function EditorPanel() {
     if (!model) {
       return;
     }
-    console.log("Setting current lang to: " + selectedLanguage);
-    monacoRef.current.editor.setModelLanguage(model, selectedLanguage);
+    console.log("Setting current listing to: " + listingFormat);
+    monacoRef.current.editor.setModelLanguage(model, listingFormat);
 
     const content = editorRef.current.getValue();
     let prev_format: wasm.ListingFormat;
     let new_format: wasm.ListingFormat;
 
-    if (selectedLanguage === "yaml") {
+    if (listingFormat === "yaml") {
       prev_format = wasm.ListingFormat.Json;
       new_format = wasm.ListingFormat.Yaml;
     } else {
@@ -81,7 +81,7 @@ export function EditorPanel() {
       toast.error(msg);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLanguage]);
+  }, [listingFormat]);
 
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -91,7 +91,6 @@ export function EditorPanel() {
     }
     debounceTimeoutRef.current = setTimeout(() => {
       if (value !== undefined) {
-        console.log("Editor content updated.");
         setEditorContent(value);
       }
     }, 200);
@@ -108,7 +107,7 @@ export function EditorPanel() {
       >
         <Editor
           height="100%"
-          defaultLanguage={selectedLanguage}
+          defaultLanguage={listingFormat}
           value={exampleYaml}
           onMount={handleEditorDidMount}
           onChange={handleEditorChange}

@@ -6,6 +6,8 @@ import { GeneratorPreviewPanel } from "./components/generator-preview/generator-
 import { GeneratorPreviewToolbar } from "./components/generator-preview/generator-preview-toolbar";
 import { GeneratorPreviewContextProvider } from "./components/generator-preview/generator-preview-context";
 
+import { GeneratorConfigContextProvider } from "./components/generator-config/generator-config-context";
+
 import { Mosaic, MosaicWindow } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
 
@@ -32,24 +34,26 @@ function App() {
   return (
     <GeneratorPreviewContextProvider>
       <EditorContextProvider>
-        <div className="h-screen w-full">
-          <Mosaic<string>
-            renderTile={(id, path) => (
-              <MosaicWindow<string>
-                path={path}
-                title={ELEMENT_MAP[id].title}
-                toolbarControls={ELEMENT_MAP[id].toolbar}
-              >
-                {ELEMENT_MAP[id].panel}
-              </MosaicWindow>
-            )}
-            initialValue={{
-              direction: "row",
-              first: "editor",
-              second: "code",
-            }}
-          />
-        </div>
+        <GeneratorConfigContextProvider>
+          <div className="h-screen w-full">
+            <Mosaic<string>
+              renderTile={(id, path) => (
+                <MosaicWindow<string>
+                  path={path}
+                  title={ELEMENT_MAP[id].title}
+                  toolbarControls={ELEMENT_MAP[id].toolbar}
+                >
+                  {ELEMENT_MAP[id].panel}
+                </MosaicWindow>
+              )}
+              initialValue={{
+                direction: "row",
+                first: "editor",
+                second: "code",
+              }}
+            />
+          </div>
+        </GeneratorConfigContextProvider>
       </EditorContextProvider>
     </GeneratorPreviewContextProvider>
   );

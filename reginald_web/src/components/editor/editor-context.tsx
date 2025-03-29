@@ -11,9 +11,9 @@ interface EditorContextType {
   editorContent: string;
   setEditorContent: (content: string) => void;
 
-  // Listing language selected in the editor
-  selectedLanguage: "yaml" | "json";
-  setSelectedLanguage: (language: "yaml" | "json") => void;
+  // Listing format
+  listingFormat: "yaml" | "json";
+  setListingFormat: (language: "yaml" | "json") => void;
 }
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
@@ -31,8 +31,8 @@ export function EditorContextProvider({ children }: { children: ReactNode }) {
         editorRef,
         editorContent,
         setEditorContent,
-        selectedLanguage,
-        setSelectedLanguage,
+        listingFormat: selectedLanguage,
+        setListingFormat: setSelectedLanguage,
       }}
     >
       {children}

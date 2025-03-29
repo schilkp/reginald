@@ -6,7 +6,7 @@ import type * as monaco from "monaco-editor";
 const Viewer = lazy(async () => {
   // We load both in parallel, but we only return the editor module
   const [, editorModule] = await Promise.all([
-    import("../../lib/monaco-setup").then((module) => {
+    import("@/utils/monaco-setup").then((module) => {
       module.setupMonaco();
       return module;
     }),

@@ -6,7 +6,7 @@ import { useEditorContext } from "./editor-context";
 import { useState } from "react";
 
 export function EditorToolbar() {
-  let { editorRef, selectedLanguage, setSelectedLanguage } = useEditorContext();
+  let { editorRef, listingFormat: selectedLanguage, setListingFormat: setSelectedLanguage } = useEditorContext();
 
   let [isCopied, setIsCopied] = useState(false);
 

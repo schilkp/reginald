@@ -95,7 +95,7 @@ export function CodePanel() {
   const viewerRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
-  const { selectedLanguage, editorContent } = useEditorContext();
+  const { listingFormat: selectedLanguage, editorContent } = useEditorContext();
 
   const languages: Record<string, string> = {
     c: "C",
