@@ -7,6 +7,8 @@ import { GeneratorPreviewToolbar } from "./components/generator-preview/generato
 import { GeneratorPreviewContextProvider } from "./components/generator-preview/generator-preview-context";
 
 import { GeneratorConfigContextProvider } from "./components/generator-config/generator-config-context";
+import { GeneratorConfigToolbar } from "./components/generator-config/generator-config-toolbar";
+import { GeneratorConfigPanel } from "./components/generator-config/generator-config-panel";
 
 import { Mosaic, MosaicWindow } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
@@ -24,10 +26,15 @@ function App() {
       panel: <EditorPanel />,
       toolbar: <EditorToolbar />,
     },
-    code: {
-      title: "Code Preview",
+    preview: {
+      title: "Generator Preview",
       panel: <GeneratorPreviewPanel />,
       toolbar: <GeneratorPreviewToolbar />,
+    },
+    generator_config: {
+      title: "Generator Config",
+      panel: <GeneratorConfigPanel />,
+      toolbar: <GeneratorConfigToolbar />,
     },
   };
 
@@ -41,7 +48,9 @@ function App() {
                 <MosaicWindow<string>
                   path={path}
                   title={ELEMENT_MAP[id].title}
-                  toolbarControls={ELEMENT_MAP[id].toolbar}
+                  toolbarControls={
+                      ELEMENT_MAP[id].toolbar
+                  }
                 >
                   {ELEMENT_MAP[id].panel}
                 </MosaicWindow>
@@ -49,7 +58,11 @@ function App() {
               initialValue={{
                 direction: "row",
                 first: "editor",
-                second: "code",
+                second: {
+                  direction: "column",
+                  first: "preview",
+                  second: "generator_config",
+                },
               }}
             />
           </div>

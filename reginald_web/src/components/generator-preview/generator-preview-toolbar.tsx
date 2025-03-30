@@ -49,6 +49,7 @@ export function GeneratorPreviewToolbar() {
       {/* Copy */}
       <Button
         variant="ghost"
+        className="h-6 w-6 p-0.5"
         size="icon"
         aria-label="Copy to clipboard"
         onClick={copyToClipboard}
@@ -62,6 +63,7 @@ export function GeneratorPreviewToolbar() {
       {/* Save */}
       <Button
         variant="ghost"
+        className="h-6 w-6 p-0.5"
         size="icon"
         aria-label="Save"
         onClick={downloadCode}

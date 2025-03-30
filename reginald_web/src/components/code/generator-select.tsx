@@ -59,7 +59,7 @@ export function GeneratorSelecetor({
           setSelectedGenerator(value);
         }}
       >
-        <SelectTrigger className="w-[280px]">
+        <SelectTrigger className="w-[280px]" size="sm">
           <SelectValue placeholder="Select an output generator." />
         </SelectTrigger>
         <SelectContent>{groups}</SelectContent>

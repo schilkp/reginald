@@ -27,7 +27,7 @@ export function GeneratorPreviewPanel() {
     viewerRef.current = viewer;
     monacoRef.current = monaco;
   };
-  
+
   const initial_value = ""; // TODO
   //const initial_value =
   //  run_c_funcpack(
