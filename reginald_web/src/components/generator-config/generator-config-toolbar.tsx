@@ -47,18 +47,20 @@ export function GeneratorConfigToolbar() {
   });
 
   return (
-    <TooltipProvider>
-      <Select
-        value={selectedGenerator}
-        onValueChange={(value) => {
-          setSelectedGenerator(value as ReginaldGenerator);
-        }}
-      >
-        <SelectTrigger className="w-50">
-          <SelectValue placeholder="Select an output generator." />
-        </SelectTrigger>
-        <SelectContent>{groups}</SelectContent>
-      </Select>
-    </TooltipProvider>
+    <div className="flex items-center space-x-1 pr-1">
+      <TooltipProvider>
+        <Select
+          value={selectedGenerator}
+          onValueChange={(value) => {
+            setSelectedGenerator(value as ReginaldGenerator);
+          }}
+        >
+          <SelectTrigger className="w-75">
+            <SelectValue placeholder="Select an output generator." />
+          </SelectTrigger>
+          <SelectContent>{groups}</SelectContent>
+        </Select>
+      </TooltipProvider>
+    </div>
   );
 }

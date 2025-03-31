@@ -74,7 +74,6 @@ export function EditorToolbar() {
       {/* Copy */}
       <Button
         variant="ghost"
-        className="h-6 w-6 p-0.5"
         size="icon"
         aria-label="Copy to clipboard"
         onClick={copyToClipboard}
@@ -88,7 +87,6 @@ export function EditorToolbar() {
       {/* Upload */}
       <Button
         variant="ghost"
-        className="h-6 w-6 p-0.5"
         size="icon"
         aria-label="Upload"
         onClick={() => document.getElementById("upload-listing")?.click()}
@@ -105,7 +103,6 @@ export function EditorToolbar() {
       {/* Save */}
       <Button
         variant="ghost"
-        className="h-6 w-6 p-0.5"
         size="icon"
         aria-label="Save"
         onClick={downloadListing}
@@ -116,8 +113,6 @@ export function EditorToolbar() {
       <ToggleGroup
         variant="outline"
         type="single"
-        size="sm"
-        className="h-full py-1"
         defaultValue="yaml"
         value={selectedLanguage}
         onValueChange={(value) => {
@@ -126,18 +121,10 @@ export function EditorToolbar() {
           }
         }}
       >
-        <ToggleGroupItem
-          value="yaml"
-          aria-label="YAML editor"
-          className="h-full px-2 py-1"
-        >
+        <ToggleGroupItem value="yaml" aria-label="YAML editor">
           <Code /> YAML
         </ToggleGroupItem>
-        <ToggleGroupItem
-          value="json"
-          aria-label="JSON editor"
-          className="h-full px-2 py-1"
-        >
+        <ToggleGroupItem value="json" aria-label="JSON editor">
           <FileJson /> JSON
         </ToggleGroupItem>
       </ToggleGroup>

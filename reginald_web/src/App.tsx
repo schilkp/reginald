@@ -12,6 +12,8 @@ import { GeneratorConfigPanel } from "./components/generator-config/generator-co
 
 import { Mosaic, MosaicWindow } from "react-mosaic-component";
 import "react-mosaic-component/react-mosaic-component.css";
+import "./mosaic-custom.css";
+import { Header } from "./components/header";
 
 export type View = {
   title: string;
@@ -43,14 +45,13 @@ function App() {
       <EditorContextProvider>
         <GeneratorConfigContextProvider>
           <div className="h-screen w-full">
+            <Header />
             <Mosaic<string>
               renderTile={(id, path) => (
                 <MosaicWindow<string>
                   path={path}
                   title={ELEMENT_MAP[id].title}
-                  toolbarControls={
-                      ELEMENT_MAP[id].toolbar
-                  }
+                  toolbarControls={ELEMENT_MAP[id].toolbar}
                 >
                   {ELEMENT_MAP[id].panel}
                 </MosaicWindow>

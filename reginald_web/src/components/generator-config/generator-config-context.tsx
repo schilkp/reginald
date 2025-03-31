@@ -1,14 +1,24 @@
 import { createContext, useState, useContext, ReactNode } from "react";
 
 import * as c_funcpack from "@/reginald/c_funcpack";
+import * as c_macromap from "@/reginald/c_macromap";
 import { ReginaldGenerator } from "@/reginald/generators";
+
+export type GeneratorConfigs = {
+  "c.funcpack": c_funcpack.ConfigData;
+  "c.macromap": c_macromap.ConfigData;
+};
+
+export type GeneratorConfigRegistry = {
+  [K in ReginaldGenerator]: GeneratorConfigs[K];
+};
 
 interface GeneratorConfigContextType {
   selectedGenerator: ReginaldGenerator;
   setSelectedGenerator(c: ReginaldGenerator): void;
 
-  CFuncpack: c_funcpack.ConfigData;
-  setCFuncpack(v: c_funcpack.ConfigData): void;
+  generatorConfig: GeneratorConfigRegistry;
+  setGeneratorConfig(c: GeneratorConfigRegistry): void;
 }
 
 const GeneratorConfigContext = createContext<
@@ -20,15 +30,21 @@ export function GeneratorConfigContextProvider({
 }: {
   children: ReactNode;
 }) {
-  let [CFuncpack, setCFuncpack] = useState(c_funcpack.defaultConfig);
   let [selectedGenerator, setSelectedGenerator] =
     useState<ReginaldGenerator>("c.funcpack");
+
+  let [generatorConfig, setGeneratorConfig] = useState<GeneratorConfigRegistry>(
+    {
+      "c.funcpack": c_funcpack.defaultConfig,
+      "c.macromap": c_macromap.defaultConfig,
+    },
+  );
 
   return (
     <GeneratorConfigContext.Provider
       value={{
-        CFuncpack,
-        setCFuncpack,
+        generatorConfig,
+        setGeneratorConfig,
         selectedGenerator,
         setSelectedGenerator,
       }}

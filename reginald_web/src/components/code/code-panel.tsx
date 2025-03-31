@@ -1,5 +1,4 @@
 import { Check, Copy, Download } from "lucide-react";
-import { CollapsibleMenu } from "@/components/custom/collapsible-menu";
 import { Button } from "@/components/ui/button";
 import { CodeOutput } from "./code-viewer";
 import { JSX, useState, useRef, useEffect } from "react";
