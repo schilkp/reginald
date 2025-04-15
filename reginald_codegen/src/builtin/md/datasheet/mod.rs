@@ -156,7 +156,7 @@ fn generate_register_infos(
         let value_field = value.map(|x| (x & field.bits.mask()) >> field.bits.lsb_pos());
 
         let indent = field.name.len();
-        let indent = String::from_iter(std::iter::repeat("  ").take(indent));
+        let indent = String::from_iter(std::iter::repeat_n("  ", indent));
 
         let value_string = value_field.map(|x| format!(": 0x{x:02X}")).unwrap_or_default();
         let bits = field.bits.to_string(RangeStyle::Verilog);

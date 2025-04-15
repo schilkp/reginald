@@ -507,7 +507,7 @@ impl Layout {
             let name = markdown_escape(&field.name.join("."));
 
             let indent = field.name.len() - 1;
-            let indent = String::from_iter(std::iter::repeat("  ").take(indent));
+            let indent = String::from_iter(std::iter::repeat_n("  ", indent));
 
             let bits_str = field.bits.to_string(RangeStyle::Verilog);
             let bits = markdown_escape(&format!("[{}]", bits_str));
