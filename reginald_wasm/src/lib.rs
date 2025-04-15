@@ -10,7 +10,7 @@ pub enum ListingFormat {
 
 #[wasm_bindgen]
 #[derive(Copy, Clone)]
-pub enum Endianess {
+pub enum Endianness {
     Little,
     Big,
 }
@@ -58,17 +58,17 @@ pub fn convert_listing_format(
 mod c_funcpack {
     use std::{collections::HashSet, path::Path};
 
-    use crate::{Endianess, ListingFormat};
+    use crate::{Endianness, ListingFormat};
     use reginald_codegen::{
         builtin::c::funcpack::{Element, GeneratorOpts, generate},
         regmap::{RegisterMap, TypeBitwidth},
-        utils::Endianess as ActualEndianess,
+        utils::Endianness as ActualEndianness,
     };
     use wasm_bindgen::prelude::*;
 
     #[wasm_bindgen]
     #[derive(Copy, Clone, Default)]
-    pub enum EndianessImpl {
+    pub enum EndiannessImpl {
         Little,
         Big,
         #[default]
@@ -78,8 +78,8 @@ mod c_funcpack {
     #[wasm_bindgen]
     #[derive(Default)]
     pub struct CFuncpackOpts {
-        pub endianess: EndianessImpl,
-        pub defer_to_endianess: Option<Endianess>,
+        pub endianness: EndiannessImpl,
+        pub defer_to_endianness: Option<Endianness>,
         pub registers_as_bitfields: bool,
         pub max_enum_bitwidth: TypeBitwidth,
         #[wasm_bindgen(skip)]
@@ -116,15 +116,15 @@ mod c_funcpack {
         }
         .map_err(|e| e.to_string())?;
 
-        let endian = match wasm_opts.endianess {
-            EndianessImpl::Little => vec![ActualEndianess::Little],
-            EndianessImpl::Big => vec![ActualEndianess::Big],
-            EndianessImpl::Both => vec![],
+        let endian = match wasm_opts.endianness {
+            EndiannessImpl::Little => vec![ActualEndianness::Little],
+            EndiannessImpl::Big => vec![ActualEndianness::Big],
+            EndiannessImpl::Both => vec![],
         };
 
-        let defer_to_endian = wasm_opts.defer_to_endianess.map(|x| match x {
-            Endianess::Little => ActualEndianess::Little,
-            Endianess::Big => ActualEndianess::Big,
+        let defer_to_endian = wasm_opts.defer_to_endianness.map(|x| match x {
+            Endianness::Little => ActualEndianness::Little,
+            Endianness::Big => ActualEndianness::Big,
         });
 
         let mut to_generate: HashSet<Element> = HashSet::new();

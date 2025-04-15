@@ -9,7 +9,7 @@ use crate::{
     builtin::{md::md_table, rs::rs_const},
     error::Error,
     regmap::{Enum, FieldType, Layout, LayoutField, Register, RegisterBlock, RegisterMap, TypeValue},
-    utils::{Endianess, grab_byte, packed_byte_to_field_transform},
+    utils::{Endianness, grab_byte, packed_byte_to_field_transform},
     writer::header_writer::HeaderWriter,
 };
 

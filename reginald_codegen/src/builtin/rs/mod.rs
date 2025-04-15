@@ -5,7 +5,7 @@ use std::{fmt::Write, sync::LazyLock};
 use crate::{
     error::Error,
     regmap::{Docs, TypeBitwidth, TypeValue},
-    utils::{Endianess, grab_byte},
+    utils::{Endianness, grab_byte},
 };
 
 pub mod structs;
@@ -90,8 +90,8 @@ fn rs_generate_header_comment(out: &mut dyn Write, title: &str) -> Result<(), Er
     Ok(())
 }
 
-/// Convert a value to an array literal of given endianess
-fn array_literal(endian: Endianess, val: TypeValue, width_bytes: TypeBitwidth) -> String {
+/// Convert a value to an array literal of given endianness
+fn array_literal(endian: Endianness, val: TypeValue, width_bytes: TypeBitwidth) -> String {
     let mut bytes: Vec<String> = vec![];
 
     for i in 0..width_bytes {
@@ -99,19 +99,19 @@ fn array_literal(endian: Endianess, val: TypeValue, width_bytes: TypeBitwidth) -
         bytes.push(byte);
     }
 
-    if matches!(endian, Endianess::Big) {
+    if matches!(endian, Endianness::Big) {
         bytes.reverse();
     }
 
     format!("[{}]", bytes.join(", "))
 }
 
-/// Convert a value to an array literal of given endianess
-fn masked_array_literal(endian: Endianess, val_name: &str, mask: TypeValue, width_bytes: TypeBitwidth) -> String {
+/// Convert a value to an array literal of given endianness
+fn masked_array_literal(endian: Endianness, val_name: &str, mask: TypeValue, width_bytes: TypeBitwidth) -> String {
     let mut bytes = vec![];
 
     for i in 0..width_bytes {
-        let mask = grab_byte(Endianess::Little, mask, i, width_bytes);
+        let mask = grab_byte(Endianness::Little, mask, i, width_bytes);
         let byte = if mask == 0 {
             String::from("0")
         } else if mask == 0xFF {
@@ -122,7 +122,7 @@ fn masked_array_literal(endian: Endianess, val_name: &str, mask: TypeValue, widt
         bytes.push(byte);
     }
 
-    if matches!(endian, Endianess::Big) {
+    if matches!(endian, Endianness::Big) {
         bytes.reverse();
     }
 

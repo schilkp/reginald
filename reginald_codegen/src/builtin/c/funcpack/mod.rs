@@ -13,7 +13,7 @@ use crate::{
     bits::unpositioned_mask,
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField, RegisterMap, TypeBitwidth, TypeValue},
-    utils::{Endianess, ShiftDirection, packed_byte_to_field_transform},
+    utils::{Endianness, ShiftDirection, packed_byte_to_field_transform},
     writer::header_writer::HeaderWriter,
 };
 
@@ -37,14 +37,14 @@ pub enum Element {
 
 #[derive(Debug, Clone)]
 pub struct GeneratorOpts {
-    /// Generate functions and enums with the given endianess.
-    pub endian: Vec<Endianess>,
+    /// Generate functions and enums with the given endianness.
+    pub endian: Vec<Endianness>,
 
-    /// For other endianess, generate only simple functions that defers to this implementation.
+    /// For other endianness, generate only simple functions that defers to this implementation.
     ///
-    /// If generating both endianess versions, only generate one complete
-    /// function implementation and have the other endianess defer to this
-    pub defer_to_endian: Option<Endianess>,
+    /// If generating both endianness versions, only generate one complete
+    /// function implementation and have the other endianness defer to this
+    pub defer_to_endian: Option<Endianness>,
 
     /// Make register structs bitfields to reduce their memory size
     ///
@@ -88,7 +88,7 @@ pub struct GeneratorOpts {
 impl Default for GeneratorOpts {
     fn default() -> Self {
         Self {
-            endian: vec![Endianess::Little, Endianess::Big],
+            endian: vec![Endianness::Little, Endianness::Big],
             defer_to_endian: None,
             registers_as_bitfields: false,
             max_enum_bitwidth: 31,
@@ -129,7 +129,7 @@ pub fn generate(
     output_file: &Path,
     mut opts: GeneratorOpts,
 ) -> Result<(), Error> {
-    // If impls defer to a given endianess, sort to have that impl appear first:
+    // If impls defer to a given endianness, sort to have that impl appear first:
     if let Some(defer_to) = &opts.defer_to_endian {
         opts.endian.sort_by_key(|x| if x == defer_to { 0 } else { 1 })
     }
@@ -390,8 +390,8 @@ fn swap_loop(from: &str, to: &str, width_bytes: TypeBitwidth) -> String {
     format!("for(size_t i = 0; i < {width_bytes}; i++) {{ {to}[i] = {from}[{width_bytes}-(i+1)]; }}")
 }
 
-/// Convert a value to an array initialiser of correct endianess
-fn to_array_init(val: TypeValue, width_bytes: TypeBitwidth, endian: Endianess) -> String {
+/// Convert a value to an array initialiser of correct endianness
+fn to_array_init(val: TypeValue, width_bytes: TypeBitwidth, endian: Endianness) -> String {
     let mut bytes: Vec<String> = vec![];
 
     for i in 0..width_bytes {
@@ -399,14 +399,14 @@ fn to_array_init(val: TypeValue, width_bytes: TypeBitwidth, endian: Endianess) -
         bytes.push(byte);
     }
 
-    if matches!(endian, Endianess::Big) {
+    if matches!(endian, Endianness::Big) {
         bytes.reverse();
     }
 
     format!("{{{}}}", bytes.join(", "))
 }
 
-fn assemble_numeric_field(layout: &Layout, field: &LayoutField, endian: Endianess) -> Result<String, Error> {
+fn assemble_numeric_field(layout: &Layout, field: &LayoutField, endian: Endianness) -> Result<String, Error> {
     let layout_width_bytes = layout.width_bytes();
 
     let field_bitwidth = field.bits.width();

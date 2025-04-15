@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GeneratorConfig } from "./config";
 
 export type ConfigData = {
-  Endianess: "le" | "be" | "both";
+  Endianness: "le" | "be" | "both";
   DeferToEndian: "le" | "be" | "off";
   RegistersAsBitfields: boolean;
   MaxEnumBitwidth: number;
@@ -20,7 +20,7 @@ export type ConfigData = {
 };
 
 const defaultConfig: ConfigData = {
-  Endianess: "le",
+  Endianness: "le",
   DeferToEndian: "off",
   RegistersAsBitfields: true,
   MaxEnumBitwidth: 32,

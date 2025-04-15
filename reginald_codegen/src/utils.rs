@@ -9,33 +9,33 @@ use crate::regmap::{TypeBitwidth, TypeValue};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 #[cfg_attr(feature = "clap", derive(ValueEnum))]
-pub enum Endianess {
+pub enum Endianness {
     Little,
     Big,
 }
 
-impl Display for Endianess {
+impl Display for Endianness {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Endianess::Little => write!(f, "little-endian"),
-            Endianess::Big => write!(f, "big-endian"),
+            Endianness::Little => write!(f, "little-endian"),
+            Endianness::Big => write!(f, "big-endian"),
         }
     }
 }
 
-impl Endianess {
+impl Endianness {
     pub fn short(&self) -> &'static str {
         match self {
-            Endianess::Little => "le",
-            Endianess::Big => "be",
+            Endianness::Little => "le",
+            Endianness::Big => "be",
         }
     }
 }
 
-pub fn grab_byte(endian: Endianess, val: TypeValue, byte_pos: TypeBitwidth, width_bytes: TypeBitwidth) -> u8 {
+pub fn grab_byte(endian: Endianness, val: TypeValue, byte_pos: TypeBitwidth, width_bytes: TypeBitwidth) -> u8 {
     let le_byte_pos = match endian {
-        Endianess::Little => byte_pos,
-        Endianess::Big => width_bytes - byte_pos - 1,
+        Endianness::Little => byte_pos,
+        Endianness::Big => width_bytes - byte_pos - 1,
     };
     ((val >> (le_byte_pos * 8)) & 0xff) as u8
 }
@@ -61,14 +61,14 @@ pub struct Transform {
 /// This function determines if the byte at position `packed_byte_pos` contains
 /// any part of the given field, and if so determines the required transform to
 /// extract that part of the field and put it into the correct position. The byte
-/// position is interpreted with respect to the endianess given in 'endian'.
+/// position is interpreted with respect to the endianness given in 'endian'.
 ///
 /// If this function returns none, the field does not have bits in the packed byte.
 /// If this function returns some transform, the bits of the field as they exist
 /// in the given byte can be obtained by first shifting the field's value by
 /// the given direction and then masking with the given mask.
 pub fn field_to_packed_byte_transform(
-    endian: Endianess,
+    endian: Endianness,
     unpos_field_mask: TypeValue,
     field_pos: TypeBitwidth,
     packed_byte: TypeBitwidth,
@@ -82,8 +82,8 @@ pub fn field_to_packed_byte_transform(
 
     // Convert byte position to little-endian equivalent:
     let le_byte_pos = match endian {
-        Endianess::Little => packed_byte,
-        Endianess::Big => packed_width_bytes - packed_byte - 1,
+        Endianness::Little => packed_byte,
+        Endianness::Big => packed_width_bytes - packed_byte - 1,
     };
 
     let byte_lsb_pos = 8 * le_byte_pos;
@@ -110,7 +110,7 @@ pub fn field_to_packed_byte_transform(
 /// This function determines if the byte at position `packed_byte_pos` contains
 /// any part of the given byte of the given field, and if so determines the
 /// required transform to extract that part of the field byte and put it into the
-/// correct position. The byte position is interpreted with respect to the endianess
+/// correct position. The byte position is interpreted with respect to the endianness
 /// given in 'endian'.
 ///
 /// If this function returns none, the field's byte does not have bits in the packed byte.
@@ -118,7 +118,7 @@ pub fn field_to_packed_byte_transform(
 /// in the given byte can be obtained by first shifting the field's value by
 /// the given direction and then masking with the given mask.
 pub fn field_byte_to_packed_byte_transform(
-    endian: Endianess,
+    endian: Endianness,
     unpos_field_mask: TypeValue,
     field_pos: TypeBitwidth,
     field_byte: TypeBitwidth,
@@ -131,8 +131,8 @@ pub fn field_byte_to_packed_byte_transform(
 
     // Calculate the actual bit position of the byte in the field:
     let field_pos = match endian {
-        Endianess::Little => field_pos + field_byte * 8,
-        Endianess::Big => field_pos + (field_byte_width - field_byte - 1) * 8,
+        Endianness::Little => field_pos + field_byte * 8,
+        Endianness::Big => field_pos + (field_byte_width - field_byte - 1) * 8,
     };
 
     field_to_packed_byte_transform(endian, field_mask.into(), field_pos, packed_byte, packed_width_bytes)
@@ -147,14 +147,14 @@ pub fn field_byte_to_packed_byte_transform(
 /// This function determines if the byte at position `packed_byte_pos` contains
 /// any part of the given field, and if so determines the required transform to
 /// extract that part of the byte and put it into the correct position in the field.
-/// The byte position is interpreted with respect to the endianess given in 'endian'.
+/// The byte position is interpreted with respect to the endianness given in 'endian'.
 ///
 /// If this function returns none, the field does not have bits in the packed byte.
 /// If this function returns some transform, the bits of the field as they exist
 /// in the given byte can be obtained by first masking the bytes's value by
 /// the given mask, and then shiftingt by the given shift.
 pub fn packed_byte_to_field_transform(
-    endian: Endianess,
+    endian: Endianness,
     unpos_field_mask: TypeValue,
     field_pos: TypeBitwidth,
     packed_byte_pos: TypeBitwidth,
@@ -180,7 +180,7 @@ pub fn packed_byte_to_field_transform(
 /// any part of the given byte of the given field, and if so determines the required
 /// transform to extract that part of the byte and put it into the correct position
 /// in the field's byte The byte position is interpreted with respect to the
-/// endianess given in 'endian'.
+/// endianness given in 'endian'.
 ///
 /// If this function returns none, the given byte of the field does not have
 /// bits in the packed byte. If this function returns some transform, the bits
@@ -188,7 +188,7 @@ pub fn packed_byte_to_field_transform(
 /// first masking the bytes's value by the given mask, and then shiftingt by
 /// the given shift.
 pub fn packed_byte_to_field_byte_transform(
-    endian: Endianess,
+    endian: Endianness,
     unpos_field_mask: TypeValue,
     field_pos: TypeBitwidth,
     field_byte: TypeBitwidth,
@@ -201,8 +201,8 @@ pub fn packed_byte_to_field_byte_transform(
 
     // Calculate the actual bit position of the byte in the field:
     let field_pos = match endian {
-        Endianess::Little => field_pos + field_byte * 8,
-        Endianess::Big => field_pos + (field_byte_width - field_byte - 1) * 8,
+        Endianness::Little => field_pos + field_byte * 8,
+        Endianness::Big => field_pos + (field_byte_width - field_byte - 1) * 8,
     };
 
     packed_byte_to_field_transform(endian, field_mask.into(), field_pos, packed_byte, packed_width_bytes)
@@ -218,32 +218,32 @@ mod tests {
     #[test]
     fn test_grab_bytes() {
         // Length 1:
-        assert_eq!(grab_byte(Endianess::Little, 0xAF, 0, 1), 0xAF);
-        assert_eq!(grab_byte(Endianess::Big, 0xAF, 0, 1), 0xAF);
+        assert_eq!(grab_byte(Endianness::Little, 0xAF, 0, 1), 0xAF);
+        assert_eq!(grab_byte(Endianness::Big, 0xAF, 0, 1), 0xAF);
 
         // Length 2:
-        assert_eq!(grab_byte(Endianess::Little, 0xBEEF, 0, 2), 0xEF);
-        assert_eq!(grab_byte(Endianess::Little, 0xBEEF, 1, 2), 0xBE);
-        assert_eq!(grab_byte(Endianess::Big, 0xBEEF, 0, 2), 0xBE);
-        assert_eq!(grab_byte(Endianess::Big, 0xBEEF, 1, 2), 0xEF);
+        assert_eq!(grab_byte(Endianness::Little, 0xBEEF, 0, 2), 0xEF);
+        assert_eq!(grab_byte(Endianness::Little, 0xBEEF, 1, 2), 0xBE);
+        assert_eq!(grab_byte(Endianness::Big, 0xBEEF, 0, 2), 0xBE);
+        assert_eq!(grab_byte(Endianness::Big, 0xBEEF, 1, 2), 0xEF);
 
         // Length 3:
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBE, 0, 3), 0xBE);
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBE, 1, 3), 0xAD);
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBE, 2, 3), 0xDE);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBE, 0, 3), 0xDE);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBE, 1, 3), 0xAD);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBE, 2, 3), 0xBE);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBE, 0, 3), 0xBE);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBE, 1, 3), 0xAD);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBE, 2, 3), 0xDE);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBE, 0, 3), 0xDE);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBE, 1, 3), 0xAD);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBE, 2, 3), 0xBE);
 
         // Length 4:
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBEEF, 0, 4), 0xEF);
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBEEF, 1, 4), 0xBE);
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBEEF, 2, 4), 0xAD);
-        assert_eq!(grab_byte(Endianess::Little, 0xDEADBEEF, 3, 4), 0xDE);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBEEF, 0, 4), 0xDE);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBEEF, 1, 4), 0xAD);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBEEF, 2, 4), 0xBE);
-        assert_eq!(grab_byte(Endianess::Big, 0xDEADBEEF, 3, 4), 0xEF);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBEEF, 0, 4), 0xEF);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBEEF, 1, 4), 0xBE);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBEEF, 2, 4), 0xAD);
+        assert_eq!(grab_byte(Endianness::Little, 0xDEADBEEF, 3, 4), 0xDE);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBEEF, 0, 4), 0xDE);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBEEF, 1, 4), 0xAD);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBEEF, 2, 4), 0xBE);
+        assert_eq!(grab_byte(Endianness::Big, 0xDEADBEEF, 3, 4), 0xEF);
     }
 
     fn check_field_to_packed_byte_transform(
@@ -258,13 +258,13 @@ mod tests {
 
         let mut expect = expected_le;
         let is_le: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| field_to_packed_byte_transform(Endianess::Little, unpos_mask, field_pos, x, width_bytes))
+            .map(|x| field_to_packed_byte_transform(Endianness::Little, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_le);
 
         expect.reverse();
         let is_be: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| field_to_packed_byte_transform(Endianess::Big, unpos_mask, field_pos, x, width_bytes))
+            .map(|x| field_to_packed_byte_transform(Endianness::Big, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_be);
     }
@@ -352,7 +352,7 @@ mod tests {
             mask: 0xF0,
         });
         let is = field_byte_to_packed_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             0,
@@ -364,7 +364,7 @@ mod tests {
 
         let expect = None;
         let is = field_byte_to_packed_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             1,
@@ -379,7 +379,7 @@ mod tests {
             mask: 0x0F,
         });
         let is = field_byte_to_packed_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             0,
@@ -394,7 +394,7 @@ mod tests {
             mask: 0x30,
         });
         let is = field_byte_to_packed_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             1,
@@ -417,13 +417,13 @@ mod tests {
 
         let mut expect = expected_le;
         let is_le: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| packed_byte_to_field_transform(Endianess::Little, unpos_mask, field_pos, x, width_bytes))
+            .map(|x| packed_byte_to_field_transform(Endianness::Little, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_le);
 
         expect.reverse();
         let is_be: Vec<Option<Transform>> = (0..width_bytes)
-            .map(|x| packed_byte_to_field_transform(Endianess::Big, unpos_mask, field_pos, x, width_bytes))
+            .map(|x| packed_byte_to_field_transform(Endianness::Big, unpos_mask, field_pos, x, width_bytes))
             .collect();
         assert_eq!(expect, is_be);
     }
@@ -512,7 +512,7 @@ mod tests {
             mask: 0xF0,
         });
         let is = packed_byte_to_field_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             0,
@@ -524,7 +524,7 @@ mod tests {
 
         let expect = None;
         let is = packed_byte_to_field_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             1,
@@ -539,7 +539,7 @@ mod tests {
             mask: 0x0F,
         });
         let is = packed_byte_to_field_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             0,
@@ -554,7 +554,7 @@ mod tests {
             mask: 0x30,
         });
         let is = packed_byte_to_field_byte_transform(
-            Endianess::Little,
+            Endianness::Little,
             field_mask_unpos,
             field_pos,
             1,

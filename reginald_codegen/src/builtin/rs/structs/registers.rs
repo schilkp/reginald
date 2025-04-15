@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use super::*;
 
-use crate::{builtin::rs::array_literal, error::Error, utils::Endianess, writer::indent_writer::IndentWriter};
+use crate::{builtin::rs::array_literal, error::Error, utils::Endianness, writer::indent_writer::IndentWriter};
 
 use super::rs_pascalcase;
 
@@ -73,7 +73,7 @@ pub fn generate_register_impl(
 
     // Reset val:
     if let Some(reset_val) = &register.reset_val {
-        let val = array_literal(Endianess::Little, *reset_val, byte_width);
+        let val = array_literal(Endianness::Little, *reset_val, byte_width);
         writeln!(
             out,
             "    const RESET_VAL: Option<{trait_prefix}ResetVal<{byte_width}>> = Some({trait_prefix}ResetVal::LittleEndian({val}));"

@@ -6,7 +6,7 @@ use crate::{
     error::Error,
     regmap::{Docs, FieldType, Layout, LayoutField},
     utils::{
-        Endianess, ShiftDirection, field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
+        Endianness, ShiftDirection, field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
         packed_byte_to_field_byte_transform,
     },
     writer::header_writer::HeaderWriter,
@@ -132,7 +132,7 @@ fn generate_layout_pack_func(
     out: &mut dyn Write,
     inp: &Input,
     layout: &Layout,
-    endian: Endianess,
+    endian: Endianness,
 ) -> Result<(), Error> {
     // Strings/Properties:
     let code_prefix = c_code(&inp.map.name);
@@ -177,7 +177,7 @@ fn generate_layout_pack_func(
     writeln!(out, "{func_sig} {{")?;
 
     if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
-        // The implementaiton for this endianess defers to the other endianess:
+        // The implementaiton for this endianness defers to the other endianness:
         let defer_arr = format!("val_{}", defer_to.short());
         writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
         writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
@@ -299,7 +299,7 @@ fn generate_layout_unpack_func(
     out: &mut dyn Write,
     inp: &Input,
     layout: &Layout,
-    endian: Endianess,
+    endian: Endianness,
 ) -> Result<(), Error> {
     // Strings:
     let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));
@@ -335,7 +335,7 @@ fn generate_layout_unpack_func(
     writeln!(out, "{func_sig} {{")?;
 
     if let Some(defer_to) = inp.opts.defer_to_endian.filter(|x| *x != endian) {
-        // The implementaiton for this endianess defers to the other endianess:
+        // The implementaiton for this endianness defers to the other endianness:
         let defer_arr = format!("val_{}", defer_to.short());
         writeln!(out, "  uint8_t {defer_arr}[{width_bytes}] = {{0}};")?;
         writeln!(out, "  {}", swap_loop("val", &defer_arr, width_bytes))?;
@@ -505,7 +505,7 @@ fn generate_layout_try_unpack_func(
     out: &mut dyn Write,
     inp: &Input,
     layout: &Layout,
-    endian: Endianess,
+    endian: Endianness,
 ) -> Result<(), Error> {
     // Strings:
     let struct_name = format!("{}_{}", c_code(&inp.map.name), c_code(&layout.name));

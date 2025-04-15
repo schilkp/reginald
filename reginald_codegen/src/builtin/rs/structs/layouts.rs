@@ -8,7 +8,7 @@ use crate::{
     error::Error,
     regmap::{BitRange, FieldType, Layout, RegisterBlockMember},
     utils::{
-        Endianess, ShiftDirection, field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
+        Endianness, ShiftDirection, field_byte_to_packed_byte_transform, field_to_packed_byte_transform, grab_byte,
         packed_byte_to_field_byte_transform,
     },
     writer::indent_writer::IndentWriter,
@@ -181,7 +181,7 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
                 // Numeric field that can be directly converted:
                 for byte in 0..width_bytes {
                     let Some(transform) = field_to_packed_byte_transform(
-                        Endianess::Little,
+                        Endianness::Little,
                         field.bits.unpositioned_mask(),
                         field.bits.lsb_pos(),
                         byte,
@@ -219,8 +219,8 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
             FieldType::Fixed(fixed) => {
                 // Fixed value:
                 for byte in 0..width_bytes {
-                    let mask_byte = grab_byte(Endianess::Little, field.bits.mask(), byte, width_bytes);
-                    let value_byte = grab_byte(Endianess::Little, *fixed << field.bits.lsb_pos(), byte, width_bytes);
+                    let mask_byte = grab_byte(Endianness::Little, field.bits.mask(), byte, width_bytes);
+                    let value_byte = grab_byte(Endianness::Little, *fixed << field.bits.lsb_pos(), byte, width_bytes);
                     if mask_byte == 0 {
                         continue;
                     };
@@ -257,7 +257,7 @@ fn generate_layout_impl_to_bytes(inp: &Input, out: &mut dyn Write, layout: &Layo
                         // Determine required transform to put byte 'field_byte' of field into 'byte' of
                         // output:
                         let transform = field_byte_to_packed_byte_transform(
-                            Endianess::Little,
+                            Endianness::Little,
                             occupied_mask,
                             field.bits.lsb_pos(),
                             field_byte,
@@ -369,7 +369,7 @@ fn generate_layout_impl_from_bytes(inp: &Input, out: &mut dyn Write, layout: &La
                 // Determine required transform to put byte 'byte' of packed input into 'field_byte' of
                 // field:
                 let transform = packed_byte_to_field_byte_transform(
-                    Endianess::Little,
+                    Endianness::Little,
                     occupied_mask,
                     field.bits.lsb_pos(),
                     field_byte,
@@ -564,7 +564,7 @@ fn assemble_numeric_field(layout: &Layout, field: &LayoutField) -> Result<String
 
     for byte in 0..layout.width_bytes() {
         let Some(transform) = packed_byte_to_field_transform(
-            Endianess::Little,
+            Endianness::Little,
             field.bits.unpositioned_mask(),
             field.bits.lsb_pos(),
             byte,

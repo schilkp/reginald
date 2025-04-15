@@ -13,25 +13,25 @@ const DIGIT_SIZE: usize = 32;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 #[cfg_attr(feature = "clap", derive(ValueEnum))]
-pub enum Endianess {
+pub enum Endianness {
     Little,
     Big,
 }
 
-impl Display for Endianess {
+impl Display for Endianness {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Endianess::Little => write!(f, "little-endian"),
-            Endianess::Big => write!(f, "big-endian"),
+            Endianness::Little => write!(f, "little-endian"),
+            Endianness::Big => write!(f, "big-endian"),
         }
     }
 }
 
-impl Endianess {
+impl Endianness {
     pub fn short(&self) -> &'static str {
         match self {
-            Endianess::Little => "le",
-            Endianess::Big => "be",
+            Endianness::Little => "le",
+            Endianness::Big => "be",
         }
     }
 }
@@ -455,33 +455,33 @@ impl Bits {
         ranges_to_str(&b, style)
     }
 
-    /// Get the byte at a given position (interpreted with the specified endianess).
+    /// Get the byte at a given position (interpreted with the specified endianness).
     ///
     /// Example:
     /// ```rust
     /// # use reginald_utils::Bits;
-    /// # use reginald_utils::Endianess;
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Little, 0, 4), 0xEF);
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Little, 1, 4), 0xCD);
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Little, 2, 4), 0xAB);
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Little, 4, 4), 0x00);
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Big, 0, 3), 0xAB);
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Big, 1, 3), 0xCD);
-    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Big, 2, 3), 0xEF);
+    /// # use reginald_utils::Endianness;
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Little, 0, 4), 0xEF);
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Little, 1, 4), 0xCD);
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Little, 2, 4), 0xAB);
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Little, 4, 4), 0x00);
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Big, 0, 3), 0xAB);
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Big, 1, 3), 0xCD);
+    /// assert_eq!(Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Big, 2, 3), 0xEF);
     /// ```
     ///
     /// Be aware that requesting a byte at a big-endian position greater or equal to byte_width
     /// will panic:
     /// ```should_panic
     /// # use reginald_utils::Bits;
-    /// # use reginald_utils::Endianess;
+    /// # use reginald_utils::Endianness;
     /// assert_eq!(Bits::from_uint(0x00ABCDEF).width_bytes(), 0xEF);
-    /// Bits::from_uint(0x00ABCDEF).get_byte(Endianess::Big, 4, 3); // panics
+    /// Bits::from_uint(0x00ABCDEF).get_byte(Endianness::Big, 4, 3); // panics
     /// ```
-    pub fn get_byte(&self, endian: Endianess, byte_pos: usize, width_bytes: usize) -> u8 {
+    pub fn get_byte(&self, endian: Endianness, byte_pos: usize, width_bytes: usize) -> u8 {
         let le_byte_pos = match endian {
-            Endianess::Little => byte_pos,
-            Endianess::Big => width_bytes - byte_pos - 1,
+            Endianness::Little => byte_pos,
+            Endianness::Big => width_bytes - byte_pos - 1,
         };
 
         let digit = (le_byte_pos * 8) / DIGIT_SIZE;
@@ -495,11 +495,11 @@ impl Bits {
     }
 
     pub fn get_le_byte(&self, byte_pos: usize) -> u8 {
-        self.get_byte(Endianess::Little, byte_pos, self.width_bytes())
+        self.get_byte(Endianness::Little, byte_pos, self.width_bytes())
     }
 
     pub fn get_be_byte(&self, byte_pos: usize, width_bytes: usize) -> u8 {
-        self.get_byte(Endianess::Big, byte_pos, width_bytes)
+        self.get_byte(Endianness::Big, byte_pos, width_bytes)
     }
 
     fn trim(&mut self) {
@@ -782,31 +782,31 @@ mod tests {
     #[test]
     fn grab_bytes() {
         // Length 1:
-        assert_eq!(Bits::from_uint(0xAF).get_byte(Endianess::Little, 0, 1), 0xAF);
-        assert_eq!(Bits::from_uint(0xAF).get_byte(Endianess::Big, 0, 1), 0xAF);
+        assert_eq!(Bits::from_uint(0xAF).get_byte(Endianness::Little, 0, 1), 0xAF);
+        assert_eq!(Bits::from_uint(0xAF).get_byte(Endianness::Big, 0, 1), 0xAF);
 
         // Length 2:
-        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianess::Little, 0, 2), 0xEF);
-        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianess::Little, 1, 2), 0xBE);
-        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianess::Big, 0, 2), 0xBE);
-        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianess::Big, 1, 2), 0xEF);
+        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianness::Little, 0, 2), 0xEF);
+        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianness::Little, 1, 2), 0xBE);
+        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianness::Big, 0, 2), 0xBE);
+        assert_eq!(Bits::from_uint(0xBEEF).get_byte(Endianness::Big, 1, 2), 0xEF);
 
         // Length 3:
-        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianess::Little, 0, 3), 0xBE);
-        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianess::Little, 1, 3), 0xAD);
-        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianess::Little, 2, 3), 0xDE);
-        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianess::Big, 0, 3), 0xDE);
-        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianess::Big, 1, 3), 0xAD);
-        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianess::Big, 2, 3), 0xBE);
+        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianness::Little, 0, 3), 0xBE);
+        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianness::Little, 1, 3), 0xAD);
+        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianness::Little, 2, 3), 0xDE);
+        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianness::Big, 0, 3), 0xDE);
+        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianness::Big, 1, 3), 0xAD);
+        assert_eq!(Bits::from_uint(0xDEADBE).get_byte(Endianness::Big, 2, 3), 0xBE);
 
         // Length 4:
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Little, 0, 4), 0xEF);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Little, 1, 4), 0xBE);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Little, 2, 4), 0xAD);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Little, 3, 4), 0xDE);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Big, 0, 4), 0xDE);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Big, 1, 4), 0xAD);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Big, 2, 4), 0xBE);
-        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianess::Big, 3, 4), 0xEF);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Little, 0, 4), 0xEF);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Little, 1, 4), 0xBE);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Little, 2, 4), 0xAD);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Little, 3, 4), 0xDE);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Big, 0, 4), 0xDE);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Big, 1, 4), 0xAD);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Big, 2, 4), 0xBE);
+        assert_eq!(Bits::from_uint(0xDEADBEEF).get_byte(Endianness::Big, 3, 4), 0xEF);
     }
 }

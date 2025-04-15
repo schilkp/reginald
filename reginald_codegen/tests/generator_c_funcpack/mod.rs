@@ -13,7 +13,7 @@ use reginald_codegen::{
         funcpack::{Element, GeneratorOpts},
     },
     regmap::RegisterMap,
-    utils::Endianess,
+    utils::Endianness,
 };
 
 use crate::{TEST_MAP_FILE, print_cmd_output};
@@ -185,7 +185,7 @@ fn generator_c_funcpack_defer_to_le() {
         &d,
         "out.h",
         GeneratorOpts {
-            defer_to_endian: Some(Endianess::Little),
+            defer_to_endian: Some(Endianness::Little),
             ..GeneratorOpts::default()
         },
     );
@@ -204,7 +204,7 @@ fn generator_c_funcpack_defer_to_be() {
         &d,
         "out.h",
         GeneratorOpts {
-            defer_to_endian: Some(Endianess::Big),
+            defer_to_endian: Some(Endianness::Big),
             ..GeneratorOpts::default()
         },
     );

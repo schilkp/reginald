@@ -104,7 +104,7 @@ void test_basic_reg2(void) {
   TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_packed_reg_be, packed_reg_be, 2);
 
   // Try unpacking:
-  // Change values of unused bits. correct_endianess
+  // Change values of unused bits. correct_endianness
   // converts to little endian and back if big endian testing is enabled.
 
   packed_reg_le[0] |= 0x3 << 4;        // always-write

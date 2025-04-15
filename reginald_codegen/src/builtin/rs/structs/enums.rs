@@ -42,7 +42,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
             writeln!(out, "    fn from_le_bytes(val: &[u8; {width_bytes}]) -> Self {{")?;
             writeln!(out, "        match val {{")?;
             for entry in e.entries.values() {
-                let entry_val = array_literal(Endianess::Little, entry.value, width_bytes);
+                let entry_val = array_literal(Endianness::Little, entry.value, width_bytes);
                 let entry_name = rs_pascalcase(&entry.name);
                 writeln!(out, "            {entry_val} => Self::{entry_name},")?;
             }
@@ -53,7 +53,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
         FromBytesImpl::WrappingFromBytes => {
             let mut masked_array = vec![];
             for i in 0..width_bytes {
-                let mask = grab_byte(Endianess::Little, e.occupied_bits(), i, width_bytes);
+                let mask = grab_byte(Endianness::Little, e.occupied_bits(), i, width_bytes);
                 let byte = if mask == 0xFF {
                     format!("val[{i}]")
                 } else if mask == 0x00 {
@@ -70,7 +70,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
             writeln!(out, "    fn wrapping_from_le_bytes(val: &[u8; {width_bytes}]) -> Self {{")?;
             writeln!(out, "        match {masked_array} {{")?;
             for entry in e.entries.values() {
-                let entry_val = array_literal(Endianess::Little, entry.value, width_bytes);
+                let entry_val = array_literal(Endianness::Little, entry.value, width_bytes);
                 let entry_name = rs_pascalcase(&entry.name);
                 writeln!(out, "            {entry_val} => Self::{entry_name},")?;
             }
@@ -87,7 +87,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
             if !trait_prefix.is_empty() {
                 writeln!(out, "        use {trait_prefix}WrappingFromBytes;")?;
             }
-            let bytes_outside = masked_array_literal(Endianess::Little, "val", !e.occupied_bits(), width_bytes);
+            let bytes_outside = masked_array_literal(Endianness::Little, "val", !e.occupied_bits(), width_bytes);
             writeln!(out, "        let bytes_outside = {bytes_outside};")?;
             writeln!(out, "        if bytes_outside == [0; {width_bytes}] {{")?;
             writeln!(out, "            Ok(Self::wrapping_from_le_bytes(val))")?;
@@ -109,7 +109,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
                 writeln!(
                     out,
                     "           {} => Ok(Self::{}),",
-                    array_literal(Endianess::Little, entry.value, width_bytes),
+                    array_literal(Endianness::Little, entry.value, width_bytes),
                     rs_pascalcase(&entry.name)
                 )?;
             }
@@ -126,7 +126,7 @@ pub(super) fn generate_enum_impls(out: &mut dyn Write, inp: &Input, e: &Enum) ->
     writeln!(out, "    fn to_le_bytes(&self) -> [u8; {width_bytes}] {{")?;
     writeln!(out, "        match self {{")?;
     for entry in e.entries.values() {
-        let entry_val = array_literal(Endianess::Little, entry.value, width_bytes);
+        let entry_val = array_literal(Endianness::Little, entry.value, width_bytes);
         let entry_name = rs_pascalcase(&entry.name);
         writeln!(out, "            Self::{entry_name} => {entry_val},")?;
     }

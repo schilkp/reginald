@@ -13,13 +13,13 @@ export function GeneratorSettingsCFunpack({ config }: { config: Config }) {
 
       <ConfigToggleGroupSingle
         id="c_funcpack_endian"
-        value={config.Endianess}
+        value={config.Endianness}
         onValueChange={(value: string) => {
           if (value !== "le" && value !== "be" && value !== "both") return; // ...
-          config.updateProperty("Endianess", value);
+          config.updateProperty("Endianness", value);
         }}
-        label="Endianess"
-        description="Endianess of functions and constants to generate."
+        label="Endianness"
+        description="Endianness of functions and constants to generate."
       >
         <>
           <ToggleGroupItem value="le">Little</ToggleGroupItem>
@@ -35,8 +35,8 @@ export function GeneratorSettingsCFunpack({ config }: { config: Config }) {
           if (value !== "le" && value !== "be" && value !== "off") return; // ...
           config.updateProperty("DeferToEndian", value);
         }}
-        label="Defer-to Endianess"
-        description="For other endianess, generate only simple functions that defers to this implementation."
+        label="Defer-to Endianness"
+        description="For other endianness, generate only simple functions that defers to this implementation."
       >
         <>
           <ToggleGroupItem value="le">Little</ToggleGroupItem>

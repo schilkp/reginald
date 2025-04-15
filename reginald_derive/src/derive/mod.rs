@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use reginald_utils::{
-    Bits, Endianess, ShiftDirection, field_byte_to_packed_byte_transform, packed_byte_to_field_byte_transform,
+    Bits, Endianness, ShiftDirection, field_byte_to_packed_byte_transform, packed_byte_to_field_byte_transform,
 };
 
 use crate::{
@@ -355,7 +355,7 @@ fn generate_struct_field_to_byte_array(struct_info: &StructDeriveInput, field: &
             // Determine required transform to put byte 'field_byte' of field into 'byte' of
             // output:
             let transform = field_byte_to_packed_byte_transform(
-                Endianess::Little,
+                Endianness::Little,
                 &field_mask_unpos,
                 field_pos,
                 field_byte,
@@ -411,7 +411,7 @@ fn generate_struct_bytes_to_field_byte_array(struct_info: &StructDeriveInput, fi
             // Determine required transform to put byte 'byte' of packed input into 'field_byte' of
             // field:
             let transform = packed_byte_to_field_byte_transform(
-                Endianess::Little,
+                Endianness::Little,
                 &field_mask_unpos,
                 field_pos,
                 field_byte,

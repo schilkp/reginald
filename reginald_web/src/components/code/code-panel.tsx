@@ -25,28 +25,28 @@ const run_c_funcpack = (
   }
 
   const opts: wasm.CFuncpackOpts = new wasm.CFuncpackOpts();
-  switch (c_funcpack_config.Endianess) {
+  switch (c_funcpack_config.Endianness) {
     case "le":
-      opts.endianess = wasm.EndianessImpl.Little;
+      opts.endianness = wasm.EndiannessImpl.Little;
       break;
     case "be":
-      opts.endianess = wasm.EndianessImpl.Big;
+      opts.endianness = wasm.EndiannessImpl.Big;
       break;
     default:
     case "both":
-      opts.endianess = wasm.EndianessImpl.Both;
+      opts.endianness = wasm.EndiannessImpl.Both;
       break;
   }
   switch (c_funcpack_config.DeferToEndian) {
     case "le":
-      opts.defer_to_endianess = wasm.Endianess.Little;
+      opts.defer_to_endianness = wasm.Endianness.Little;
       break;
     case "be":
-      opts.defer_to_endianess = wasm.Endianess.Big;
+      opts.defer_to_endianness = wasm.Endianness.Big;
       break;
     default:
     case null:
-      opts.defer_to_endianess = null;
+      opts.defer_to_endianness = null;
       break;
   }
   opts.registers_as_bitfields = c_funcpack_config.RegistersAsBitfields;

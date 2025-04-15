@@ -2,29 +2,29 @@ use clap::Parser;
 use reginald_codegen::{
     builtin::c::{self, funcpack::Element},
     regmap::TypeBitwidth,
-    utils::Endianess,
+    utils::Endianness,
 };
 
 #[derive(Debug, Clone, Parser)]
 pub struct Cli {
-    /// Generate functions and enums with the given endianess.
+    /// Generate functions and enums with the given endianness.
     ///
-    /// May be given multiple times. If not specified, both endianess
+    /// May be given multiple times. If not specified, both endianness
     /// versions will be generated.
     #[arg(long)]
     #[arg(action = clap::ArgAction::Append)]
     #[arg(verbatim_doc_comment)]
     #[arg(conflicts_with("dont_generate"))]
-    pub endian: Vec<Endianess>,
+    pub endian: Vec<Endianness>,
 
-    /// For other endianess, generate only simple functions that defers to this implementation.
+    /// For other endianness, generate only simple functions that defers to this implementation.
     ///
-    /// If generating both endianess versions, only generate one complete
-    /// function implementation and have the other endianess defer to this
+    /// If generating both endianness versions, only generate one complete
+    /// function implementation and have the other endianness defer to this
     #[arg(long)]
     #[arg(action = clap::ArgAction::Set)]
     #[arg(verbatim_doc_comment)]
-    pub defer_to_endian: Option<Endianess>,
+    pub defer_to_endian: Option<Endianness>,
 
     /// Make register structs bitfields to reduce their memory size
     ///
