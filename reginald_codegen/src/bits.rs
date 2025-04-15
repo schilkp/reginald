@@ -212,7 +212,7 @@ pub fn mask_to_bit_ranges_str(mask: TypeValue) -> String {
 /// assert_eq!(bitwidth_to_width_bytes(9), 2);
 /// ```
 pub fn bitwidth_to_width_bytes(bitwidth: TypeBitwidth) -> TypeBitwidth {
-    (bitwidth + 7) / 8
+    bitwidth.div_ceil(8)
 }
 
 #[cfg(test)]

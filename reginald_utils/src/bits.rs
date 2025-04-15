@@ -385,7 +385,7 @@ impl Bits {
     /// assert_eq!(Bits::from_uint(0x1FF).width_bytes(), 2);
     /// ```
     pub fn width_bytes(&self) -> usize {
-        (self.bitwidth() + 7) / 8
+        self.bitwidth().div_ceil(8)
     }
 
     /// Determines the width of the field in bytes that these `Bits` describe,
@@ -400,7 +400,7 @@ impl Bits {
     /// assert_eq!(Bits::from_uint(0b0000_1111_1111_0000).positioned_width_bytes(), 1);
     /// ```
     pub fn positioned_width_bytes(&self) -> usize {
-        (self.positioned_bitwidth() + 7) / 8
+        self.positioned_bitwidth().div_ceil(8)
     }
 
     /// Conver to list of all bit positions that contain a one.
